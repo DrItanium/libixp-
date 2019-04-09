@@ -1,5 +1,21 @@
 include config.mk
 
+LIBIXP_CORE_OBJS := client.o \
+					convert.o \
+					error.o \
+					map.o \
+					message.o \
+					request.o \
+					rpc.o \
+					server.o \
+					socket.o \
+					srv_util.o \
+					thread.o \
+					timer.o \
+					transport.o \
+					util.o 
+LIBIXP_PTHREAD_THREAD_OBJS := thread_pthread.o
+LIBIXP_TASK_OBJS := thread_task.o
 I960JX_OBJS := opcodes.o Operand.o
 I960JX_SIM_OBJS := sim960jx.o \
 	core.o \
@@ -13,11 +29,13 @@ I960JX_SIM_OBJS := sim960jx.o \
 	$(I960JX_OBJS)
 I960JX_DEC_OBJS := decode960jx.o \
 	$(I960JX_OBJS)
+IXPC_OBJS := ixpc.o 
 
-I960JX_SIM_PROG := sim960jx
-I960JX_DEC_PROG := decode960jx
-OBJS := $(I960JX_DEC_OBJS) $(I960JX_SIM_OBJS)
-PROGS := $(I960JX_SIM_PROG) $(I960JX_DEC_PROG)
+IXPC_PROG := ixpc
+LIBIXP_ARCHIVE := libixp.a
+
+OBJS := $(LIBIXP_CORE_OBJS) $(LIBIXP_TASK_OBJS) $(LIBIXP_PTHREAD_THREAD_OBJS) $(IXPC_OBJS)
+PROGS := $(IXPC_PROG) $(LIBIXP_ARCHIVE)
 
 
 all: $(PROGS)
@@ -25,23 +43,22 @@ all: $(PROGS)
 options:
 	@echo Build Options
 	@echo ------------------
-	@echo CFLAGS = ${CFLAGS}
 	@echo CXXFLAGS = ${CXXFLAGS}
 	@echo LDFLAGS = ${LDFLAGS}
 	@echo ------------------
 
 
-$(I960JX_SIM_PROG): $(I960JX_SIM_OBJS)
-	@echo LD ${I960JX_SIM_PROG}
-	@${LD} ${LDFLAGS} -o ${I960JX_SIM_PROG} ${I960JX_SIM_OBJS}
+$(IXPC_PROG): $(IXPC_OBJS) $(LIBIXP_ARCHIVE)
+	@echo LD ${IXPC_PROG}
+	@${LD} ${LDFLAGS} -o ${IXPC_PROG} ${IXPC_OBJS} ${LIBIXP_ARCHIVE}
 
-$(I960JX_DEC_PROG): $(I960JX_DEC_OBJS)
-	@echo LD ${I960JX_DEC_PROG}
-	@${LD} ${LDFLAGS} -o ${I960JX_DEC_PROG} ${I960JX_DEC_OBJS}
+$(LIBIXP_ARCHIVE): $(LIBIXP_CORE_OBJS)
+	@echo AR ${LIBIXP_ARCHIVE}
+	@${AR} c ${LIBIXP_ARCHIVE} ${LIBIXP_CORE_OBJS}
 
 .cc.o :
 	@echo CXX $<
-	@${CXX} ${CXXFLAGS} -c $< -o $@
+	@${CXX} -I. ${CXXFLAGS} -c $< -o $@
 
 clean: 
 	@echo Cleaning...
@@ -54,58 +71,24 @@ clean:
 # generated via g++ -MM -std=c++17 *.cc *.h
 
 
+client.o: client.cc ixp_local.h
+convert.o: convert.cc ixp_local.h
+error.o: error.cc ixp_local.h
+ixpc.o: ixpc.cc
+map.o: map.cc ixp_local.h
+message.o: message.cc ixp_local.h
+request.o: request.cc ixp_local.h
+rpc.o: rpc.cc ixp_local.h
+server.o: server.cc ixp_local.h
+socket.o: socket.cc ixp_local.h
+srv_util.o: srv_util.cc ixp_local.h ixp_srvutil.h
+thread.o: thread.cc ixp_local.h
+thread_pthread.o: thread_pthread.cc ixp_local.h
+thread_task.o: thread_task.cc ixp_local.h
+timer.o: timer.cc ixp_local.h
+transport.o: transport.cc ixp_local.h
+util.o: util.cc ixp_local.h
+ixp.o: ixp.h
+ixp_local.o: ixp_local.h
+ixp_srvutil.o: ixp_srvutil.h
 
-ArithmeticControls.o: ArithmeticControls.cc types.h ArithmeticControls.h
-DoubleRegister.o: DoubleRegister.cc types.h DoubleRegister.h \
- NormalRegister.h ProcessControls.h
-NormalRegister.o: NormalRegister.cc NormalRegister.h types.h \
- ProcessControls.h
-Operand.o: Operand.cc Operand.h types.h
-ProcessControls.o: ProcessControls.cc ProcessControls.h types.h
-QuadRegister.o: QuadRegister.cc types.h QuadRegister.h NormalRegister.h \
- ProcessControls.h
-TripleRegister.o: TripleRegister.cc types.h TripleRegister.h \
- NormalRegister.h ProcessControls.h
-core.o: core.cc types.h core.h NormalRegister.h ProcessControls.h \
- DoubleRegister.h TripleRegister.h QuadRegister.h ArithmeticControls.h \
- memiface.h Operand.h Instruction.h InternalDataRam.h ConditionCode.h \
- conditional_kinds.def opcodes.h opcodes.def \
- ProcessorControlBlock.h MemoryMap.h
-
-decode960jx.o: decode960jx.cc types.h opcodes.h Instruction.h Operand.h \
- opcodes.def
-dispatcher.o: dispatcher.cc types.h core.h NormalRegister.h \
- ProcessControls.h DoubleRegister.h TripleRegister.h QuadRegister.h \
- ArithmeticControls.h memiface.h Operand.h Instruction.h \
- InternalDataRam.h ConditionCode.h conditional_kinds.def opcodes.h \
- opcodes.def
-opcodes.o: opcodes.cc types.h opcodes.h Instruction.h Operand.h \
- opcodes.def
-sim960jx.o: sim960jx.cc types.h NormalRegister.h ProcessControls.h \
- ArithmeticControls.h Operand.h opcodes.h Instruction.h \
- opcodes.def
-ArithmeticControls.o: ArithmeticControls.h types.h
-ConditionCode.o: ConditionCode.h types.h
-DoubleRegister.o: DoubleRegister.h types.h NormalRegister.h \
- ProcessControls.h
-Instruction.o: Instruction.h types.h Operand.h
-InternalDataRam.o: InternalDataRam.h types.h
-MemoryMap.o: MemoryMap.h types.h
-NormalRegister.o: NormalRegister.h types.h ProcessControls.h
-Operand.o: Operand.h types.h
-PMCONRegister.o: PMCONRegister.h types.h
-ProcessControls.o: ProcessControls.h types.h
-ProcessorControlBlock.o: ProcessorControlBlock.h types.h
-QuadRegister.o: QuadRegister.h types.h NormalRegister.h ProcessControls.h
-Records.o: Records.h types.h ProcessControls.h ArithmeticControls.h
-TripleRegister.o: TripleRegister.h types.h NormalRegister.h \
- ProcessControls.h
-bus.o: bus.h
-core.o: core.h types.h NormalRegister.h ProcessControls.h \
- DoubleRegister.h TripleRegister.h QuadRegister.h ArithmeticControls.h \
- memiface.h Operand.h Instruction.h InternalDataRam.h ConditionCode.h \
- conditional_kinds.def
-memiface.o: memiface.h types.h
-opcodes.o: opcodes.h types.h Instruction.h Operand.h opcodes.def
-operations.o: operations.h types.h
-types.o: types.h
