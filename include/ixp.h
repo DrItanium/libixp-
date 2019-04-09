@@ -819,4 +819,13 @@ char*	ixp_namespace(void);
 char*	ixp_smprint(const char*, ...);
 uint	ixp_strlcat(char*, const char*, uint);
 uint	ixp_tokenize(char**, uint len, char*, char);
+
+template<typename T>
+constexpr T min(T a, T b) noexcept {
+    if (a < b) {
+        return a;
+    } else {
+        return b;
+    }
+}
 #endif

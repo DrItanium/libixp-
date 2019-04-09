@@ -17,10 +17,9 @@ static IxpClient *client;
 
 static void
 usage(void) {
-	fprintf(stderr,
-		   "usage: %1$s [-a <address>] {create | read | ls [-ld] | remove | write | append} <file>\n"
-		   "       %1$s [-a <address>] xwrite <file> <data>\n"
-		   "       %1$s -v\n", argv0);
+    ixp::eprint("usage: ", argv0, " [-a <address>] {create | read | ls [-ld] | remove | write | append} <file>\n"
+                "       ", argv0, " [-a <address>] xwrite <file> <data>\n"
+                "       ", argv0, " -v\n");
 	exit(1);
 }
 
@@ -85,14 +84,16 @@ str_of_time(uint val) {
 
 static void
 print_stat(Stat *s, int details) {
-	if(details)
-		fprintf(stdout, "%s %s %s %5llu %s %s\n", str_of_mode(s->mode),
-				s->uid, s->gid, s->length, str_of_time(s->mtime), s->name);
-	else {
-		if((s->mode&P9_DMDIR) && strcmp(s->name, "/"))
-			fprintf(stdout, "%s/\n", s->name);
-		else
-			fprintf(stdout, "%s\n", s->name);
+	if(details) {
+        ixp::print(std::cout, str_of_mode(s->mode), " ", 
+                s->uid, " ", s->gid, " ", s->length, " ", 
+                str_of_time(s->mtime), " ", s->name, "\n");
+    } else {
+		if((s->mode&P9_DMDIR) && strcmp(s->name, "/")) {
+            ixp::print(std::cout, s->name, "/\n");
+        } else {
+            ixp::print(std::cout, s->name, "\n");
+        }
 	}
 }
 

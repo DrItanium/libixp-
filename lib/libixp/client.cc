@@ -18,12 +18,12 @@ enum {
 	RootFid = 1,
 };
 
-static int
-min(int a, int b) {
-	if(a < b)
-		return a;
-	return b;
-}
+//static int
+//min(int a, int b) {
+//	if(a < b)
+//		return a;
+//	return b;
+//}
 
 static IxpCFid*
 getfid(IxpClient *c) {
@@ -511,7 +511,7 @@ _pread(IxpCFid *f, char *buf, long count, int64_t offset) {
 
 	len = 0;
 	while(len < count) {
-		n = min(count-len, f->iounit);
+        n = min<int>(count-len, f->iounit);
 
 		fcall.hdr.type = TRead;
 		fcall.hdr.fid = f->fid;
@@ -584,7 +584,7 @@ _pwrite(IxpCFid *f, const void *buf, long count, int64_t offset) {
 
 	len = 0;
 	do {
-		n = min(count-len, f->iounit);
+		n = min<int>(count-len, f->iounit);
 		fcall.hdr.type = TWrite;
 		fcall.hdr.fid = f->fid;
 		fcall.twrite.offset = offset;

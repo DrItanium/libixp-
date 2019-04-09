@@ -3,14 +3,13 @@
 #define IXP_NO_P9_
 #include <ixp.h>
 #include <stdbool.h>
+#include <iostream>
 
 #undef ulong
 #define ulong _ixpulong
 typedef unsigned long ulong;
 
 #ifdef CPROTO
-# undef bool
-typedef int bool;
 typedef char* va_list;
 #endif
 
@@ -96,5 +95,17 @@ IxpFcall*	muxrpc(IxpClient*, IxpFcall*);
 
 /* timer.c */
 long	ixp_nexttimer(IxpServer*);
+
+namespace ixp {
+template<typename ... Args>
+void print(std::ostream& os, Args&& ... args) {
+    (os << ... << args);
+}
+
+template<typename ... Args>
+void eprint(Args&& ... args) {
+    ixp::print(std::cerr, args...);
+}
+}
 
 #endif
