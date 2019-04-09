@@ -156,7 +156,7 @@ ixp_mountfd(int fd) {
 
 	fcall.hdr.type = TVersion;
 	fcall.version.msize = IXP_MAX_MSG;
-	fcall.version.version = IXP_VERSION;
+	fcall.version.version = (char*)IXP_VERSION;
 
 	if(dofcall(c, &fcall) == 0) {
 		ixp_unmount(c);
@@ -181,7 +181,7 @@ ixp_mountfd(int fd) {
 	fcall.hdr.fid = RootFid;
 	fcall.tattach.afid = IXP_NOFID;
 	fcall.tattach.uname = getenv("USER");
-	fcall.tattach.aname = "";
+	fcall.tattach.aname = (char*)"";
 	if(dofcall(c, &fcall) == 0) {
 		ixp_unmount(c);
 		return nil;
@@ -553,7 +553,7 @@ ixp_read(IxpCFid *fid, void *buf, long count) {
 	int n;
 
 	thread->lock(&fid->iolock);
-	n = _pread(fid, buf, count, fid->offset);
+	n = _pread(fid, (char*)buf, count, fid->offset);
 	if(n > 0)
 		fid->offset += n;
 	thread->unlock(&fid->iolock);
@@ -565,7 +565,7 @@ ixp_pread(IxpCFid *fid, void *buf, long count, int64_t offset) {
 	int n;
 
 	thread->lock(&fid->iolock);
-	n = _pread(fid, buf, count, offset);
+	n = _pread(fid, (char*)buf, count, offset);
 	thread->unlock(&fid->iolock);
 	return n;
 }
