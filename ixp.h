@@ -12,6 +12,7 @@
 #include <ostream>
 #include <iostream>
 #include <sstream>
+#include <functional>
 
 namespace ixp {
     using uint = unsigned int;
@@ -609,21 +610,25 @@ struct Ixp9Srv {
  *	F<ixp_pthread_init>, F<ixp_taskinit>, F<ixp_rubyinit>
  */
 struct IxpThread {
+    using RWLockFuncWithRet = std::function<int(IxpRWLock*)>;
+    using RWLockFuncNoRet = std::function<void(IxpRWLock*)>;
+    using MutexFuncWithRet = std::function<int(IxpMutex*)>;
+    using MutexFuncNoRet = std::function<void(IxpMutex*)>;
 	/* Read/write lock */
-	int	(*initrwlock)(IxpRWLock*);
-	void	(*rlock)(IxpRWLock*);
-	int	(*canrlock)(IxpRWLock*);
-	void	(*runlock)(IxpRWLock*);
-	void	(*wlock)(IxpRWLock*);
-	int	(*canwlock)(IxpRWLock*);
-	void	(*wunlock)(IxpRWLock*);
-	void	(*rwdestroy)(IxpRWLock*);
+    RWLockFuncWithRet initrwlock;
+    RWLockFuncNoRet rlock;
+    RWLockFuncWithRet canrlock;
+    RWLockFuncNoRet runlock, 
+                    wlock;
+    RWLockFuncWithRet canwlock;
+    RWLockFuncNoRet wunlock,
+                    rwdestroy;
 	/* Mutex */
-	int	(*initmutex)(IxpMutex*);
-	void	(*lock)(IxpMutex*);
-	int	(*canlock)(IxpMutex*);
-	void	(*unlock)(IxpMutex*);
-	void	(*mdestroy)(IxpMutex*);
+    MutexFuncWithRet initmutex;
+    MutexFuncNoRet lock;
+    MutexFuncWithRet canlock;
+    MutexFuncNoRet unlock,
+                   mdestroy;
 	/* Rendezvous point */
 	int	(*initrendez)(IxpRendez*);
 	void	(*sleep)(IxpRendez*);

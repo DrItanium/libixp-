@@ -2,8 +2,6 @@
 #include <unistd.h>
 #include "ixp_local.h"
 
-static IxpThread    ixp_nothread;
-IxpThread*          ixp_thread = &ixp_nothread;
 
 static char*
 errbuf(void) {
@@ -70,17 +68,17 @@ static IxpThread ixp_nothread = {
 	/* RWLock */
 	.initrwlock = rwfalse,
 	.rlock = rwvoid,
-	.runlock = rwvoid,
 	.canrlock = rwtrue,
+	.runlock = rwvoid,
 	.wlock = rwvoid,
-	.wunlock = rwvoid,
 	.canwlock = rwtrue,
+	.wunlock = rwvoid,
 	.rwdestroy = rwvoid,
 	/* Mutex */
 	.initmutex = mfalse,
 	.lock = mvoid,
-	.unlock = mvoid,
 	.canlock = mtrue,
+	.unlock = mvoid,
 	.mdestroy = mvoid,
 	/* Rendez */
 	.initrendez = rfalse,
@@ -95,3 +93,4 @@ static IxpThread ixp_nothread = {
 	.select = select,
 };
 
+IxpThread*          ixp_thread = &ixp_nothread;
