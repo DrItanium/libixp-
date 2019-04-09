@@ -134,7 +134,7 @@ ixp_pstring(IxpMsg *msg, char **s) {
 
 	if(msg->pos + len <= msg->end) {
 		if(msg->mode == MsgUnpack) {
-			*s = emalloc(len + 1);
+			*s = (char*)emalloc(len + 1);
 			memcpy(*s, msg->pos, len);
 			(*s)[len] = '\0';
 		}else
@@ -192,7 +192,7 @@ ixp_pstrings(IxpMsg *msg, uint16_t *num, char *strings[], uint max) {
 		}
 		msg->pos = s;
 		size += *num;
-		s = emalloc(size);
+		s = (char*)emalloc(size);
 	}
 
 	for(i=0; i < *num; i++) {
@@ -232,7 +232,7 @@ void
 ixp_pdata(IxpMsg *msg, char **data, uint len) {
 	if(msg->pos + len <= msg->end) {
 		if(msg->mode == MsgUnpack) {
-			*data = emalloc(len);
+			*data = (char*)emalloc(len);
 			memcpy(*data, msg->pos, len);
 		}else
 			memcpy(msg->pos, *data, len);

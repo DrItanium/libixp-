@@ -21,7 +21,7 @@ _vsmprint(const char *fmt, va_list ap) {
 	n = vsnprintf(buf, 0, fmt, al);
 	va_end(al);
 
-	buf = malloc(++n);
+	buf = (char*)malloc(++n);
 	if(buf)
 		vsnprintf(buf, n, fmt, ap);
 	return buf;

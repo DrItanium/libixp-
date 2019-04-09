@@ -23,12 +23,6 @@ static void handlereq(Ixp9Req *r);
  */
 void (*ixp_printfcall)(IxpFcall*);
 
-static int
-min(int a, int b) {
-	if(a < b)
-		return a;
-	return b;
-}
 
 static char
 	Eduptag[] = "tag in use",
@@ -88,7 +82,7 @@ static void*
 createfid(Map *map, int fid, Ixp9Conn *p9conn) {
 	IxpFid *f;
 
-	f = emallocz(sizeof *f);
+	f = (IxpFid*)emallocz(sizeof *f);
 	p9conn->ref++;
 	f->conn = p9conn;
 	f->fid = fid;
@@ -131,7 +125,7 @@ handlefcall(IxpConn *c) {
 		goto Fail;
 	thread->unlock(&p9conn->rlock);
 
-	req = emallocz(sizeof *req);
+	req = (Ixp9Req*)emallocz(sizeof *req);
 	p9conn->ref++;
 	req->conn = p9conn;
 	req->srv = p9conn->srv;
@@ -386,7 +380,7 @@ ixp_respond(Ixp9Req *req, const char *error) {
 
 		thread->lock(&p9conn->rlock);
 		thread->lock(&p9conn->wlock);
-		msize = min(req->ofcall.version.msize, IXP_MAX_MSG);
+		msize = ixp::min<int>(req->ofcall.version.msize, IXP_MAX_MSG);
 		p9conn->rmsg.data = erealloc(p9conn->rmsg.data, msize);
 		p9conn->wmsg.data = erealloc(p9conn->wmsg.data, msize);
 		p9conn->rmsg.size = msize;
@@ -493,7 +487,7 @@ voidrequest(void *context, void *arg) {
 	conn = orig_req->conn;
 	conn->ref++;
 
-	flush_req = emallocz(sizeof *orig_req);
+	flush_req = (Ixp9Req*)emallocz(sizeof *orig_req);
 	flush_req->ifcall.hdr.type = TFlush;
 	flush_req->ifcall.hdr.tag = IXP_NOTAG;
 	flush_req->ifcall.tflush.oldtag = orig_req->ifcall.hdr.tag;
@@ -514,7 +508,7 @@ voidfid(void *context, void *arg) {
 	p9conn = fid->conn;
 	p9conn->ref++;
 
-	clunk_req = emallocz(sizeof *clunk_req);
+	clunk_req = (Ixp9Req*)emallocz(sizeof *clunk_req);
 	clunk_req->ifcall.hdr.type = TClunk;
 	clunk_req->ifcall.hdr.tag = IXP_NOTAG;
 	clunk_req->ifcall.hdr.fid = fid->fid;
@@ -580,7 +574,7 @@ ixp_serve9conn(IxpConn *c) {
 	if(fd < 0)
 		return;
 
-	p9conn = emallocz(sizeof *p9conn);
+	p9conn = (Ixp9Conn*)emallocz(sizeof *p9conn);
 	p9conn->ref++;
 	p9conn->srv = c->aux;
 	p9conn->rmsg.size = 1024;

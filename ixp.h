@@ -49,13 +49,13 @@ namespace ixp {
     }
 
     template<typename ... Args>
-    void eprint(Args&& ... args) {
+    void errorPrint(Args&& ... args) {
         ixp::print(std::cerr, args...);
     }
 
     template<typename ... Args>
     void fatalPrint(Args&& ... args) {
-        eprint(args...);
+        errorPrint(args...);
         exit(1);
     }
 
