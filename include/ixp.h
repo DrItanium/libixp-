@@ -1,3 +1,5 @@
+#ifndef LIBIXP_H__
+#define LIBIXP_H__
 /* Copyright ©2006-2010 Kris Maglione <maglione.k at Gmail>
  * See LICENSE file for license details.
  */
@@ -817,4 +819,4 @@ char*	ixp_namespace(void);
 char*	ixp_smprint(const char*, ...);
 uint	ixp_strlcat(char*, const char*, uint);
 uint	ixp_tokenize(char**, uint len, char*, char);
-
+#endif

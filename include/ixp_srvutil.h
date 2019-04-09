@@ -1,12 +1,13 @@
+#ifndef LIBIXP_SRVUTIL_H__
+#define LIBIXP_SRVUTIL_H__
 
 typedef struct IxpDirtab	IxpDirtab;
-typedef struct IxpFileId	IxpFileId;
 typedef struct IxpPendingLink	IxpPendingLink;
 typedef struct IxpPending	IxpPending;
 typedef struct IxpQueue		IxpQueue;
 typedef struct IxpRequestLink	IxpRequestLink;
-
-typedef IxpFileId* (*IxpLookupFn)(IxpFileId*, char*);
+struct IxpFileId;
+using IxpLookupFn = std::function<IxpFileId*(IxpFileId*, char*)>;
 
 struct IxpPendingLink {
 	/* Private members */
@@ -71,4 +72,4 @@ void	ixp_srv_writebuf(Ixp9Req*, char**, uint*, uint);
 char*	ixp_srv_writectl(Ixp9Req*, char* (*)(void*, IxpMsg*));
 IxpFileId* ixp_srv_getfile(void);
 
-
+#endif

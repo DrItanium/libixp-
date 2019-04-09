@@ -1,3 +1,5 @@
+#ifndef LIBIXP_LOCAL_H__
+#define  LIBIXP_LOCAL_H__
 #define IXP_NO_P9_
 #include <ixp.h>
 #include <stdbool.h>
@@ -38,8 +40,7 @@ char *argv0;
 /* # define SET(x) USED(&x) GCC 4 is 'too smart' for this. */
 #endif
 
-#undef nil
-#define nil ((void*)0)
+constexpr auto nil = nullptr;
 #define nelem(ary) (sizeof(ary) / sizeof(*ary))
 
 #define thread ixp_thread
@@ -60,12 +61,10 @@ char *argv0;
 #define rerrstr ixp_rerrstr
 #define werrstr ixp_werrstr
 
-typedef struct IxpMap Map;
-typedef struct MapEnt MapEnt;
+struct MapEnt;
+using Map = IxpMap;
+using Timer = IxpTimer;
 
-typedef IxpTimer Timer;
-
-typedef struct timeval timeval;
 
 struct IxpMap {
 	MapEnt**	bucket;
@@ -98,3 +97,4 @@ IxpFcall*	muxrpc(IxpClient*, IxpFcall*);
 /* timer.c */
 long	ixp_nexttimer(IxpServer*);
 
+#endif
