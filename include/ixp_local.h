@@ -106,6 +106,21 @@ template<typename ... Args>
 void eprint(Args&& ... args) {
     ixp::print(std::cerr, args...);
 }
+
+template<typename ... Args>
+void fatalPrint(Args&& ... args) {
+    eprint(args...);
+    exit(1);
+}
+
+template<typename T>
+constexpr T min(T a, T b) noexcept {
+    if (a < b) {
+        return a;
+    } else {
+        return b;
+    }
+}
 }
 
 #endif
