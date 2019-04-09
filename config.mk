@@ -1,46 +1,11 @@
-# Customize below to fit your system
+#ASMTOOL := asminst -a x86_64_gcc -ck --
+CXX := ${ASMTOOL} g++
+LD := ${CXX}
 
-COMPONENTS = \
-	libixp \
-	libixp_pthread
-
-# Paths
-PREFIX = /usr/local
-  BIN = $(PREFIX)/bin
-  MAN = $(PREFIX)/share/man
-  ETC = $(PREFIX)/etc
-  LIBDIR = $(PREFIX)/lib
-  INCLUDE = $(PREFIX)/include
-
-# Includes and libs
-INCLUDES = -I. -I$(ROOT)/include -I$(INCLUDE) -I/usr/include
-LIBS = -L/usr/lib -lc
-
-# Flags
-include $(ROOT)/mk/gcc.mk
-CFLAGS += $(DEBUGCFLAGS) $(INCS)
-LDFLAGS = -g $(LDLIBS) $(LIBS)
-
-# Compiler, Linker. Linker should usually *not* be ld.
-CC = cc -c
-LD = cc
-# Archiver
-AR = ar crs
-#AR = sh -c 'ar cr "$$@" && ranlib "$$@"'
-
-# Solaris
-#CFLAGS = -fast $(INCS)
-#LDFLAGS = $(LIBS) -R$(PREFIX)/lib -lsocket -lnsl
-#CFLAGS += -xtarget=ultra
-
-# Misc
-#MAKESO = 1
-
-# Extra Components
-IGNORE = \
-	libixp_task \
-	libixp_rubythread
-
-RUBYINC = -I/usr/local/lib/ruby/1.8/i386-freebsd6
-TASKINC = -I$(HOME)/libtask
-
+#ASMTOOL_EXTRAS := -fPIC
+GENFLAGS := -Wall -Wextra ${ASMTOOL_EXTRAS}
+#LIBS :=
+#OPTIMIZATION_FLAGS := -O2
+DEBUGGING_FLAGS := -g3
+CXXFLAGS := -std=c++17 ${GENFLAGS} ${OPTIMIZATION_FLAGS} ${DEBUGGING_FLAGS}
+LDFLAGS := ${LIBS} ${OPTIMIZATION_FLAGS}
