@@ -26,8 +26,15 @@ COMPILE_FLAGS = $(EXCFLAGS) $(CFLAGS) $$(pkg-config --cflags $(PACKAGES))
 COMPILE    = $(SHELL) $(ROOT)/util/compile "$(CC)" "$(COMPILE_FLAGS)"
 COMPILEPIC = $(SHELL) $(ROOT)/util/compile "$(CC)" "$(COMPILE_FLAGS) $(SOCFLAGS)"
 
+COMPILEXX_FLAGS = $(EXCFLAGS) $(CXXFLAGS) $$(pkg-config --cflags $(PACKAGES))
+COMPILEXX    = $(SHELL) $(ROOT)/util/compile "$(CXX)" "$(COMPILEXX_FLAGS)"
+COMPILEXXPIC = $(SHELL) $(ROOT)/util/compile "$(CXX)" "$(COMPILEXX_FLAGS) $(SOCXXFLAGS)"
+
 LINK   = $(SHELL) $(ROOT)/util/link "$(LD)" "$$(pkg-config --libs $(PACKAGES)) $(LDFLAGS) $(LIBS)"
 LINKSO = $(SHELL) $(ROOT)/util/link "$(LD)" "$$(pkg-config --libs $(PACKAGES)) $(SOLDFLAGS) $(LIBS) $(SHARED)"
+
+LINKXX   = $(SHELL) $(ROOT)/util/link "$(CXX)" "$$(pkg-config --libs $(PACKAGES)) $(LDFLAGS) $(LIBS)"
+LINKXXSO = $(SHELL) $(ROOT)/util/link "$(CXX)" "$$(pkg-config --libs $(PACKAGES)) $(SOLDFLAGS) $(LIBS) $(SHARED)"
 
 CLEANNAME=$(SHELL) $(ROOT)/util/cleanname
 
@@ -73,11 +80,19 @@ MAKEFILES=.depend
 .c.o_pic:
 	$(COMPILEPIC) $@ $<
 
+.cc.o:
+	$(COMPILEXX) $@ $<
+.cc.o_pic:
+	$(COMPILEXXPIC) $@ $<
+
 .o.out:
 	$(LINK) $@ $<
 .c.out:
 	$(COMPILE) $(<:.c=.o) $<
 	$(LINK) $@ $(<:.c=.o)
+.cc.out:
+	$(COMPILEXX) $(<:.cc=.o) $<
+	$(LINKXX) $@ $(<:.cc=.o)
 
 .rc.out .awk.out .sh.out:
 	echo FILTER $(BASE)$<
