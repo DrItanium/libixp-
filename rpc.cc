@@ -40,7 +40,7 @@ initrpc(IxpClient *mux, IxpRpc *r)
 {
 	r->mux = mux;
 	r->waiting = 1;
-	r->r.mutex = &mux->lk;
+	r->r.mutex = (decltype(r->r.mutex))&mux->lk;
 	r->p = nil;
 	thread->initrendez(&r->r);
 }
@@ -88,7 +88,7 @@ muxrecv(IxpClient *mux)
 	thread->lock(&mux->rlock);
 	if(ixp_recvmsg(mux->fd, &mux->rmsg) == 0)
 		goto fail;
-	f = emallocz(sizeof *f);
+	f = (decltype(f))emallocz(sizeof *f);
 	if(ixp_msg2fcall(&mux->rmsg, f) == 0) {
 		free(f);
 		f = nil;
@@ -214,7 +214,7 @@ gettag(IxpClient *mux, IxpRpc *r)
 					mw = 1;
 				else
 					mw <<= 1;
-				w = realloc(mux->wait, mw * sizeof *w);
+				w = (decltype(w))realloc(mux->wait, mw * sizeof *w);
 				if(w == nil)
 					return -1;
 				memset(w+mux->mwait, 0, (mw-mux->mwait) * sizeof *w);
