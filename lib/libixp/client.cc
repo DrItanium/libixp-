@@ -18,13 +18,6 @@ enum {
 	RootFid = 1,
 };
 
-//static int
-//min(int a, int b) {
-//	if(a < b)
-//		return a;
-//	return b;
-//}
-
 static IxpCFid*
 getfid(IxpClient *c) {
 	IxpCFid *f;
@@ -34,7 +27,7 @@ getfid(IxpClient *c) {
 	if(f != nil)
 		c->freefid = f->next;
 	else {
-		f = emallocz(sizeof *f);
+		f = (IxpCFid*)emallocz(sizeof *f);
 		f->client = c;
 		f->fid = ++c->lastfid;
 		thread->initmutex(&f->iolock);
@@ -117,8 +110,8 @@ static void
 allocmsg(IxpClient *c, int n) {
 	c->rmsg.size = n;
 	c->wmsg.size = n;
-	c->rmsg.data = erealloc(c->rmsg.data, n);
-	c->wmsg.data = erealloc(c->wmsg.data, n);
+	c->rmsg.data = (char*)erealloc(c->rmsg.data, n);
+	c->wmsg.data = (char*)erealloc(c->wmsg.data, n);
 }
 
 /**
@@ -150,7 +143,7 @@ ixp_mountfd(int fd) {
 	IxpClient *c;
 	IxpFcall fcall;
 
-	c = emallocz(sizeof *c);
+	c = (IxpClient*)emallocz(sizeof *c);
 	c->fd = fd;
 
 	muxinit(c);
@@ -454,7 +447,7 @@ _stat(IxpClient *c, ulong fid) {
 
 	msg = ixp_message((char*)fcall.rstat.stat, fcall.rstat.nstat, MsgUnpack);
 
-	stat = emalloc(sizeof *stat);
+	stat = (IxpStat*)emalloc(sizeof *stat);
 	ixp_pstat(&msg, stat);
 	ixp_freefcall(&fcall);
 	if(msg.pos > msg.end) {
@@ -511,7 +504,7 @@ _pread(IxpCFid *f, char *buf, long count, int64_t offset) {
 
 	len = 0;
 	while(len < count) {
-        n = min<int>(count-len, f->iounit);
+        n = ixp::min<int>(count-len, f->iounit);
 
 		fcall.hdr.type = TRead;
 		fcall.hdr.fid = f->fid;
@@ -584,7 +577,7 @@ _pwrite(IxpCFid *f, const void *buf, long count, int64_t offset) {
 
 	len = 0;
 	do {
-		n = min<int>(count-len, f->iounit);
+		n = ixp::min<int>(count-len, f->iounit);
 		fcall.hdr.type = TWrite;
 		fcall.hdr.fid = f->fid;
 		fcall.twrite.offset = offset;

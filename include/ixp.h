@@ -1,6 +1,7 @@
 #ifndef LIBIXP_H__
 #define LIBIXP_H__
-/* Copyright ©2006-2010 Kris Maglione <maglione.k at Gmail>
+/* C Implementation copyright ©2006-2010 Kris Maglione <maglione.k at Gmail>
+ * C++ Implementation copyright (c)2019 Joshua Scoggins
  * See LICENSE file for license details.
  */
 
@@ -8,19 +9,65 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <sys/select.h>
+#include <ostream>
+#include <iostream>
+#include <sstream>
 
 namespace ixp {
-    constexpr auto ApiVersion = 135;
     using uint = unsigned int;
+    constexpr auto ApiVersion = 135;
     constexpr auto Version = "9P2000";
     constexpr auto NoTag = uint16_t(~0); 
     constexpr auto NoFid = ~0u;
 #define STRUCT(x) __extension__ struct {x};
 #define UNION(x) __extension__ union {x};
-#define IXP_VERSION	ixp::Version
 #define IXP_NOTAG	ixp::NoTag /* Dummy tag */
 #define IXP_NOFID	ixp::NoFid
+#define IXP_VERSION ixp::Version
 #define IXP_API ixp::ApiVersion
+    class FileHeader {
+        public:
+            FileHeader() = default;
+            ~FileHeader() = default;
+            FileHeader(const FileHeader&) = default;
+            FileHeader(FileHeader&&) = default;
+            constexpr auto getType() const noexcept { return _type; }
+            void setType(uint8_t type) noexcept { _type = type; }
+            constexpr auto getTag() const noexcept { return _tag; }
+            void setTag(uint16_t tag) noexcept { _tag = tag; }
+            constexpr auto getFid() const noexcept { return _fid; }
+            void setFid(uint32_t fid) noexcept { _fid = fid; }
+        private:
+            uint8_t _type;
+            uint16_t _tag;
+            uint32_t _fid;
+    };
+
+    template<typename ... Args>
+    void print(std::ostream& os, Args&& ... args) {
+        (os << ... << args);
+    }
+
+    template<typename ... Args>
+    void eprint(Args&& ... args) {
+        ixp::print(std::cerr, args...);
+    }
+
+    template<typename ... Args>
+    void fatalPrint(Args&& ... args) {
+        eprint(args...);
+        exit(1);
+    }
+
+    template<typename T>
+    constexpr T min(T a, T b) noexcept {
+        if (a < b) {
+            return a;
+        } else {
+            return b;
+        }
+    }
+
 } // end namespace ixp
 
 enum {

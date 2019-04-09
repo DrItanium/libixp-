@@ -63,7 +63,7 @@ rfalse(IxpRendez *r) {
 static void
 rsleep(IxpRendez *r) {
 	USED(r);
-	eprint("rsleep called when not implemented\n");
+    ixp::fatalPrint("rsleep called when not implemented\n");
 }
 
 static IxpThread ixp_nothread = {

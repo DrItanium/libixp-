@@ -24,7 +24,9 @@ struct IxpQueue {
 	long		len;
 };
 
-#define QID(t, i) (((int64_t)((t)&0xFF)<<32)|((i)&0xFFFFFFFF))
+constexpr auto QID(int64_t t, int64_t i) noexcept {
+    return int64_t((t & 0xFF)<<32) | int64_t(i & 0xFFFF'FFFF);
+}
 
 static IxpFileId*	free_fileid;
 
