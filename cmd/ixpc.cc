@@ -29,7 +29,7 @@ write_data(IxpCFid *fid, char *name) {
 	void *buf;
 	long len;
 
-	buf = emalloc(fid->iounit);;
+	buf = emalloc(fid->iounit);
 	do {
 		len = read(0, buf, fid->iounit);
 		if(len >= 0 && ixp_write(fid, buf, len) != len) {
@@ -49,38 +49,34 @@ comp_stat(const void *s1, const void *s2) {
 	return strcmp(st1->name, st2->name);
 }
 
-static void
-setrwx(long m, char *s) {
-	static char *modes[] = {
+const std::string&
+setrwx(long m) {
+    static std::vector<std::string> modes = {
 		"---", "--x", "-w-",
 		"-wx", "r--", "r-x",
 		"rw-", "rwx",
 	};
-	strncpy(s, modes[m], 3);
+    return modes[m];
 }
 
-static char *
+std::string
 str_of_mode(uint mode) {
-	static char buf[16];
-
-	buf[0]='-';
-	if(mode & P9_DMDIR)
-		buf[0]='d';
-	buf[1]='-';
-	setrwx((mode >> 6) & 7, &buf[2]);
-	setrwx((mode >> 3) & 7, &buf[5]);
-	setrwx((mode >> 0) & 7, &buf[8]);
-	buf[11] = 0;
-	return buf;
+    std::stringstream buf;
+    ixp::print(buf, (mod & P9_DMDIR ? 'd' : '-'),
+            '-', 
+            setrwx((mode >> 6) & 7),
+            setrwx((mode >> 3) & 7),
+            setrwx((mode >> 0) & 7));
+    auto str = buf.str();
+    return str;
 }
 
-static char *
+std::string
 str_of_time(uint val) {
 	static char buf[32];
-
 	ctime_r((time_t*)&val, buf);
 	buf[strlen(buf) - 1] = '\0';
-	return buf;
+    return std::string(buf);
 }
 
 static void

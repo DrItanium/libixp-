@@ -9,90 +9,19 @@
 #include <sys/types.h>
 #include <sys/select.h>
 
-/**
- * Macro: IXP_API
- * Macro: IXP_NEEDAPI
- * Macro: IXP_MAXAPI
- * Macro: IXP_ASSERT_VERSION
- *
- * IXP_API contains the current libixp API revision number.
- *
- * IXP_NEEDAPI, if defined before ixp.h is included, directs the
- * header to present an older version of the libixp API. This allows
- * code written for older versions of libixp to compile against
- * newer versions without modification. It does not, however, ensure
- * that it will link against a different version of libixp than the
- * ixp.h header belongs to.
- *
- * IXP_MAXAPI, if defined before ixp.h is included, prevents code
- * from compiling with a newer version of libixp than specified.
- *
- * When inserted into any function, IXP_ASSERT_VERSION ensures that
- * the resulting object will fail to link link against any version
- * of libixp with a different API version than it was compiled
- * against.
- */
-#define IXP_API 135
-#define _IXP_ASSERT_VERSION ixp_version_ ## 135 ## _required
-
-#ifndef IXP_NEEDAPI
-#define IXP_NEEDAPI IXP_API
-#endif
-
-#ifndef IXP_MAXAPI
-#define IXP_MAXAPI IXP_API
-#endif
-
-#define IXP_ASSERT_VERSION do _IXP_ASSERT_VERSION = 0; while(0)
-extern int _IXP_ASSERT_VERSION;
-
-/* Gunk */
-#if IXP_API < IXP_NEEDAPI
-#  error A newer version of libixp is needed for this compilation.
-#endif
-#if IXP_API > IXP_MAXAPI
-#  warning This version of libixp has a newer API than this compilation requests.
-#endif
-
-#if IXP_NEEDAPI < 127
-# undef	uchar
-# undef	ushort
-# undef	ulong
-# undef	vlong
-# undef	uvlong
-# define	uchar		_ixpuchar
-# define	ushort	_ixpushort
-# define	ulong	_ixpulong
-# define	vlong	_ixpvlong
-# define	uvlong	_ixpuvlong
-
-typedef unsigned char	uchar;
-typedef uint16_t	ushort;
-typedef uint32_t	ulong;
-typedef uint64_t	uvlong;
-
-typedef int64_t		vlong;
-
-# define respond ixp_respond
-# define serve_9pcon ixp_serve9conn
-#endif
-
-#undef	uint
-#define	uint		_ixpuint
-typedef unsigned int	uint;
-
-#ifdef KENC
-#  define STRUCT(x) struct {x};
-#  define UNION(x) union {x};
-#elif defined(__GNUC__)
-#  define STRUCT(x) __extension__ struct {x};
-#  define UNION(x) __extension__ union {x};
-#endif
-/* End Gunk */
-
-#define IXP_VERSION	"9P2000"
-#define IXP_NOTAG	((uint16_t)~0)	/* Dummy tag */
-#define IXP_NOFID	(~0U)
+namespace ixp {
+    constexpr auto ApiVersion = 135;
+    using uint = unsigned int;
+    constexpr auto Version = "9P2000";
+    constexpr auto NoTag = uint16_t(~0); 
+    constexpr auto NoFid = ~0u;
+#define STRUCT(x) __extension__ struct {x};
+#define UNION(x) __extension__ union {x};
+#define IXP_VERSION	ixp::Version
+#define IXP_NOTAG	ixp::NoTag /* Dummy tag */
+#define IXP_NOFID	ixp::NoFid
+#define IXP_API ixp::ApiVersion
+} // end namespace ixp
 
 enum {
 	IXP_MAX_VERSION = 32,
@@ -170,18 +99,18 @@ enum IxpDMode {
 	P9_DMWRITE	= 0x2,		/* mode bit for write permission */
 	P9_DMREAD	= 0x4,		/* mode bit for read permission */
 
-#define P9_DMDIR	0x80000000	/* mode bit for directories */
-#define P9_DMAPPEND	0x40000000	/* mode bit for append only files */
-#define P9_DMEXCL	0x20000000	/* mode bit for exclusive use files */
-#define P9_DMMOUNT	0x10000000	/* mode bit for mounted channel */
-#define P9_DMAUTH	0x08000000	/* mode bit for authentication file */
-#define P9_DMTMP	0x04000000	/* mode bit for non-backed-up file */
-#define P9_DMSYMLINK	0x02000000	/* mode bit for symbolic link (Unix, 9P2000.u) */
-#define P9_DMDEVICE	0x00800000	/* mode bit for device file (Unix, 9P2000.u) */
-#define P9_DMNAMEDPIPE	0x00200000	/* mode bit for named pipe (Unix, 9P2000.u) */
-#define P9_DMSOCKET	0x00100000	/* mode bit for socket (Unix, 9P2000.u) */
-#define P9_DMSETUID	0x00080000	/* mode bit for setuid (Unix, 9P2000.u) */
-#define P9_DMSETGID	0x00040000	/* mode bit for setgid (Unix, 9P2000.u) */
+#define P9_DMDIR	0x8000'0000	/* mode bit for directories */
+#define P9_DMAPPEND	0x4000'0000	/* mode bit for append only files */
+#define P9_DMEXCL	0x2000'0000	/* mode bit for exclusive use files */
+#define P9_DMMOUNT	0x1000'0000	/* mode bit for mounted channel */
+#define P9_DMAUTH	0x0800'0000	/* mode bit for authentication file */
+#define P9_DMTMP	0x0400'0000	/* mode bit for non-backed-up file */
+#define P9_DMSYMLINK	0x0200'0000	/* mode bit for symbolic link (Unix, 9P2000.u) */
+#define P9_DMDEVICE	0x0080'0000	/* mode bit for device file (Unix, 9P2000.u) */
+#define P9_DMNAMEDPIPE	0x0020'0000	/* mode bit for named pipe (Unix, 9P2000.u) */
+#define P9_DMSOCKET	0x0010'0000	/* mode bit for socket (Unix, 9P2000.u) */
+#define P9_DMSETUID	0x0008'0000	/* mode bit for setuid (Unix, 9P2000.u) */
+#define P9_DMSETGID	0x0004'0000	/* mode bit for setgid (Unix, 9P2000.u) */
 };
 
 #ifdef IXP_NO_P9_
@@ -413,66 +342,6 @@ struct IxpFTWStat {
 	IxpStat		stat;
 };
 
-#if IXP_NEEDAPI <= 89
-/* from fcall(3) in plan9port */
-typedef struct IxpFcall IxpFcall; /* Deprecated */
-struct IxpFcall {		  /* Deprecated */
-	uint8_t type;
-	uint16_t tag;
-	uint32_t fid;
-
-	UNION (
-		STRUCT ( /* Tversion, Rversion */
-			uint32_t	msize;
-			char	*version;
-		)
-		STRUCT ( /* Tflush */
-			uint16_t	oldtag;
-		)
-		STRUCT ( /* Rerror */
-			char	*ename;
-		)
-		STRUCT ( /* Ropen, Rcreate */
-			IxpQid	qid; /* +Rattach */
-			uint32_t	iounit;
-		)
-		STRUCT ( /* Rauth */
-			IxpQid	aqid;
-		)
-		STRUCT ( /* Tauth, Tattach */
-			uint32_t	afid;
-			char	*uname;
-			char	*aname;
-		)
-		STRUCT ( /* Tcreate */
-			uint32_t	perm;
-			char	*name;
-			uint8_t	mode; /* +Topen */
-		)
-		STRUCT ( /* Twalk */
-			uint32_t	newfid;
-			uint16_t	nwname;
-			char	*wname[IXP_MAX_WELEM];
-		)
-		STRUCT ( /* Rwalk */
-			uint16_t	nwqid;
-			IxpQid	wqid[IXP_MAX_WELEM];
-		)
-		STRUCT (
-			uint64_t	offset; /* Tread, Twrite */
-			uint32_t	count; /* Tread, Twrite, Rread */
-			char	*data; /* Twrite, Rread */
-		)
-		STRUCT ( /* Rstat */
-			uint16_t	nstat;
-			char	*stat;
-		)
-		STRUCT ( /* Twstat */
-			IxpStat	st;
-		)
-	)
-};
-#else
 /**
  * Type: IxpFcall
  * Type: IxpFType
@@ -533,7 +402,6 @@ union IxpFcall {
 	IxpFIO		rread;
 	IxpFIO		io;
 };
-#endif
 
 #ifdef IXP_P9_STRUCTS
 typedef IxpFcall	Fcall;
@@ -792,7 +660,7 @@ IxpConn* ixp_listen(IxpServer*, int, void*,
 		void (*read)(IxpConn*),
 		void (*close)(IxpConn*));
 void	ixp_hangup(IxpConn*);
-int	ixp_serverloop(IxpServer*);
+int	    ixp_serverloop(IxpServer*);
 void	ixp_server_close(IxpServer*);
 
 /* socket.c */
