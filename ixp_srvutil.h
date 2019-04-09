@@ -1,6 +1,7 @@
 #ifndef LIBIXP_SRVUTIL_H__
 #define LIBIXP_SRVUTIL_H__
 
+#include <functional>
 typedef struct IxpDirtab	IxpDirtab;
 typedef struct IxpPendingLink	IxpPendingLink;
 typedef struct IxpPending	IxpPending;
