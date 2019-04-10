@@ -331,7 +331,6 @@ main(int argc, char *argv[]) {
 	int ret;
 
 	address = getenv("IXP_ADDRESS");
-    argv0 = argv[0];
 	ARGBEGIN{
 	case 'v':
         ixp::print(std::cout, argv0, "-", VERSION, ", ", COPYRIGHT, "\n");
