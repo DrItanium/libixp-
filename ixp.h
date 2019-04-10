@@ -614,6 +614,8 @@ struct IxpThread {
     using RWLockFuncNoRet = std::function<void(IxpRWLock*)>;
     using MutexFuncWithRet = std::function<int(IxpMutex*)>;
     using MutexFuncNoRet = std::function<void(IxpMutex*)>;
+    using RendezFuncWithRet = std::function<int(IxpRendez*)>;
+    using RendezFuncNoRet = std::function<void(IxpRendez*)>;
 	/* Read/write lock */
     RWLockFuncWithRet initrwlock;
     RWLockFuncNoRet rlock;
@@ -630,16 +632,16 @@ struct IxpThread {
     MutexFuncNoRet unlock,
                    mdestroy;
 	/* Rendezvous point */
-	int	(*initrendez)(IxpRendez*);
-	void	(*sleep)(IxpRendez*);
-	int	(*wake)(IxpRendez*);
-	int	(*wakeall)(IxpRendez*);
-	void	(*rdestroy)(IxpRendez*);
+    RendezFuncWithRet initrendez;
+    RendezFuncNoRet sleep;
+    RendezFuncWithRet wake,
+                      wakeall;
+    RendezFuncNoRet rdestroy;
 	/* Other */
-	char*	(*errbuf)(void);
-	ssize_t	(*read)(int, void*, size_t);
-	ssize_t	(*write)(int, const void*, size_t);
-	int	(*select)(int, fd_set*, fd_set*, fd_set*, struct timeval*);
+    std::function<char*()> errbuf;
+    std::function<ssize_t(int, void*, size_t)> read;
+    std::function<ssize_t(int, const void*, size_t)> write;
+    std::function<int(int, fd_set*, fd_set*, fd_set*, timeval*)> select;
 };
 
 extern IxpThread*	ixp_thread;

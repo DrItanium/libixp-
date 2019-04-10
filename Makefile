@@ -1,5 +1,10 @@
 include config.mk
 
+VERSION := 0.5
+COPYRIGHT = ©2019 Joshua Scoggins 
+CXXFLAGS += '-DVERSION="$(VERSION)"' \
+			'-DCOPYRIGHT="$(COPYRIGHT)"'
+
 LIBIXP_CORE_OBJS := client.o \
 					convert.o \
 					error.o \
@@ -16,19 +21,6 @@ LIBIXP_CORE_OBJS := client.o \
 					util.o 
 LIBIXP_PTHREAD_THREAD_OBJS := thread_pthread.o
 LIBIXP_TASK_OBJS := thread_task.o
-I960JX_OBJS := opcodes.o Operand.o
-I960JX_SIM_OBJS := sim960jx.o \
-	core.o \
-	dispatcher.o \
-	ProcessControls.o \
-	NormalRegister.o \
-	QuadRegister.o \
-	TripleRegister.o \
-	DoubleRegister.o \
-	ArithmeticControls.o \
-	$(I960JX_OBJS)
-I960JX_DEC_OBJS := decode960jx.o \
-	$(I960JX_OBJS)
 IXPC_OBJS := ixpc.o 
 
 IXPC_PROG := ixpc
@@ -54,7 +46,7 @@ $(IXPC_PROG): $(IXPC_OBJS) $(LIBIXP_ARCHIVE)
 
 $(LIBIXP_ARCHIVE): $(LIBIXP_CORE_OBJS)
 	@echo AR ${LIBIXP_ARCHIVE}
-	@${AR} c ${LIBIXP_ARCHIVE} ${LIBIXP_CORE_OBJS}
+	@${AR} rcs ${LIBIXP_ARCHIVE} ${LIBIXP_CORE_OBJS}
 
 .cc.o :
 	@echo CXX $<

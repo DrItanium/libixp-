@@ -122,13 +122,13 @@ ns_display(void) {
 /* Not especially threadsafe. */
 char*
 ixp_namespace(void) {
-	static char *namespace;
+	static char *_namespace;
 
-	if(namespace == nil)
-		namespace = getenv("NAMESPACE");
-	if(namespace == nil)
-		namespace = ns_display();
-	return namespace;
+	if(_namespace == nil)
+		_namespace = getenv("NAMESPACE");
+	if(_namespace == nil)
+		_namespace = ns_display();
+	return _namespace;
 }
 
 /**
@@ -221,7 +221,7 @@ ixp_estrdup(const char *str) {
 	void *ret = strdup(str);
 	if(!ret)
 		mfatal("strdup", strlen(str));
-	return ret;
+	return (char*)ret;
 }
 
 uint
@@ -264,3 +264,4 @@ ixp_strlcat(char *dst, const char *src, uint size) {
 	return size - n - 1;
 }
 
+char* argv0 = nullptr;

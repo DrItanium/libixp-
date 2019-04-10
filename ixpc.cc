@@ -14,10 +14,9 @@
 #define fatal(...) ixp_eprint("ixpc: fatal: " __VA_ARGS__); \
 
 static IxpClient *client;
-
 static void
 usage(void) {
-    ixp::eprint("usage: ", argv0, " [-a <address>] {create | read | ls [-ld] | remove | write | append} <file>\n"
+    ixp::errorPrint("usage: ", argv0, " [-a <address>] {create | read | ls [-ld] | remove | write | append} <file>\n"
                 "       ", argv0, " [-a <address>] xwrite <file> <data>\n"
                 "       ", argv0, " -v\n");
 	exit(1);
@@ -62,7 +61,7 @@ setrwx(long m) {
 std::string
 str_of_mode(uint mode) {
     std::stringstream buf;
-    ixp::print(buf, (mod & P9_DMDIR ? 'd' : '-'),
+    ixp::print(buf, (mode & P9_DMDIR ? 'd' : '-'),
             '-', 
             setrwx((mode >> 6) & 7),
             setrwx((mode >> 3) & 7),
@@ -159,13 +158,13 @@ xawrite(int argc, char *argv[]) {
 
 	nbuf = 0;
 	mbuf = 128;
-	buf = emalloc(mbuf);
+	buf = (decltype(buf))emalloc(mbuf);
 	while(argc) {
 		arg = ARGF();
 		len = strlen(arg);
 		if(nbuf + len > mbuf) {
 			mbuf <<= 1;
-			buf = ixp_erealloc(buf, mbuf);
+			buf = (decltype(buf))ixp_erealloc(buf, mbuf);
 		}
 		memcpy(buf+nbuf, arg, len);
 		nbuf += len;
@@ -234,7 +233,7 @@ xread(int argc, char *argv[]) {
         ixp::fatalPrint("Can't open file '", file, "': ", ixp_errbuf(), "\n");
     }
 
-	buf = emalloc(fid->iounit);
+	buf = (decltype(buf))emalloc(fid->iounit);
 	while((count = ixp_read(fid, buf, fid->iounit)) > 0)
 		write(1, buf, count);
 
@@ -285,14 +284,14 @@ xls(int argc, char *argv[]) {
 
 	nstat = 0;
 	mstat = 16;
-	stat = emalloc(sizeof(*stat) * mstat);
-	buf = emalloc(fid->iounit);
+	stat = (decltype(stat))emalloc(sizeof(*stat) * mstat);
+	buf = (decltype(buf))emalloc(fid->iounit);
 	while((count = ixp_read(fid, buf, fid->iounit)) > 0) {
 		m = ixp_message(buf, count, MsgUnpack);
 		while(m.pos < m.end) {
 			if(nstat == mstat) {
 				mstat <<= 1;
-				stat = ixp_erealloc(stat, sizeof(*stat) * mstat);
+				stat = (decltype(stat))ixp_erealloc(stat, sizeof(*stat) * mstat);
 			}
 			ixp_pstat(&m, &stat[nstat++]);
 		}
@@ -332,10 +331,10 @@ main(int argc, char *argv[]) {
 	int ret;
 
 	address = getenv("IXP_ADDRESS");
-
+    argv0 = argv[0];
 	ARGBEGIN{
 	case 'v':
-		printf("%s-" VERSION ", ©2007 Kris Maglione\n", argv0);
+        ixp::print(std::cout, argv0, "-", VERSION, ", ", COPYRIGHT, "\n");
 		exit(0);
 	case 'a':
 		address = EARGF(usage());

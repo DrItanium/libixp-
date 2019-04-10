@@ -53,7 +53,7 @@ ixp_settimer(IxpServer *srv, long msec, void (*fn)(long, void*), void *aux) {
 
 	time = ixp_msec() + msec;
 
-	t = emallocz(sizeof *t);
+	t = (decltype(t))emallocz(sizeof *t);
 	thread->lock(&srv->lk);
 	t->id = lastid++;
 	t->msec = time;

@@ -12,8 +12,7 @@ typedef unsigned long ulong;
 #ifdef CPROTO
 typedef char* va_list;
 #endif
-
-char *argv0;
+extern char* argv0;
 #define ARGBEGIN \
 		int _argtmp=0, _inargv=0; char *_argv=nil; \
 		if(!argv0) {argv0=*argv; argv++, argc--;} \
