@@ -1,6 +1,6 @@
 include config.mk
 
-VERSION := 0.5
+VERSION := 0.1
 COPYRIGHT = ©2019 Joshua Scoggins 
 CXXFLAGS += '-DVERSION="$(VERSION)"' \
 			'-DCOPYRIGHT="$(COPYRIGHT)"'
@@ -30,7 +30,7 @@ OBJS := $(LIBIXP_CORE_OBJS) $(LIBIXP_TASK_OBJS) $(LIBIXP_PTHREAD_THREAD_OBJS) $(
 PROGS := $(IXPC_PROG) $(LIBIXP_ARCHIVE)
 
 
-all: $(PROGS)
+all: options $(PROGS)
 
 options:
 	@echo Build Options
