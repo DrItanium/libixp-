@@ -19,6 +19,7 @@
 
 namespace {
 IxpClient *client;
+
 void
 usage(int errorCode = 1) {
     ixp::errorPrint("usage: ", argv0, " [-a <address>] {create | read | ls [-ld] | remove | write | append} <file>\n"
@@ -30,10 +31,9 @@ usage(int errorCode = 1) {
 /* Utility Functions */
 void
 write_data(IxpCFid *fid, char *name) {
-	void *buf;
-	long len;
+	long len = 0;
 
-	buf = emalloc(fid->iounit);
+	auto buf = emalloc(fid->iounit);
 	do {
 		len = read(0, buf, fid->iounit);
 		if(len >= 0 && ixp_write(fid, buf, len) != len) {
@@ -46,10 +46,8 @@ write_data(IxpCFid *fid, char *name) {
 
 int
 comp_stat(const void *s1, const void *s2) {
-	Stat *st1, *st2;
-
-	st1 = (Stat*)s1;
-	st2 = (Stat*)s2;
+	auto st1 = (Stat*)s1;
+	auto st2 = (Stat*)s2;
 	return strcmp(st1->name, st2->name);
 }
 
