@@ -9,6 +9,11 @@
 #include <time.h>
 #include <unistd.h>
 #include <ixp_local.h>
+#include <string>
+#include <list>
+#include <functional>
+#include <string>
+#include <list>
 
 /* Temporary */
 #define fatal(...) ixp_eprint("ixpc: fatal: " __VA_ARGS__); \
@@ -311,9 +316,10 @@ xls(int argc, char *argv[]) {
 
 typedef struct exectab exectab;
 struct exectab {
-	char *cmd;
-	int (*fn)(int, char**);
-} etab[] = {
+    std::string cmd;
+    std::function<int(int, char**)> fn;
+};
+std::list<exectab> etab = {
 	{"append", xappend},
 	{"write", xwrite},
 	{"xwrite", xawrite},
@@ -321,16 +327,12 @@ struct exectab {
 	{"create", xcreate},
 	{"remove", xremove},
 	{"ls", xls},
-	{0, 0}
 };
 
 int
 main(int argc, char *argv[]) {
-	char *cmd, *address;
-	exectab *tab;
-	int ret;
 
-	address = getenv("IXP_ADDRESS");
+	auto address = getenv("IXP_ADDRESS");
 	ARGBEGIN{
 	case 'v':
         ixp::print(std::cout, argv0, "-", VERSION, ", ", COPYRIGHT, "\n");
@@ -342,7 +344,7 @@ main(int argc, char *argv[]) {
 		usage();
 	}ARGEND;
 
-	cmd = EARGF(usage());
+    std::string cmd = EARGF(usage());
 
 	if(!address)
 		ixp::fatalPrint("$IXP_ADDRESS not set\n");
@@ -351,13 +353,18 @@ main(int argc, char *argv[]) {
 	if(client == nil)
         ixp::fatalPrint(ixp_errbuf(), "\n");
 
-	for(tab = etab; tab->cmd; tab++)
-		if(strcmp(cmd, tab->cmd) == 0) break;
-	if(tab->cmd == 0)
-		usage();
-
-	ret = tab->fn(argc, argv);
-
+    bool foundCommand = false;
+    int ret = 0;
+    for (const auto& tab : etab) {
+        if (cmd == tab.cmd) {
+            foundCommand = true;
+            ret = tab.fn(argc, argv);
+            break;
+        }
+    }
+    if (!foundCommand) {
+        usage();
+    }
 	ixp_unmount(client);
 	return ret;
 }
