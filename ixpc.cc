@@ -16,20 +16,19 @@
 #include <list>
 #include <map>
 
-/* Temporary */
-#define fatal(...) ixp_eprint("ixpc: fatal: " __VA_ARGS__); \
 
-static IxpClient *client;
-static void
-usage(void) {
+namespace {
+IxpClient *client;
+void
+usage(int errorCode = 1) {
     ixp::errorPrint("usage: ", argv0, " [-a <address>] {create | read | ls [-ld] | remove | write | append} <file>\n"
                 "       ", argv0, " [-a <address>] xwrite <file> <data>\n"
                 "       ", argv0, " -v\n");
-	exit(1);
+	exit(errorCode);
 }
 
 /* Utility Functions */
-static void
+void
 write_data(IxpCFid *fid, char *name) {
 	void *buf;
 	long len;
@@ -100,6 +99,7 @@ print_stat(Stat *s, int details) {
 }
 
 /* Service Functions */
+using ServiceFunction = std::function<int(int, char**)>;
 static int
 xappend(int argc, char *argv[]) {
 	IxpCFid *fid;
@@ -315,7 +315,7 @@ xls(int argc, char *argv[]) {
 	return 0;
 }
 
-std::map<std::string, std::function<int(int, char**)>> etab = {
+std::map<std::string, ServiceFunction> etab = {
 	{"append", xappend},
 	{"write", xwrite},
 	{"xwrite", xawrite},
@@ -324,6 +324,7 @@ std::map<std::string, std::function<int(int, char**)>> etab = {
 	{"remove", xremove},
 	{"ls", xls},
 };
+}
 
 int
 main(int argc, char *argv[]) {
@@ -342,25 +343,25 @@ main(int argc, char *argv[]) {
 
     std::string cmd = EARGF(usage());
 
-	if(!address)
+	if(!address) {
 		ixp::fatalPrint("$IXP_ADDRESS not set\n");
+    }
 
 	client = ixp_mount(address);
 	if(client == nullptr)
         ixp::fatalPrint(ixp_errbuf(), "\n");
 
     bool foundCommand = false;
-    int ret = 0;
     for (const auto& tab : etab) {
         if (cmd == tab.first) {
             foundCommand = true;
-            ret = tab.second(argc, argv);
-            break;
+            auto ret = tab.second(argc, argv);
+            ixp_unmount(client);
+            return ret;
         }
     }
     if (!foundCommand) {
         usage();
     }
-	ixp_unmount(client);
-	return ret;
+	return 99;
 }
