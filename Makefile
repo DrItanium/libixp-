@@ -20,16 +20,14 @@ LIBIXP_CORE_OBJS := client.o \
 					transport.o \
 					util.o 
 LIBIXP_PTHREAD_OBJS := thread_pthread.o
-LIBIXP_TASK_OBJS := thread_task.o
 IXPC_OBJS := ixpc.o 
 
 IXPC_PROG := ixpc
 LIBIXP_ARCHIVE := libixp.a
-LIBIXP_TASK_ARCHIVE := libixp_task.a
 LIBIXP_PTHREAD_ARCHIVE := libixp_pthread.a
 
-OBJS := $(LIBIXP_CORE_OBJS) $(LIBIXP_TASK_OBJS) $(LIBIXP_PTHREAD_OBJS) $(IXPC_OBJS)
-PROGS := $(IXPC_PROG) $(LIBIXP_ARCHIVE) $(LIBIXP_TASK_ARCHIVE) $(LIBIXP_PTHREAD_ARCHIVE)
+OBJS := $(LIBIXP_CORE_OBJS) $(LIBIXP_PTHREAD_OBJS) $(IXPC_OBJS)
+PROGS := $(IXPC_PROG) $(LIBIXP_ARCHIVE) $(LIBIXP_PTHREAD_ARCHIVE)
 
 
 all: options $(PROGS)
@@ -49,10 +47,6 @@ $(IXPC_PROG): $(IXPC_OBJS) $(LIBIXP_ARCHIVE)
 $(LIBIXP_ARCHIVE): $(LIBIXP_CORE_OBJS)
 	@echo AR ${LIBIXP_ARCHIVE}
 	@${AR} rcs ${LIBIXP_ARCHIVE} ${LIBIXP_CORE_OBJS}
-
-$(LIBIXP_TASK_ARCHIVE): $(LIBIXP_TASK_OBJS)
-	@echo AR ${LIBIXP_TASK_ARCHIVE} 
-	@${AR} rcs ${LIBIXP_TASK_ARCHIVE} ${LIBIXP_TASK_OBJS}
 
 $(LIBIXP_PTHREAD_ARCHIVE): $(LIBIXP_PTHREAD_OBJS)
 	@echo AR ${LIBIXP_PTHREAD_ARCHIVE} 
@@ -86,7 +80,6 @@ socket.o: socket.cc ixp_local.h
 srv_util.o: srv_util.cc ixp_local.h ixp_srvutil.h
 thread.o: thread.cc ixp_local.h
 thread_pthread.o: thread_pthread.cc ixp_local.h
-thread_task.o: thread_task.cc ixp_local.h
 timer.o: timer.cc ixp_local.h
 transport.o: transport.cc ixp_local.h
 util.o: util.cc ixp_local.h
