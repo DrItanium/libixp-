@@ -14,6 +14,7 @@
 #include <functional>
 #include <string>
 #include <list>
+#include <map>
 
 /* Temporary */
 #define fatal(...) ixp_eprint("ixpc: fatal: " __VA_ARGS__); \
@@ -314,12 +315,7 @@ xls(int argc, char *argv[]) {
 	return 0;
 }
 
-typedef struct exectab exectab;
-struct exectab {
-    std::string cmd;
-    std::function<int(int, char**)> fn;
-};
-std::list<exectab> etab = {
+std::map<std::string, std::function<int(int, char**)>> etab = {
 	{"append", xappend},
 	{"write", xwrite},
 	{"xwrite", xawrite},
@@ -356,9 +352,9 @@ main(int argc, char *argv[]) {
     bool foundCommand = false;
     int ret = 0;
     for (const auto& tab : etab) {
-        if (cmd == tab.cmd) {
+        if (cmd == tab.first) {
             foundCommand = true;
-            ret = tab.fn(argc, argv);
+            ret = tab.second(argc, argv);
             break;
         }
     }
