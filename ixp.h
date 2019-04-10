@@ -651,7 +651,6 @@ extern void	(*ixp_printfcall)(IxpFcall*);
 
 /* thread_*.c */
 int ixp_taskinit(void);
-int ixp_rubyinit(void);
 int ixp_pthread_init(void);
 
 #ifdef VARARGCK
