@@ -105,3 +105,19 @@ static IxpThread ixp_nothread = {
 };
 
 IxpThread*          ixp_thread = &ixp_nothread;
+
+namespace ixp {
+
+ssize_t 
+Thread::read(int fd, void* buf, size_t count) {
+    return ::read(fd, buf, count);
+}
+ssize_t 
+Thread::write(int fd, const void* buf, size_t count) {
+    return ::write(fd, buf, count);
+}
+int 
+Thread::select(int fd, fd_set* readfds, fd_set* writefds, fd_set* exceptfds, timeval* timeout) {
+    return ::select(fd, readfds, writefds, exceptfds, timeout);
+}
+}

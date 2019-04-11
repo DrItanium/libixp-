@@ -696,9 +696,9 @@ class Thread {
         virtual void destroy(IxpRendez*) = 0;
         /* Other */
         virtual char* errbuf() = 0;
-        virtual ssize_t read(int, void*, size_t) = 0;
-        virtual ssize_t write(int, const void*, size_t) = 0;
-        virtual int select(int, fd_set*, fd_set*, fd_set*, timeval*) = 0;
+        virtual ssize_t read(int, void*, size_t);
+        virtual ssize_t write(int, const void*, size_t);
+        virtual int select(int, fd_set*, fd_set*, fd_set*, timeval*);
 };
 
 class NoThreadImpl final : public Thread {
@@ -727,9 +727,6 @@ class NoThreadImpl final : public Thread {
          void destroy(IxpRendez*) override { }
         /* Other */
          char* errbuf() override;
-         ssize_t read(int fd, void* buf, size_t count) override { return ::read(fd, buf, count); }
-         ssize_t write(int fd, const void* buf, size_t count) override { return ::write(fd, buf, count); }
-         int select(int fd, fd_set* readfds, fd_set* writefds, fd_set* exceptfds, timeval* timeout) override { return ::select(fd, readfds, writefds, exceptfds, timeout); }
 };
 class PThreadImpl final : public Thread 
 {
@@ -758,9 +755,6 @@ class PThreadImpl final : public Thread
          void destroy(IxpRendez*) override;
         /* Other */
          char* errbuf() override;
-         ssize_t read(int fd, void* buf, size_t count) override;
-         ssize_t write(int fd, const void* buf, size_t count) override;
-         int select(int fd, fd_set* readfds, fd_set* writefds, fd_set* exceptfds, timeval* timeout) override;
 };
 } // end namespace ixp
 

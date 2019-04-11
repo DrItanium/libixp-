@@ -184,3 +184,30 @@ ixp_pthread_init() {
 	ixp_thread = &ixp_pthread;
 	return 0;
 }
+
+namespace ixp {
+    bool PThreadImpl::init(IxpRWLock*) override;
+    void PThreadImpl::rlock(IxpRWLock*) override;
+    bool PThreadImpl::canrlock(IxpRWLock*) override;
+    void PThreadImpl::runlock(IxpRWLock*) override;
+    void PThreadImpl::wlock(IxpRWLock*) override;
+    bool PThreadImpl::canwlock(IxpRWLock*) override;
+    void PThreadImpl::wunlock(IxpRWLock*) override;
+    void PThreadImpl::destroy(IxpRWLock*) override;
+    bool PThreadImpl::init(IxpMutex*) override;
+    bool PThreadImpl::canlock(IxpMutex*) override;
+    void PThreadImpl::lock(IxpMutex*) override;
+    void PThreadImpl::unlock(IxpMutex*) override;
+    void PThreadImpl::destroy(IxpMutex*) override;
+    bool PThreadImpl::init(IxpRendez*) override;
+    bool PThreadImpl::wake(IxpRendez*) override;
+    bool PThreadImpl::wakeall(IxpRendez*) override;
+    void PThreadImpl::sleep(IxpRendez*) override;
+    void PThreadImpl::destroy(IxpRendez*) override;
+    char* PThreadImpl::errbuf() override {
+        
+    }
+    ssize_t read(int fd, void* buf, size_t count) override;
+    ssize_t write(int fd, const void* buf, size_t count) override;
+    int select(int fd, fd_set* readfds, fd_set* writefds, fd_set* exceptfds, timeval* timeout) override;
+} // end namespace ixp
