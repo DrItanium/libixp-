@@ -46,7 +46,7 @@ ixp_msec(void) {
  *	F<ixp_unsettimer>, F<ixp_serverloop>
  */
 long
-ixp_settimer(IxpServer *srv, long msec, void (*fn)(long, void*), void *aux) {
+ixp_settimer(IxpServer *srv, long msec, std::function<void(long, void*)> fn, void *aux) {
 	Timer **tp;
 	Timer *t;
 	uint64_t time;
