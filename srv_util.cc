@@ -323,7 +323,7 @@ ixp_pending_write(IxpPending *pending, const char *dat, long ndat) {
 	if(ndat == 0)
 		return;
 
-	if(pending->req.next == nullptr) {
+    if (!pending->req.next) {
 		pending->req.next = &pending->req;
 		pending->req.prev = &pending->req;
 		pending->fids.prev = &pending->fids;
@@ -383,7 +383,7 @@ ixp_pending_pushfid(IxpPending *pending, IxpFid *fid) {
 	IxpPendingLink *pend_link;
 	IxpFileId *file;
 
-	if(pending->req.next == nullptr) {
+    if (!pending->req.next) {
 		pending->req.next = &pending->req;
 		pending->req.prev = &pending->req;
 		pending->fids.prev = &pending->fids;
