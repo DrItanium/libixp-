@@ -777,8 +777,13 @@ int	    ixp_serverloop(IxpServer*);
 void	ixp_server_close(IxpServer*);
 
 /* socket.c */
-int ixp_dial(const char*);
-int ixp_announce(const char*);
+namespace ixp {
+  int dial(const std::string&);
+  int announce(const std::string&);
+} // end namespace ixp
+
+#define ixp_dial ixp::dial
+#define ixp_announce ixp::announce
 
 /* transport.c */
 uint ixp_sendmsg(int, IxpMsg*);

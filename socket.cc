@@ -229,6 +229,9 @@ lookup(const std::string& address, AddressTab& _tab) {
 	}
 }
 
+
+
+namespace ixp {
 /**
  * Function: ixp_dial
  * Function: ixp_announce
@@ -249,14 +252,13 @@ lookup(const std::string& address, AddressTab& _tab) {
  * See also:
  *	socket(2)
  */
-
 int
-ixp_dial(const char *address) {
-	return lookup(address, dtab);
+dial(const std::string& address) {
+    return lookup(address, dtab);
 }
-
 int
-ixp_announce(const char *address) {
-	return lookup(address, atab);
+announce(const std::string& address) {
+    return lookup(address, atab);
 }
+} // end namespace ixp
 
