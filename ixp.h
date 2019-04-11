@@ -247,7 +247,6 @@ struct IxpTimer;
 struct IxpMutex;
 struct IxpRWLock;
 struct IxpRendez;
-struct IxpThread;
 
 /* Threading */
 enum {
@@ -585,65 +584,6 @@ struct Ixp9Srv {
 	void (*freefid)(IxpFid*);
 };
 
-/**
- * Type: IxpThread
- * Type: IxpMutex
- * Type: IxpRWLock
- * Type: IxpRendez
- * Variable: ixp_thread
- *
- * The IxpThread structure is used to adapt libixp to any of the
- * myriad threading systems it may be used with. Before any
- * other of libixp's functions is called, ixp_thread may be set
- * to a structure filled with implementations of various locking
- * primitives, along with primitive IO functions which may
- * perform context switches until data is available.
- *
- * The names of the functions should be fairly self-explanitory.
- * Read/write locks should allow multiple readers and a single
- * writer of a shared resource, but should not allow new readers
- * while a writer is waitng for a lock. Mutexes should allow
- * only one accessor at a time. Rendezvous points are similar to
- * pthread condition types. P<errbuf> should return a
- * thread-local buffer or the size IXP_ERRMAX.
- *
- * See also:
- *	F<ixp_pthread_init>, F<ixp_taskinit>, F<ixp_rubyinit>
- */
-struct IxpThread {
-    using RWLockFuncWithRet = std::function<int(IxpRWLock*)>;
-    using RWLockFuncNoRet = std::function<void(IxpRWLock*)>;
-    using MutexFuncWithRet = std::function<int(IxpMutex*)>;
-    using MutexFuncNoRet = std::function<void(IxpMutex*)>;
-    using RendezFuncWithRet = std::function<int(IxpRendez*)>;
-    using RendezFuncNoRet = std::function<void(IxpRendez*)>;
-	/* Read/write lock */
-    RWLockFuncWithRet initrwlock;
-    RWLockFuncNoRet rlock;
-    RWLockFuncWithRet canrlock;
-    RWLockFuncNoRet runlock, 
-                    wlock;
-    RWLockFuncWithRet canwlock;
-    RWLockFuncNoRet wunlock,
-                    rwdestroy;
-	/* Mutex */
-    MutexFuncWithRet initmutex;
-    MutexFuncNoRet lock;
-    MutexFuncWithRet canlock;
-    MutexFuncNoRet unlock,
-                   mdestroy;
-	/* Rendezvous point */
-    RendezFuncWithRet initrendez;
-    RendezFuncNoRet sleep;
-    RendezFuncWithRet wake,
-                      wakeall;
-    RendezFuncNoRet rdestroy;
-	/* Other */
-    std::function<char*()> errbuf;
-    std::function<ssize_t(int, void*, size_t)> read;
-    std::function<ssize_t(int, const void*, size_t)> write;
-    std::function<int(int, fd_set*, fd_set*, fd_set*, timeval*)> select;
-};
 namespace ixp::concurrency {
 /**
  * Type: IxpThread
@@ -774,14 +714,9 @@ class PThreadImpl final : public Thread
 };
 } // end namespace ixp
 
-extern IxpThread*	ixp_thread;
 extern int	(*ixp_vsnprint)(char *buf, int nbuf, const char *fmt, va_list);
 extern char*	(*ixp_vsmprint)(const char *fmt, va_list);
 extern void	(*ixp_printfcall)(IxpFcall*);
-
-/* thread_*.c */
-int ixp_taskinit(void);
-int ixp_pthread_init(void);
 
 #ifdef VARARGCK
 #  pragma varargck	argpos	ixp_print	2

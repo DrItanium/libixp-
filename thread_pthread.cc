@@ -133,58 +133,6 @@ initrendez(IxpRendez *r) {
     }
 }
 
-static IxpThread ixp_pthread = {
-	/* RWLock */
-	.initrwlock = initrwlock,
-	.rlock = rlock,
-	.canrlock = canrlock,
-	.runlock = rwunlock,
-	.wlock = wlock,
-	.canwlock = canwlock,
-	.wunlock = rwunlock,
-	.rwdestroy = rwdestroy,
-	/* Mutex */
-	.initmutex = initmutex,
-	.lock = mlock,
-	.canlock = mcanlock,
-	.unlock = munlock,
-	.mdestroy = mdestroy,
-	/* Rendez */
-	.initrendez = initrendez,
-	.sleep = rsleep,
-	.wake = rwake,
-	.wakeall = rwakeall,
-	.rdestroy = rdestroy,
-	/* Other */
-	.errbuf = errbuf,
-	.read = read,
-	.write = write,
-	.select = select,
-};
-
-/**
- * Function: ixp_pthread_init
- *
- * This function initializes libixp for use in multithreaded
- * programs using the POSIX thread system. When using libixp in such
- * programs, this function must be called before any other libixp
- * functions. This function is part of libixp_pthread, which you
- * must explicitly link against.
- */
-int
-ixp_pthread_init() {
-	int ret;
-
-	ret = pthread_key_create(&errstr_k, free);
-	if(ret) {
-		werrstr("can't create TLS value: %s", ixp_errbuf());
-		return 1;
-	}
-
-	ixp_thread = &ixp_pthread;
-	return 0;
-}
-
 namespace ixp::concurrency {
     bool PThreadImpl::init(IxpRWLock* a) { return ::initrwlock(a); }
     void PThreadImpl::rlock(IxpRWLock* a) { ::rlock(a); }
