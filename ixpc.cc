@@ -107,7 +107,7 @@ xappend(int argc, char *argv[]) {
 
 	auto file = EARGF(usage());
 	auto fid = ixp_open(client, file, P9_OWRITE);
-	if(fid == nullptr) {
+    if (!fid) {
         ixp::fatalPrint("Can't open file '", file, "': ", ixp_errbuf(), "\n");
     }
 	
@@ -128,7 +128,7 @@ xwrite(int argc, char *argv[]) {
 
 	auto file = EARGF(usage());
 	auto fid = ixp_open(client, file, P9_OWRITE);
-	if(fid == nullptr) {
+    if (!fid) {
         ixp::fatalPrint("Can't open file '", file, "': ", ixp_errbuf(), "\n");
     }
 
@@ -145,7 +145,7 @@ xawrite(int argc, char *argv[]) {
 
 	auto file = EARGF(usage());
 	auto fid = ixp_open(client, file, P9_OWRITE);
-	if(fid == nullptr) {
+    if (!fid) {
         ixp::fatalPrint("Can't open file '", file, "': ", ixp_errbuf(), "\n");
     }
 
@@ -180,7 +180,7 @@ xcreate(int argc, char *argv[]) {
 
 	auto file = EARGF(usage());
 	auto fid = ixp_create(client, file, 0777, P9_OWRITE);
-	if(fid == nullptr) {
+    if (!fid) {
         ixp::fatalPrint("Can't create file '", file, "': ", ixp_errbuf(), "\n");
     }
 
@@ -213,7 +213,7 @@ xread(int argc, char *argv[]) {
 
 	auto file = EARGF(usage());
 	auto fid = ixp_open(client, file, P9_OREAD);
-	if(fid == nullptr) {
+    if (!fid) {
         ixp::fatalPrint("Can't open file '", file, "': ", ixp_errbuf(), "\n");
     }
 
@@ -255,8 +255,9 @@ xls(int argc, char *argv[]) {
 	file = EARGF(usage());
 
 	stat = ixp_stat(client, file);
-	if(stat == nullptr)
+    if (!stat) {
         ixp::fatalPrint("Can't stat file '", file, "': ", ixp_errbuf(), "\n");
+    }
 
 	if(dflag || (stat->mode&P9_DMDIR) == 0) {
 		print_stat(stat, lflag);
@@ -266,8 +267,9 @@ xls(int argc, char *argv[]) {
 	ixp_freestat(stat);
 
 	fid = ixp_open(client, file, P9_OREAD);
-	if(fid == nullptr)
+	if(!fid) {
         ixp::fatalPrint("Can't open file '", file, "': ", ixp_errbuf(), "\n");
+    }
 
 	nstat = 0;
 	mstat = 16;

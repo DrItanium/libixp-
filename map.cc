@@ -35,7 +35,7 @@ map_getp(IxpMap *map, ulong val, bool create, bool *exists) {
 	if(exists)
 		*exists = *e && (*e)->hash == val;
 
-	if(*e == nullptr || (*e)->hash != val) {
+    if (!(*e) || (*e)->hash != val) {
 		if(create)
 			insert(e, val, nullptr);
 		else
