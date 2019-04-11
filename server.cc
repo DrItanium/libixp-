@@ -128,7 +128,7 @@ handle_conns(IxpServer *s) {
  * error other than EINTR.
  *
  * Returns:
- *	Returns 0 when the loop exits normally, and 1 when
+ *	Returns false when the loop exits normally, and true when
  *	it exits on error. V<errno> or the return value of
  *	F<ixp_errbuf> may be inspected.
  * See also:
@@ -137,33 +137,34 @@ handle_conns(IxpServer *s) {
 
 int
 ixp_serverloop(IxpServer *srv) {
-	timeval *tvp;
 	timeval tv;
 
-	srv->running = 1;
+	srv->running = true;
 	thread->initmutex(&srv->lk);
 	while(srv->running) {
-		tvp = nullptr;
+		timeval* tvp = nullptr;
 		if (long timeout = ixp_nexttimer(srv); timeout > 0) {
 			tv.tv_sec = timeout/1000;
 			tv.tv_usec = timeout%1000 * 1000;
 			tvp = &tv;
 		}
 
-		if(srv->preselect)
+		if(srv->preselect) {
 			srv->preselect(srv);
+        }
 
-		if(!srv->running)
+		if(!srv->running) {
 			break;
+        }
 
 		prepare_select(srv);
 		if (int r = thread->select(srv->maxfd + 1, &srv->rd, 0, 0, tvp); r < 0) {
 			if(errno == EINTR)
 				continue;
-			return 1;
+			return true;
 		}
 		handle_conns(srv);
 	}
-	return 0;
+	return false;
 }
 

@@ -476,7 +476,7 @@ struct IxpServer {
 	IxpTimer*	timer;
 	void		(*preselect)(IxpServer*);
 	void*		aux;
-	int		running;
+	bool	running;
 	int		maxfd;
 	fd_set		rd;
 };

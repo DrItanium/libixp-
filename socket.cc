@@ -32,25 +32,21 @@ typedef struct sockaddr_in sockaddr_in;
 
 static char*
 get_port(char *addr) {
-	char *s;
-
-	s = strchr(addr, '!');
-    if (!s) {
-		werrstr("no port provided");
-		return nullptr;
-	}
-
-	*s++ = '\0';
-	if(*s == '\0') {
-		werrstr("invalid port number");
-		return nullptr;
-	}
-	return s;
+    if (char* s = strchr(addr, '!'); !s) {
+        werrstr("no port provided");
+        return nullptr;
+    } else {
+        *s++ = '\0';
+        if(*s == '\0') {
+            werrstr("invalid port number");
+            return nullptr;
+        }
+        return s;
+    }
 }
 
 static int
 sock_unix(char *address, sockaddr_un *sa, socklen_t *salen) {
-	int fd;
 
 	memset(sa, 0, sizeof *sa);
 
@@ -58,27 +54,27 @@ sock_unix(char *address, sockaddr_un *sa, socklen_t *salen) {
 	strncpy(sa->sun_path, address, sizeof sa->sun_path);
 	*salen = SUN_LEN(sa);
 
-	fd = socket(AF_UNIX, SOCK_STREAM, 0);
-	if(fd < 0)
-		return -1;
-	return fd;
+	if (auto fd = socket(AF_UNIX, SOCK_STREAM, 0); fd < 0) {
+        return -1;
+    } else {
+        return fd;
+    }
 }
 
 static int
 dial_unix(char *address) {
 	sockaddr_un sa;
 	socklen_t salen;
-	int fd;
 
-	fd = sock_unix(address, &sa, &salen);
-	if(fd == -1)
-		return fd;
-
-	if(connect(fd, (sockaddr*) &sa, salen)) {
-		close(fd);
-		return -1;
-	}
-	return fd;
+    if (int fd = sock_unix(address, &sa, &salen); fd == -1) {
+        return fd;
+    } else {
+        if(connect(fd, (sockaddr*) &sa, salen)) {
+            close(fd);
+            return -1;
+        }
+        return fd;
+    }
 }
 
 static int
@@ -86,11 +82,10 @@ announce_unix(char *file) {
 	const int yes = 1;
 	sockaddr_un sa;
 	socklen_t salen;
-	int fd;
 
 	signal(SIGPIPE, SIG_IGN);
 
-	fd = sock_unix(file, &sa, &salen);
+	int fd = sock_unix(file, &sa, &salen);
 	if(fd == -1)
 		return fd;
 
