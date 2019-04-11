@@ -3,17 +3,6 @@
 #include "ixp_local.h"
 
 
-namespace ixp {
-char*
-NoThreadImpl::errbuf() {
-    static char errbuf[IXP_ERRMAX];
-    return errbuf;
-}
-void
-NoThreadImpl::sleep(IxpRendez*) {
-    throw "unimplemented";
-}
-}
 static char*
 errbuf(void) {
 	static char errbuf[IXP_ERRMAX];
@@ -120,4 +109,13 @@ int
 Thread::select(int fd, fd_set* readfds, fd_set* writefds, fd_set* exceptfds, timeval* timeout) {
     return ::select(fd, readfds, writefds, exceptfds, timeout);
 }
+char*
+NoThreadImpl::errbuf() {
+    static char errbuf[IXP_ERRMAX];
+    return errbuf;
 }
+void
+NoThreadImpl::sleep(IxpRendez*) {
+    throw "unimplemented";
+}
+} // end namespace ixp::concurrency
