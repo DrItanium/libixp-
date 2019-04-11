@@ -67,23 +67,20 @@ clean:
 # generated via g++ -MM -std=c++17 *.cc *.h
 
 
-client.o: client.cc ixp_local.h
-convert.o: convert.cc ixp_local.h
-error.o: error.cc ixp_local.h
-ixpc.o: ixpc.cc
-map.o: map.cc ixp_local.h
-message.o: message.cc ixp_local.h
-request.o: request.cc ixp_local.h
-rpc.o: rpc.cc ixp_local.h
-server.o: server.cc ixp_local.h
-socket.o: socket.cc ixp_local.h
-srv_util.o: srv_util.cc ixp_local.h ixp_srvutil.h
-thread.o: thread.cc ixp_local.h
-thread_pthread.o: thread_pthread.cc ixp_local.h
-timer.o: timer.cc ixp_local.h
-transport.o: transport.cc ixp_local.h
-util.o: util.cc ixp_local.h
-ixp.o: ixp.h
-ixp_local.o: ixp_local.h
-ixp_srvutil.o: ixp_srvutil.h
+client.o: client.cc ixp_local.h ixp.h
+convert.o: convert.cc ixp_local.h ixp.h
+error.o: error.cc ixp_local.h ixp.h
+ixpc.o: ixpc.cc ixp.h
+map.o: map.cc ixp_local.h ixp.h
+message.o: message.cc ixp_local.h ixp.h
+request.o: request.cc ixp_local.h ixp.h
+rpc.o: rpc.cc ixp_local.h ixp.h
+server.o: server.cc ixp_local.h ixp.h
+socket.o: socket.cc ixp_local.h ixp.h
+srv_util.o: srv_util.cc ixp_local.h ixp_srvutil.h ixp.h
+thread.o: thread.cc ixp_local.h ixp.h
+thread_pthread.o: thread_pthread.cc ixp_local.h ixp.h
+timer.o: timer.cc ixp_local.h ixp.h
+transport.o: transport.cc ixp_local.h ixp.h
+util.o: util.cc ixp_local.h ixp.h
 

@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <sys/select.h>
+#include <unistd.h>
 #include <ostream>
 #include <iostream>
 #include <sstream>
@@ -729,6 +730,37 @@ class NoThreadImpl final : public Thread {
          ssize_t read(int fd, void* buf, size_t count) override { return ::read(fd, buf, count); }
          ssize_t write(int fd, const void* buf, size_t count) override { return ::write(fd, buf, count); }
          int select(int fd, fd_set* readfds, fd_set* writefds, fd_set* exceptfds, timeval* timeout) override { return ::select(fd, readfds, writefds, exceptfds, timeout); }
+};
+class PThreadImpl final : public Thread 
+{
+    public:
+        using Thread::Thread;
+        /* Read/write lock */
+         bool init(IxpRWLock*) override;
+         void rlock(IxpRWLock*) override;
+         bool canrlock(IxpRWLock*) override;
+         void runlock(IxpRWLock*) override;
+         void wlock(IxpRWLock*) override;
+         bool canwlock(IxpRWLock*) override;
+         void wunlock(IxpRWLock*) override;
+         void destroy(IxpRWLock*) override;
+        /* Mutex */
+         bool init(IxpMutex*) override;
+         bool canlock(IxpMutex*) override;
+         void lock(IxpMutex*) override;
+         void unlock(IxpMutex*) override;
+         void destroy(IxpMutex*) override;
+        /* Rendezvous point */
+         bool init(IxpRendez*) override;
+         bool wake(IxpRendez*) override;
+         bool wakeall(IxpRendez*) override;
+         void sleep(IxpRendez*) override;
+         void destroy(IxpRendez*) override;
+        /* Other */
+         char* errbuf() override;
+         ssize_t read(int fd, void* buf, size_t count) override;
+         ssize_t write(int fd, const void* buf, size_t count) override;
+         int select(int fd, fd_set* readfds, fd_set* writefds, fd_set* exceptfds, timeval* timeout) override;
 };
 } // end namespace ixp
 
