@@ -118,4 +118,5 @@ void
 NoThreadImpl::sleep(IxpRendez*) {
     throw "unimplemented";
 }
+std::unique_ptr<Thread> thread = std::make_unique<NoThreadImpl>();
 } // end namespace ixp::concurrency
