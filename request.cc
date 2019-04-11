@@ -567,25 +567,23 @@ cleanupconn(IxpConn *c) {
  */
 void
 ixp_serve9conn(IxpConn *c) {
-	Ixp9Conn *p9conn;
-	int fd;
 
-	fd = accept(c->fd, nullptr, nullptr);
-	if(fd < 0)
+	if(auto fd = accept(c->fd, nullptr, nullptr); fd < 0) {
 		return;
+    } else {
+        auto p9conn = (Ixp9Conn*)emallocz(sizeof(Ixp9Conn));
+        p9conn->ref++;
+        p9conn->srv = (decltype(p9conn->srv))c->aux;
+        p9conn->rmsg.size = 1024;
+        p9conn->wmsg.size = 1024;
+        p9conn->rmsg.data = (decltype(p9conn->rmsg.data))emalloc(p9conn->rmsg.size);
+        p9conn->wmsg.data = (decltype(p9conn->wmsg.data))emalloc(p9conn->wmsg.size);
 
-	p9conn = (Ixp9Conn*)emallocz(sizeof *p9conn);
-	p9conn->ref++;
-	p9conn->srv = (decltype(p9conn->srv))c->aux;
-	p9conn->rmsg.size = 1024;
-	p9conn->wmsg.size = 1024;
-	p9conn->rmsg.data = (decltype(p9conn->rmsg.data))emalloc(p9conn->rmsg.size);
-	p9conn->wmsg.data = (decltype(p9conn->wmsg.data))emalloc(p9conn->wmsg.size);
+        ixp_mapinit(&p9conn->tagmap, p9conn->taghash, nelem(p9conn->taghash));
+        ixp_mapinit(&p9conn->fidmap, p9conn->fidhash, nelem(p9conn->fidhash));
+        thread->initmutex(&p9conn->rlock);
+        thread->initmutex(&p9conn->wlock);
 
-	ixp_mapinit(&p9conn->tagmap, p9conn->taghash, nelem(p9conn->taghash));
-	ixp_mapinit(&p9conn->fidmap, p9conn->fidhash, nelem(p9conn->fidhash));
-	thread->initmutex(&p9conn->rlock);
-	thread->initmutex(&p9conn->wlock);
-
-	ixp_listen(c->srv, fd, p9conn, handlefcall, cleanupconn);
+        ixp_listen(c->srv, fd, p9conn, handlefcall, cleanupconn);
+    }
 }
