@@ -108,32 +108,31 @@ fail:
 template<bool announce>
 static addrinfo*
 alookup(const std::string& host) {
-    bool useHost = true;
-	addrinfo hints, *ret;
-	int err;
-
 	/* Truncates host at '!' */
-	auto port = get_port(host);
-    if (!port.empty())
-		return nullptr;
+    if (auto port = get_port(host); !port.empty()) {
+        return nullptr;
+    } else {
+        bool useHost = true;
+        addrinfo hints;
+        addrinfo* ret;
+        memset(&hints, 0, sizeof hints);
+        hints.ai_family = AF_INET;
+        hints.ai_socktype = SOCK_STREAM;
 
-	memset(&hints, 0, sizeof hints);
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-
-	if constexpr (announce) {
-		hints.ai_flags = AI_PASSIVE;
-        if (!host.compare("*")) {
-            useHost = false;
+        if constexpr (announce) {
+            hints.ai_flags = AI_PASSIVE;
+            if (!host.compare("*")) {
+                useHost = false;
+            }
         }
-	}
 
-	err = getaddrinfo(useHost ? host.c_str() : nullptr, port.c_str(), &hints, &ret);
-	if(err) {
-		werrstr("getaddrinfo: %s", gai_strerror(err));
-		return nullptr;
-	}
-	return ret;
+        if (int err = getaddrinfo(useHost ? host.c_str() : nullptr, port.c_str(), &hints, &ret); err) {
+            werrstr("getaddrinfo: %s", gai_strerror(err));
+            return nullptr;
+        } else {
+            return ret;
+        }
+    }
 }
 
 static int
