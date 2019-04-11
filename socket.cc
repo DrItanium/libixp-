@@ -105,8 +105,9 @@ fail:
 	return -1;
 }
 
+template<bool announce>
 static addrinfo*
-alookup(const std::string& host, int announce) {
+alookup(const std::string& host) {
     bool useHost = true;
 	addrinfo hints, *ret;
 	int err;
@@ -145,7 +146,7 @@ dial_tcp(const std::string& host) {
 	addrinfo *ai, *aip;
 	int fd;
 
-	aip = alookup(host, 0);
+	aip = alookup<false>(host);
     if (!aip)
 		return -1;
 
@@ -174,7 +175,7 @@ announce_tcp(const std::string& host) {
 	addrinfo *ai, *aip;
 	int fd;
 
-	aip = alookup(host, 1);
+	aip = alookup<true>(host);
     if (!aip)
 		return -1;
 
