@@ -14,6 +14,7 @@
 #include <iostream>
 #include <sstream>
 #include <functional>
+#include <memory>
 
 namespace ixp {
     using uint = unsigned int;
