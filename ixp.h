@@ -653,6 +653,7 @@ extern std::unique_ptr<Thread> threadModel;
 
 template<typename T>
 void setThreadingModel() noexcept {
+    static_assert(std::is_base_of_v<Thread, T>, "Threading model must be a child of Thread");
     // TODO: insert static assertions to make sure that the type is a child of Thread
     threadModel = std::make_unique<T>();
 }
