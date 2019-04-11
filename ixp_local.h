@@ -95,7 +95,4 @@ IxpFcall*	muxrpc(IxpClient*, IxpFcall*);
 /* timer.c */
 long	ixp_nexttimer(IxpServer*);
 
-namespace ixp {
-}
-
 #endif
