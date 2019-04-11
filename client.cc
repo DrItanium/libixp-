@@ -14,9 +14,7 @@
 
 #define nelem(ary) (sizeof(ary) / sizeof(*ary))
 
-enum {
-	RootFid = 1,
-};
+constexpr auto RootFid = 1;
 
 static IxpCFid*
 getfid(IxpClient *c) {
