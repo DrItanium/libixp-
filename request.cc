@@ -21,7 +21,7 @@ static void handlereq(Ixp9Req *r);
  * See also:
  *	F<ixp_respond>, F<ixp_serve9conn>
  */
-void (*ixp_printfcall)(IxpFcall*);
+std::function<void(IxpFcall*)> ixp_printfcall;
 
 
 static char
@@ -92,20 +92,20 @@ createfid(Map *map, int fid, Ixp9Conn *p9conn) {
 	return nullptr;
 }
 
-static int
+static bool 
 destroyfid(Ixp9Conn *p9conn, ulong fid) {
 	IxpFid *f;
 
 	f = (IxpFid*)ixp_maprm(&p9conn->fidmap, fid);
     if (!f)
-		return 0;
+		return false;
 
 	if(p9conn->srv->freefid)
 		p9conn->srv->freefid(f);
 
 	decref_p9conn(p9conn);
 	free(f);
-	return 1;
+	return true;
 }
 
 static void

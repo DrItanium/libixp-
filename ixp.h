@@ -462,8 +462,7 @@ struct IxpConn {
 	IxpServer*	srv;
 	void*		aux;	/* Arbitrary pointer, to be used by handlers. */
 	int		fd;	/* The file descriptor of the connection. */
-	void		(*read)(IxpConn *);
-	void		(*close)(IxpConn *);
+    std::function<void(IxpConn*)> read, close;
 	char		closed;	/* Non-zero when P<fd> has been closed. */
 
 	/* Private members */
@@ -474,7 +473,7 @@ struct IxpServer {
 	IxpConn*	conn;
 	IxpMutex	lk;
 	IxpTimer*	timer;
-	void		(*preselect)(IxpServer*);
+    std::function<void(IxpServer*)> preselect;
 	void*		aux;
 	bool	running;
 	int		maxfd;
@@ -717,7 +716,7 @@ class PThreadImpl final : public Thread
 
 extern int	(*ixp_vsnprint)(char *buf, int nbuf, const char *fmt, va_list);
 extern char*	(*ixp_vsmprint)(const char *fmt, va_list);
-extern void	(*ixp_printfcall)(IxpFcall*);
+extern std::function<void(IxpFcall*)> ixp_printfcall;
 
 /* client.c */
 int	ixp_close(IxpCFid*);
