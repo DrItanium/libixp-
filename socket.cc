@@ -35,15 +35,15 @@ get_port(char *addr) {
 	char *s;
 
 	s = strchr(addr, '!');
-	if(s == nil) {
+	if(s == nullptr) {
 		werrstr("no port provided");
-		return nil;
+		return nullptr;
 	}
 
 	*s++ = '\0';
 	if(*s == '\0') {
 		werrstr("invalid port number");
-		return nil;
+		return nullptr;
 	}
 	return s;
 }
@@ -120,8 +120,8 @@ alookup(char *host, int announce) {
 
 	/* Truncates host at '!' */
 	port = get_port(host);
-	if(port == nil)
-		return nil;
+	if(port == nullptr)
+		return nullptr;
 
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_INET;
@@ -130,13 +130,13 @@ alookup(char *host, int announce) {
 	if(announce) {
 		hints.ai_flags = AI_PASSIVE;
 		if(!strcmp(host, "*"))
-			host = nil;
+			host = nullptr;
 	}
 
 	err = getaddrinfo(host, port, &hints, &ret);
 	if(err) {
 		werrstr("getaddrinfo: %s", gai_strerror(err));
-		return nil;
+		return nullptr;
 	}
 	return ret;
 }
@@ -152,7 +152,7 @@ dial_tcp(char *host) {
 	int fd;
 
 	aip = alookup(host, 0);
-	if(aip == nil)
+	if(aip == nullptr)
 		return -1;
 
 	SET(fd);
@@ -181,7 +181,7 @@ announce_tcp(char *host) {
 	int fd;
 
 	aip = alookup(host, 1);
-	if(aip == nil)
+	if(aip == nullptr)
 		return -1;
 
 	/* Probably don't need to loop */
@@ -230,13 +230,13 @@ lookup(const char *address, addrtab *tab) {
 	type = estrdup(address);
 
 	addr = strchr(type, '!');
-	if(addr == nil)
+	if(addr == nullptr)
 		werrstr("no address type defined");
 	else {
 		*addr++ = '\0';
 		for(; tab->type; tab++)
 			if(strcmp(tab->type, type) == 0) break;
-		if(tab->type == nil)
+		if(tab->type == nullptr)
 			werrstr("unsupported address type");
 		else
 			ret = tab->fn(addr);

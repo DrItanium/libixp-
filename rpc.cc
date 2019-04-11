@@ -41,7 +41,7 @@ initrpc(IxpClient *mux, IxpRpc *r)
 	r->mux = mux;
 	r->waiting = 1;
 	r->r.mutex = (decltype(r->r.mutex))&mux->lk;
-	r->p = nil;
+	r->p = nullptr;
 	thread->initrendez(&r->r);
 }
 
@@ -84,14 +84,14 @@ muxrecv(IxpClient *mux)
 {
 	IxpFcall *f;
 
-	f = nil;
+	f = nullptr;
 	thread->lock(&mux->rlock);
 	if(ixp_recvmsg(mux->fd, &mux->rmsg) == 0)
 		goto fail;
 	f = (decltype(f))emallocz(sizeof *f);
 	if(ixp_msg2fcall(&mux->rmsg, f) == 0) {
 		free(f);
-		f = nil;
+		f = nullptr;
 	}
 fail:
 	thread->unlock(&mux->rlock);
@@ -112,7 +112,7 @@ dispatchandqlock(IxpClient *mux, IxpFcall *f)
 		goto fail;
 	}
 	r2 = mux->wait[tag];
-	if(r2 == nil || r2->prev == nil) {
+	if(r2 == nullptr || r2->prev == nullptr) {
 		fprintf(stderr, "libixp: received message with bad tag\n");
 		goto fail;
 	}
@@ -138,7 +138,7 @@ electmuxer(IxpClient *mux)
 			return;
 		}
 	}
-	mux->muxer = nil;
+	mux->muxer = nullptr;
 }
 
 IxpFcall*
@@ -149,7 +149,7 @@ muxrpc(IxpClient *mux, IxpFcall *tx)
 
 	initrpc(mux, &r);
 	if(sendrpc(&r, tx) < 0)
-		return nil;
+		return nullptr;
 
 	thread->lock(&mux->lk);
 	/* wait for our packet */
@@ -158,12 +158,12 @@ muxrpc(IxpClient *mux, IxpFcall *tx)
 
 	/* if not done, there's no muxer; start muxing */
 	if(!r.p){
-		assert(mux->muxer == nil || mux->muxer == &r);
+		assert(mux->muxer == nullptr || mux->muxer == &r);
 		mux->muxer = &r;
 		while(!r.p){
 			thread->unlock(&mux->lk);
 			p = muxrecv(mux);
-			if(p == nil){
+			if(p == nullptr){
 				/* eof -- just give up and pass the buck */
 				thread->lock(&mux->lk);
 				dequeue(mux, &r);
@@ -176,7 +176,7 @@ muxrpc(IxpClient *mux, IxpFcall *tx)
 	p = r.p;
 	puttag(mux, &r);
 	thread->unlock(&mux->lk);
-	if(p == nil)
+	if(p == nullptr)
 		werrstr("unexpected eof");
 	return p;
 }
@@ -195,8 +195,8 @@ dequeue(IxpClient *mux, IxpRpc *r)
 {
 	r->next->prev = r->prev;
 	r->prev->next = r->next;
-	r->prev = nil;
-	r->next = nil;
+	r->prev = nullptr;
+	r->next = nullptr;
 }
 
 static int 
@@ -215,7 +215,7 @@ gettag(IxpClient *mux, IxpRpc *r)
 				else
 					mw <<= 1;
 				w = (decltype(w))realloc(mux->wait, mw * sizeof *w);
-				if(w == nil)
+				if(w == nullptr)
 					return -1;
 				memset(w+mux->mwait, 0, (mw-mux->mwait) * sizeof *w);
 				mux->wait = w;
@@ -253,7 +253,7 @@ puttag(IxpClient *mux, IxpRpc *r)
 
 	i = r->tag - mux->mintag;
 	assert(mux->wait[i] == r);
-	mux->wait[i] = nil;
+	mux->wait[i] = nullptr;
 	mux->nwait--;
 	mux->freetag = i;
 	thread->wake(&mux->tagrend);

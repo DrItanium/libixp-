@@ -145,7 +145,7 @@ ixp_serverloop(IxpServer *srv) {
 	srv->running = 1;
 	thread->initmutex(&srv->lk);
 	while(srv->running) {
-		tvp = nil;
+		tvp = nullptr;
 		timeout = ixp_nexttimer(srv);
 		if(timeout > 0) {
 			tv.tv_sec = timeout/1000;

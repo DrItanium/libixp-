@@ -54,10 +54,10 @@ ixp_srv_getfile(void) {
 	}
 	file = free_fileid;
 	free_fileid = file->next;
-	file->p = nil;
+	file->p = nullptr;
 	file->volatil = 0;
 	file->nref = 1;
-	file->next = nil;
+	file->next = nullptr;
 	file->pending = false;
 	return file;
 }
@@ -219,7 +219,7 @@ ixp_srv_writectl(Ixp9Req *req, char* (*fn)(void*, IxpMsg*)) {
 	ixp_srv_data2cstring(req);
 	s = req->ifcall.io.data;
 
-	err = nil;
+	err = nullptr;
 	c = *s;
 	while(c != '\0') {
 		while(*s == '\n')
@@ -300,7 +300,7 @@ ixp_pending_respond(Ixp9Req *req) {
 			req_link->prev->next = req_link->next;
 			free(req_link);
 		}
-		ixp_respond(req, nil);
+		ixp_respond(req, nullptr);
 		free(queue);
 	}else {
 		req_link = (decltype(req_link))emallocz(sizeof *req_link);
@@ -323,7 +323,7 @@ ixp_pending_write(IxpPending *pending, const char *dat, long ndat) {
 	if(ndat == 0)
 		return;
 
-	if(pending->req.next == nil) {
+	if(pending->req.next == nullptr) {
 		pending->req.next = &pending->req;
 		pending->req.prev = &pending->req;
 		pending->fids.prev = &pending->fids;
@@ -383,7 +383,7 @@ ixp_pending_pushfid(IxpPending *pending, IxpFid *fid) {
 	IxpPendingLink *pend_link;
 	IxpFileId *file;
 
-	if(pending->req.next == nil) {
+	if(pending->req.next == nullptr) {
 		pending->req.next = &pending->req;
 		pending->req.prev = &pending->req;
 		pending->fids.prev = &pending->fids;
@@ -457,7 +457,7 @@ ixp_pending_clunk(Ixp9Req *req) {
 	}
 	more = (pend_link->pending->fids.next == &pend_link->pending->fids);
 	free(pend_link);
-	ixp_respond(req, nil);
+	ixp_respond(req, nullptr);
 	return more;
 }
 
@@ -533,7 +533,7 @@ ixp_srv_readdir(Ixp9Req *req, IxpLookupFn lookup, void (*dostat)(IxpStat*, IxpFi
 	buf = (decltype(buf))emallocz(size);
 	msg = ixp_message(buf, size, MsgPack);
 
-	file = lookup(file, nil);
+	file = lookup(file, nullptr);
 	tfile = file;
 	/* Note: The first file is ".", so we skip it. */
 	offset = 0;
@@ -554,7 +554,7 @@ ixp_srv_readdir(Ixp9Req *req, IxpLookupFn lookup, void (*dostat)(IxpStat*, IxpFi
 	}
 	req->ofcall.io.count = msg.pos - msg.data;
 	req->ofcall.io.data = msg.data;
-	ixp_respond(req, nil);
+	ixp_respond(req, nullptr);
 }
 
 void
@@ -603,6 +603,6 @@ ixp_srv_walkandclone(Ixp9Req *req, IxpLookupFn lookup) {
 	}else
 		req->newfid->aux = file;
 	req->ofcall.rwalk.nwqid = i;
-	ixp_respond(req, nil);
+	ixp_respond(req, nullptr);
 }
 

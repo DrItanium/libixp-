@@ -97,7 +97,7 @@ ixp_unsettimer(IxpServer *srv, long id) {
 		free(t);
 	}
 	thread->unlock(&srv->lk);
-	return t != nil;
+	return t != nullptr;
 }
 
 /*

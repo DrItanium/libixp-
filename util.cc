@@ -25,7 +25,7 @@ ixp_smprint(const char *fmt, ...) {
 	va_start(ap, fmt);
 	s = ixp_vsmprint(fmt, ap);
 	va_end(ap);
-	if(s == nil)
+	if(s == nullptr)
 		ixp_werrstr("no memory");
 	return s;
 }
@@ -35,12 +35,12 @@ _user(void) {
 	static char *user;
 	struct passwd *pw;
 
-	if(user == nil) {
+	if(user == nullptr) {
 		pw = getpwuid(getuid());
 		if(pw)
 			user = strdup(pw->pw_name);
 	}
-	if(user == nil)
+	if(user == nullptr)
 		user = "none";
 	return user;
 }
@@ -74,9 +74,9 @@ ns_display(void) {
 	struct stat st;
 
 	disp = getenv("DISPLAY");
-	if(disp == nil || disp[0] == '\0') {
+	if(disp == nullptr || disp[0] == '\0') {
 		ixp_werrstr("$DISPLAY is unset");
-		return nil;
+		return nullptr;
 	}
 
 	disp = estrdup(disp);
@@ -98,7 +98,7 @@ ns_display(void) {
 	else
 		return path;
 	free(path);
-	return nil;
+	return nullptr;
 }
 
 /**
@@ -124,9 +124,9 @@ char*
 ixp_namespace(void) {
 	static char *_namespace;
 
-	if(_namespace == nil)
+	if(_namespace == nullptr)
 		_namespace = getenv("NAMESPACE");
-	if(_namespace == nil)
+	if(_namespace == nullptr)
 		_namespace = ns_display();
 	return _namespace;
 }

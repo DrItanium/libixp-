@@ -44,7 +44,7 @@ mdestroy(IxpMutex *m) {
 
 static int
 initmutex(IxpMutex *m) {
-	if (auto mutex = (pthread_mutex_t*)emalloc(sizeof (pthread_mutex_t)); pthread_mutex_init(mutex, nil)) {
+	if (auto mutex = (pthread_mutex_t*)emalloc(sizeof (pthread_mutex_t)); pthread_mutex_init(mutex, nullptr)) {
         free(mutex);
         return 1;
     } else {
@@ -89,7 +89,7 @@ initrwlock(IxpRWLock *rw) {
 	pthread_rwlock_t *rwlock;
 
 	rwlock = (pthread_rwlock_t*)emalloc(sizeof *rwlock);
-	if(pthread_rwlock_init(rwlock, nil)) {
+	if(pthread_rwlock_init(rwlock, nullptr)) {
 		free(rwlock);
 		return 1;
 	}
@@ -124,7 +124,7 @@ rdestroy(IxpRendez *r) {
 static int
 initrendez(IxpRendez *r) {
 
-    if(auto cond = (pthread_cond_t*)emalloc(sizeof(pthread_cond_t)); pthread_cond_init(cond, nil)) {
+    if(auto cond = (pthread_cond_t*)emalloc(sizeof(pthread_cond_t)); pthread_cond_init(cond, nullptr)) {
         free(cond);
         return 1;
     } else {

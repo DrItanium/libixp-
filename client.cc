@@ -24,7 +24,7 @@ getfid(IxpClient *c) {
 
 	thread->lock(&c->lk);
 	f = c->freefid;
-	if(f != nil)
+	if(f != nullptr)
 		c->freefid = f->next;
 	else {
 		f = (IxpCFid*)emallocz(sizeof *f);
@@ -32,7 +32,7 @@ getfid(IxpClient *c) {
 		f->fid = ++c->lastfid;
 		thread->initmutex(&f->iolock);
 	}
-	f->next = nil;
+	f->next = nullptr;
 	f->open = 0;
 	thread->unlock(&c->lk);
 	return f;
@@ -60,7 +60,7 @@ dofcall(IxpClient *c, IxpFcall *fcall) {
 	IxpFcall *ret;
 
 	ret = muxrpc(c, fcall);
-	if(ret == nil)
+	if(ret == nullptr)
 		return 0;
 	if(ret->hdr.type == RError) {
 		werrstr("%s", ret->error.ename);
@@ -160,14 +160,14 @@ ixp_mountfd(int fd) {
 
 	if(dofcall(c, &fcall) == 0) {
 		ixp_unmount(c);
-		return nil;
+		return nullptr;
 	}
 
 	if(strcmp(fcall.version.version, IXP_VERSION)
 	|| fcall.version.msize > IXP_MAX_MSG) {
 		werrstr("bad 9P version response");
 		ixp_unmount(c);
-		return nil;
+		return nullptr;
 	}
 
 	c->mintag = 0;
@@ -184,7 +184,7 @@ ixp_mountfd(int fd) {
 	fcall.tattach.aname = (char*)"";
 	if(dofcall(c, &fcall) == 0) {
 		ixp_unmount(c);
-		return nil;
+		return nullptr;
 	}
 
 	return c;
@@ -196,7 +196,7 @@ ixp_mount(const char *address) {
 
 	fd = ixp_dial(address);
 	if(fd < 0)
-		return nil;
+		return nullptr;
 	return ixp_mountfd(fd);
 }
 
@@ -208,8 +208,8 @@ ixp_nsmount(const char *name) {
 	address = ixp_namespace();
 	if(address)
 		address = ixp_smprint("unix!%s/%s", address, name);
-	if(address == nil)
-		return nil;
+	if(address == nullptr)
+		return nullptr;
 	c = ixp_mount(address);
 	free(address);
 	return c;
@@ -247,7 +247,7 @@ walk(IxpClient *c, const char *path) {
 fail:
 	putfid(f);
 	free(p);
-	return nil;
+	return nullptr;
 }
 
 static IxpCFid*
@@ -263,7 +263,7 @@ walkdir(IxpClient *c, char *path, const char **rest) {
 		p--;
 	if(*p != '/') {
 		werrstr("bad path");
-		return nil;
+		return nullptr;
 	}
 
 	*p++ = '\0';
@@ -308,7 +308,7 @@ ixp_remove(IxpClient *c, const char *path) {
 	IxpCFid *f;
 	int ret;
 
-	if((f = walk(c, path)) == nil)
+	if((f = walk(c, path)) == nullptr)
 		return 0;
 
 	fcall.hdr.type = TRemove;
@@ -367,7 +367,7 @@ ixp_create(IxpClient *c, const char *path, uint perm, uint8_t mode) {
 	tpath = estrdup(path);
 
 	f = walkdir(c, tpath, &path);
-	if(f == nil)
+	if(f == nullptr)
 		goto done;
 
 	fcall.hdr.type = TCreate;
@@ -378,7 +378,7 @@ ixp_create(IxpClient *c, const char *path, uint perm, uint8_t mode) {
 
 	if(dofcall(c, &fcall) == 0) {
 		clunk(f);
-		f = nil;
+		f = nullptr;
 		goto done;
 	}
 
@@ -398,8 +398,8 @@ ixp_open(IxpClient *c, const char *path, uint8_t mode) {
 	IxpCFid *f;
 
 	f = walk(c, path);
-	if(f == nil)
-		return nil;
+	if(f == nullptr)
+		return nullptr;
 
 	fcall.hdr.type = TOpen;
 	fcall.hdr.fid = f->fid;
@@ -407,7 +407,7 @@ ixp_open(IxpClient *c, const char *path, uint8_t mode) {
 
 	if(dofcall(c, &fcall) == 0) {
 		clunk(f);
-		return nil;
+		return nullptr;
 	}
 
 	initfid(f, &fcall);
@@ -443,7 +443,7 @@ _stat(IxpClient *c, ulong fid) {
 	fcall.hdr.type = TStat;
 	fcall.hdr.fid = fid;
 	if(dofcall(c, &fcall) == 0)
-		return nil;
+		return nullptr;
 
 	msg = ixp_message((char*)fcall.rstat.stat, fcall.rstat.nstat, MsgUnpack);
 
@@ -452,7 +452,7 @@ _stat(IxpClient *c, ulong fid) {
 	ixp_freefcall(&fcall);
 	if(msg.pos > msg.end) {
 		free(stat);
-		stat = nil;
+		stat = nullptr;
 	}
 	return stat;
 }
@@ -484,8 +484,8 @@ ixp_stat(IxpClient *c, const char *path) {
 	IxpCFid *f;
 
 	f = walk(c, path);
-	if(f == nil)
-		return nil;
+	if(f == nullptr)
+		return nullptr;
 
 	stat = _stat(c, f->fid);
 	clunk(f);
@@ -675,7 +675,7 @@ ixp_vprint(IxpCFid *fid, const char *fmt, va_list args) {
 	int n;
 
 	buf = ixp_vsmprint(fmt, args);
-	if(buf == nil)
+	if(buf == nullptr)
 		return -1;
 
 	n = ixp_write(fid, buf, strlen(buf));

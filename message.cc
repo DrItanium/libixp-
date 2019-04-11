@@ -60,7 +60,7 @@ ixp_message(char *data, uint length, uint mode) {
  * Function: ixp_freefcall
  *
  * These functions free malloc(3) allocated data in the members
- * of the passed structures and set those members to nil. They
+ * of the passed structures and set those members to nullptr. They
  * do not free the structures themselves.
  *
  * See also:
@@ -72,7 +72,7 @@ ixp_freestat(IxpStat *s) {
 	free(s->uid);
 	free(s->gid);
 	free(s->muid);
-	s->name = s->uid = s->gid = s->muid = nil;
+	s->name = s->uid = s->gid = s->muid = nullptr;
 }
 
 void
@@ -80,19 +80,19 @@ ixp_freefcall(IxpFcall *fcall) {
 	switch(fcall->hdr.type) {
 	case RStat:
 		free(fcall->rstat.stat);
-		fcall->rstat.stat = nil;
+		fcall->rstat.stat = nullptr;
 		break;
 	case RRead:
 		free(fcall->rread.data);
-		fcall->rread.data = nil;
+		fcall->rread.data = nullptr;
 		break;
 	case RVersion:
 		free(fcall->version.version);
-		fcall->version.version = nil;
+		fcall->version.version = nullptr;
 		break;
 	case RError:
 		free(fcall->error.ename);
-		fcall->error.ename = nil;
+		fcall->error.ename = nullptr;
 		break;
 	}
 }

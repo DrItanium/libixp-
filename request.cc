@@ -65,13 +65,13 @@ decref_p9conn(Ixp9Conn *p9conn) {
 	}
 	thread->unlock(&p9conn->wlock);
 
-	assert(p9conn->conn == nil);
+	assert(p9conn->conn == nullptr);
 
 	thread->mdestroy(&p9conn->rlock);
 	thread->mdestroy(&p9conn->wlock);
 
-	ixp_mapfree(&p9conn->tagmap, nil);
-	ixp_mapfree(&p9conn->fidmap, nil);
+	ixp_mapfree(&p9conn->tagmap, nullptr);
+	ixp_mapfree(&p9conn->fidmap, nullptr);
 
 	free(p9conn->rmsg.data);
 	free(p9conn->wmsg.data);
@@ -91,7 +91,7 @@ createfid(Map *map, int fid, Ixp9Conn *p9conn) {
 	if(ixp_mapinsert(map, fid, f, false))
 		return f;
 	free(f);
-	return nil;
+	return nullptr;
 }
 
 static int
@@ -99,7 +99,7 @@ destroyfid(Ixp9Conn *p9conn, ulong fid) {
 	IxpFid *f;
 
 	f = (IxpFid*)ixp_maprm(&p9conn->fidmap, fid);
-	if(f == nil)
+	if(f == nullptr)
 		return 0;
 
 	if(p9conn->srv->freefid)
@@ -169,7 +169,7 @@ handlereq(Ixp9Req *r) {
 		else
 			r->ofcall.version.version = "unknown";
 		r->ofcall.version.msize = r->ifcall.version.msize;
-		ixp_respond(r, nil);
+		ixp_respond(r, nullptr);
 		break;
 	case TAttach:
 		if(!(r->fid = (decltype(r->fid))(createfid(&p9conn->fidmap, r->ifcall.hdr.fid, p9conn)))) {
@@ -185,7 +185,7 @@ handlereq(Ixp9Req *r) {
 			return;
 		}
 		if(!srv->clunk) {
-			ixp_respond(r, nil);
+			ixp_respond(r, nullptr);
 			return;
 		}
 		srv->clunk(r);
@@ -375,7 +375,7 @@ ixp_respond(Ixp9Req *req, const char *error) {
 			assert(!"Respond called on unsupported fcall type");
 		break;
 	case TVersion:
-		assert(error == nil);
+		assert(error == nullptr);
 		free(req->ifcall.version.version);
 
 		thread->lock(&p9conn->rlock);
@@ -445,7 +445,7 @@ ixp_respond(Ixp9Req *req, const char *error) {
 
 	req->ofcall.hdr.tag = req->ifcall.hdr.tag;
 
-	if(error == nil)
+	if(error == nullptr)
 		req->ofcall.hdr.type = req->ifcall.hdr.type + 1;
 	else {
 		req->ofcall.hdr.type = RError;
@@ -525,15 +525,15 @@ cleanupconn(IxpConn *c) {
 	Ixp9Req *req, *r;
 
 	p9conn = (decltype(p9conn))c->aux;
-	p9conn->conn = nil;
-	req = nil;
+	p9conn->conn = nullptr;
+	req = nullptr;
 	if(p9conn->ref > 1) {
 		ixp_mapexec(&p9conn->fidmap, voidfid, &req);
 		ixp_mapexec(&p9conn->tagmap, voidrequest, &req);
 	}
 	while((r = req)) {
 		req = (decltype(req))r->aux;
-		r->aux = nil;
+		r->aux = nullptr;
 		handlereq(r);
 	}
 	decref_p9conn(p9conn);
@@ -570,7 +570,7 @@ ixp_serve9conn(IxpConn *c) {
 	Ixp9Conn *p9conn;
 	int fd;
 
-	fd = accept(c->fd, nil, nil);
+	fd = accept(c->fd, nullptr, nullptr);
 	if(fd < 0)
 		return;
 

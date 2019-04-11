@@ -35,9 +35,9 @@ map_getp(IxpMap *map, ulong val, bool create, bool *exists) {
 	if(exists)
 		*exists = *e && (*e)->hash == val;
 
-	if(*e == nil || (*e)->hash != val) {
+	if(*e == nullptr || (*e)->hash != val) {
 		if(create)
-			insert(e, val, nil);
+			insert(e, val, nullptr);
 		else
 			e = &NM;
 	}
@@ -104,8 +104,8 @@ ixp_mapget(IxpMap *map, ulong val) {
 	void *res;
 	
 	thread->rlock(&map->lock);
-	e = *map_getp(map, val, false, nil);
-	res = e ? e->val : nil;
+	e = *map_getp(map, val, false, nullptr);
+	res = e ? e->val : nullptr;
 	thread->runlock(&map->lock);
 	return res;
 }
@@ -115,9 +115,9 @@ ixp_maprm(IxpMap *map, ulong val) {
 	MapEnt **e, *te;
 	void *ret;
 	
-	ret = nil;
+	ret = nullptr;
 	thread->wlock(&map->lock);
-	e = map_getp(map, val, false, nil);
+	e = map_getp(map, val, false, nullptr);
 	if(*e) {
 		te = *e;
 		ret = te->val;

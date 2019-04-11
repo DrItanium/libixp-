@@ -14,7 +14,7 @@ typedef char* va_list;
 #endif
 extern char* argv0;
 #define ARGBEGIN \
-		int _argtmp=0, _inargv=0; char *_argv=nil; \
+		int _argtmp=0, _inargv=0; char *_argv=nullptr; \
 		if(!argv0) {argv0=*argv; argv++, argc--;} \
 		_inargv=1; USED(_inargv); \
 		while(argc && argv[0][0] == '-') { \
@@ -38,7 +38,6 @@ extern char* argv0;
 /* # define SET(x) USED(&x) GCC 4 is 'too smart' for this. */
 #endif
 
-constexpr auto nil = nullptr;
 #define nelem(ary) (sizeof(ary) / sizeof(*ary))
 
 #define thread ixp::concurrency::threadModel
