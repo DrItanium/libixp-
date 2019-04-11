@@ -215,7 +215,7 @@ AddressTab atab = {
 static int
 lookup(const std::string& address, AddressTab& _tab) {
     std::string _address(address);
-	if (auto addrPos = _address.find('!'); addrPos != std::string::npos) {
+	if (auto addrPos = _address.find('!'); addrPos == std::string::npos) {
 		werrstr("no address type defined");
         return -1;
     } else {
