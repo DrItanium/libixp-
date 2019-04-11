@@ -142,31 +142,29 @@ ai_socket(addrinfo *ai) {
 
 static int
 dial_tcp(const std::string& host) {
-	addrinfo *ai, *aip;
-	int fd;
+	if (auto aip = alookup<false>(host); !aip) {
+        return -1;
+    } else {
+        int fd;
+        SET(fd);
+        for(auto ai = aip; ai; ai = ai->ai_next) {
+            fd = ai_socket(ai);
+            if(fd == -1) {
+                werrstr("socket: %s", strerror(errno));
+                continue;
+            }
 
-	aip = alookup<false>(host);
-    if (!aip)
-		return -1;
+            if(connect(fd, ai->ai_addr, ai->ai_addrlen) == 0)
+                break;
 
-	SET(fd);
-	for(ai = aip; ai; ai = ai->ai_next) {
-		fd = ai_socket(ai);
-		if(fd == -1) {
-			werrstr("socket: %s", strerror(errno));
-			continue;
-		}
+            werrstr("connect: %s", strerror(errno));
+            close(fd);
+            fd = -1;
+        }
 
-		if(connect(fd, ai->ai_addr, ai->ai_addrlen) == 0)
-			break;
-
-		werrstr("connect: %s", strerror(errno));
-		close(fd);
-		fd = -1;
-	}
-
-	freeaddrinfo(aip);
-	return fd;
+        freeaddrinfo(aip);
+        return fd;
+    }
 }
 
 static int
