@@ -700,13 +700,21 @@ class Thread {
         virtual ssize_t read(int, void*, size_t);
         virtual ssize_t write(int, const void*, size_t);
         virtual int select(int, fd_set*, fd_set*, fd_set*, timeval*);
+        // interface with old design
+        auto initmutex(IxpMutex* m) { return init(m); }
+        auto initrwlock(IxpRWLock* a) { return init(a); }
+        void mdestroy(IxpMutex* m) { destroy(m); }
+        void rwdestroy(IxpRWLock* a) { destroy(a); }
+        auto initrendez(IxpRendez* r) { return init(r); }
+        void rdestroy(IxpRendez* r) { destroy(r); }
+
 };
-extern std::unique_ptr<Thread> thread;
+extern std::unique_ptr<Thread> threadModel;
 
 template<typename T>
 void setThreadingModel() noexcept {
     // TODO: insert static assertions to make sure that the type is a child of Thread
-    thread = std::make_unique<T>();
+    threadModel = std::make_unique<T>();
 }
 
 class NoThreadImpl final : public Thread {

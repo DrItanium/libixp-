@@ -41,7 +41,8 @@ extern char* argv0;
 constexpr auto nil = nullptr;
 #define nelem(ary) (sizeof(ary) / sizeof(*ary))
 
-#define thread ixp_thread
+//#define thread ixp_thread
+#define thread ixp::concurrency::threadModel
 
 #define eprint ixp_eprint
 #define emalloc ixp_emalloc
