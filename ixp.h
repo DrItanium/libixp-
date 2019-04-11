@@ -569,18 +569,19 @@ struct Ixp9Req {
 
 struct Ixp9Srv {
 	void* aux;
-	void (*attach)(Ixp9Req*);
-	void (*clunk)(Ixp9Req*);
-	void (*create)(Ixp9Req*);
-	void (*flush)(Ixp9Req*);
-	void (*open)(Ixp9Req*);
-	void (*read)(Ixp9Req*);
-	void (*remove)(Ixp9Req*);
-	void (*stat)(Ixp9Req*);
-	void (*walk)(Ixp9Req*);
-	void (*write)(Ixp9Req*);
-	void (*wstat)(Ixp9Req*);
-	void (*freefid)(IxpFid*);
+    using ReqFunc = std::function<void(Ixp9Req*)>;
+    ReqFunc attach,
+            clunk,
+            create,
+            flush,
+            open,
+            read,
+            remove,
+            stat,
+            walk,
+            write,
+            wstat;
+    std::function<void(IxpFid*)> freefid;
 };
 
 namespace ixp::concurrency {
