@@ -185,29 +185,24 @@ ixp_pthread_init() {
 	return 0;
 }
 
-namespace ixp {
-    bool PThreadImpl::init(IxpRWLock*) override;
-    void PThreadImpl::rlock(IxpRWLock*) override;
-    bool PThreadImpl::canrlock(IxpRWLock*) override;
-    void PThreadImpl::runlock(IxpRWLock*) override;
-    void PThreadImpl::wlock(IxpRWLock*) override;
-    bool PThreadImpl::canwlock(IxpRWLock*) override;
-    void PThreadImpl::wunlock(IxpRWLock*) override;
-    void PThreadImpl::destroy(IxpRWLock*) override;
-    bool PThreadImpl::init(IxpMutex*) override;
-    bool PThreadImpl::canlock(IxpMutex*) override;
-    void PThreadImpl::lock(IxpMutex*) override;
-    void PThreadImpl::unlock(IxpMutex*) override;
-    void PThreadImpl::destroy(IxpMutex*) override;
-    bool PThreadImpl::init(IxpRendez*) override;
-    bool PThreadImpl::wake(IxpRendez*) override;
-    bool PThreadImpl::wakeall(IxpRendez*) override;
-    void PThreadImpl::sleep(IxpRendez*) override;
-    void PThreadImpl::destroy(IxpRendez*) override;
-    char* PThreadImpl::errbuf() override {
-        
-    }
-    ssize_t read(int fd, void* buf, size_t count) override;
-    ssize_t write(int fd, const void* buf, size_t count) override;
-    int select(int fd, fd_set* readfds, fd_set* writefds, fd_set* exceptfds, timeval* timeout) override;
+namespace ixp::concurrency {
+    bool PThreadImpl::init(IxpRWLock* a) { return ::initrwlock(a); }
+    void PThreadImpl::rlock(IxpRWLock* a) { ::rlock(a); }
+    bool PThreadImpl::canrlock(IxpRWLock* a) { return ::canrlock(a); }
+    void PThreadImpl::runlock(IxpRWLock* a) { ::rwunlock(a); }
+    void PThreadImpl::wlock(IxpRWLock* a) { ::wlock(a); }
+    bool PThreadImpl::canwlock(IxpRWLock* a) { return ::canwlock(a); }
+    void PThreadImpl::wunlock(IxpRWLock* a) { ::rwunlock(a); }
+    void PThreadImpl::destroy(IxpRWLock* a) { ::rwdestroy(a); }
+    bool PThreadImpl::init(IxpMutex* a) { return ::initmutex(a); }
+    bool PThreadImpl::canlock(IxpMutex* a) { return ::mcanlock(a); }
+    void PThreadImpl::lock(IxpMutex* a) { ::mlock(a); }
+    void PThreadImpl::unlock(IxpMutex* a) { ::munlock(a); }
+    void PThreadImpl::destroy(IxpMutex* a) { ::mdestroy(a); }
+    bool PThreadImpl::init(IxpRendez* a) { return ::initrendez(a); }
+    bool PThreadImpl::wake(IxpRendez* a) { return ::rwake(a); }
+    bool PThreadImpl::wakeall(IxpRendez* a) { return ::rwakeall(a); }
+    void PThreadImpl::sleep(IxpRendez* a) { ::rsleep(a); }
+    void PThreadImpl::destroy(IxpRendez* a) { ::rdestroy(a); }
+    char* PThreadImpl::errbuf() { return ::errbuf(); }
 } // end namespace ixp

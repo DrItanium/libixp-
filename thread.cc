@@ -106,7 +106,7 @@ static IxpThread ixp_nothread = {
 
 IxpThread*          ixp_thread = &ixp_nothread;
 
-namespace ixp {
+namespace ixp::concurrency {
 
 ssize_t 
 Thread::read(int fd, void* buf, size_t count) {

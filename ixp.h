@@ -643,7 +643,7 @@ struct IxpThread {
     std::function<ssize_t(int, const void*, size_t)> write;
     std::function<int(int, fd_set*, fd_set*, fd_set*, timeval*)> select;
 };
-namespace ixp {
+namespace ixp::concurrency {
 /**
  * Type: IxpThread
  * Type: IxpMutex
