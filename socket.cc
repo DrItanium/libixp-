@@ -218,8 +218,8 @@ lookup(const std::string& address, AddressTab& _tab) {
         return -1;
     } else {
         std::string type(_address.substr(0, addrPos));
-        std::string addr(_address.substr(addrPos+1));
         if (auto result = _tab.find(type); result != _tab.end()) {
+            std::string addr(_address.substr(addrPos+1));
             return result->second(addr);
         } else {
             return -1;
