@@ -10,6 +10,7 @@
 
 static void handlereq(Ixp9Req *r);
 
+namespace ixp {
 /**
  * Variable: ixp_printfcall
  *
@@ -21,7 +22,8 @@ static void handlereq(Ixp9Req *r);
  * See also:
  *	F<ixp_respond>, F<ixp_serve9conn>
  */
-std::function<void(IxpFcall*)> ixp_printfcall;
+std::function<void(IxpFcall*)> printfcall;
+} // end namespace ixp
 
 
 static char

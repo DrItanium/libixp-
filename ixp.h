@@ -716,7 +716,11 @@ class PThreadImpl final : public Thread
 
 extern int	(*ixp_vsnprint)(char *buf, int nbuf, const char *fmt, va_list);
 extern char*	(*ixp_vsmprint)(const char *fmt, va_list);
-extern std::function<void(IxpFcall*)> ixp_printfcall;
+namespace ixp
+{
+    extern std::function<void(IxpFcall*)> printfcall;
+} // end namespace ixp
+#define ixp_printfcall ixp::printfcall
 
 /* client.c */
 int	ixp_close(IxpCFid*);
