@@ -139,14 +139,12 @@ int
 ixp_serverloop(IxpServer *srv) {
 	timeval *tvp;
 	timeval tv;
-	long timeout;
-	int r;
 
 	srv->running = 1;
 	thread->initmutex(&srv->lk);
 	while(srv->running) {
 		tvp = nullptr;
-		timeout = ixp_nexttimer(srv);
+		long timeout = ixp_nexttimer(srv);
 		if(timeout > 0) {
 			tv.tv_sec = timeout/1000;
 			tv.tv_usec = timeout%1000 * 1000;
@@ -160,8 +158,7 @@ ixp_serverloop(IxpServer *srv) {
 			break;
 
 		prepare_select(srv);
-		r = thread->select(srv->maxfd + 1, &srv->rd, 0, 0, tvp);
-		if(r < 0) {
+		if (int r = thread->select(srv->maxfd + 1, &srv->rd, 0, 0, tvp); r < 0) {
 			if(errno == EINTR)
 				continue;
 			return 1;

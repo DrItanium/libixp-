@@ -37,10 +37,8 @@ static char
 	Eintr[] = "interrupted",
 	Eisdir[] = "cannot perform operation on a directory";
 
-enum {
-	TAG_BUCKETS = 61,
-	FID_BUCKETS = 61,
-};
+constexpr auto TAG_BUCKETS = 61;
+constexpr auto FID_BUCKETS = 61;
 
 struct Ixp9Conn {
 	Map		tagmap;
