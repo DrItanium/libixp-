@@ -673,7 +673,7 @@ class Thread {
         Thread() = default;
         virtual ~Thread() = default;
         /* Read/write lock */
-        virtual int init(IxpRWLock*) = 0;
+        virtual bool init(IxpRWLock*) = 0;
         virtual void rlock(IxpRWLock*) = 0;
         virtual bool canrlock(IxpRWLock*) = 0;
         virtual void runlock(IxpRWLock*) = 0;
@@ -682,15 +682,15 @@ class Thread {
         virtual void wunlock(IxpRWLock*) = 0;
         virtual void destroy(IxpRWLock*) = 0;
         /* Mutex */
-        virtual int init(IxpMutex*) = 0;
+        virtual bool init(IxpMutex*) = 0;
         virtual bool canlock(IxpMutex*) = 0;
         virtual void lock(IxpMutex*) = 0;
         virtual void unlock(IxpMutex*) = 0;
         virtual void destroy(IxpMutex*) = 0;
         /* Rendezvous point */
-        virtual int init(IxpRendez*) = 0;
-        virtual int wake(IxpRendez*) = 0;
-        virtual int wakeall(IxpRendez*) = 0;
+        virtual bool init(IxpRendez*) = 0;
+        virtual bool wake(IxpRendez*) = 0;
+        virtual bool wakeall(IxpRendez*) = 0;
         virtual void sleep(IxpRendez*) = 0;
         virtual void destroy(IxpRendez*) = 0;
         /* Other */
@@ -699,7 +699,38 @@ class Thread {
         virtual ssize_t write(int, const void*, size_t) = 0;
         virtual int select(int, fd_set*, fd_set*, fd_set*, timeval*) = 0;
 };
-}
+
+class NoThreadImpl final : public Thread {
+    public:
+        using Thread::Thread;
+        /* Read/write lock */
+         bool init(IxpRWLock*) override { return false; }
+         void rlock(IxpRWLock*) override { }
+         bool canrlock(IxpRWLock*) override { return true; }
+         void runlock(IxpRWLock*) override { }
+         void wlock(IxpRWLock*) override { }
+         bool canwlock(IxpRWLock*) override { return true; }
+         void wunlock(IxpRWLock*) override { }
+         void destroy(IxpRWLock*) override { }
+        /* Mutex */
+         bool init(IxpMutex*) override { return false; }
+         bool canlock(IxpMutex*) override { return true; }
+         void lock(IxpMutex*) override { }
+         void unlock(IxpMutex*) override { }
+         void destroy(IxpMutex*) override { }
+        /* Rendezvous point */
+         bool init(IxpRendez*) override { return false; }
+         bool wake(IxpRendez*) override { return false; }
+         bool wakeall(IxpRendez*) override { return false; }
+         void sleep(IxpRendez*) override;
+         void destroy(IxpRendez*) override { }
+        /* Other */
+         char* errbuf() override;
+         ssize_t read(int fd, void* buf, size_t count) override { return ::read(fd, buf, count); }
+         ssize_t write(int fd, const void* buf, size_t count) override { return ::write(fd, buf, count); }
+         int select(int fd, fd_set* readfds, fd_set* writefds, fd_set* exceptfds, timeval* timeout) override { return ::select(fd, readfds, writefds, exceptfds, timeout); }
+};
+} // end namespace ixp
 
 extern IxpThread*	ixp_thread;
 extern int	(*ixp_vsnprint)(char *buf, int nbuf, const char *fmt, va_list);

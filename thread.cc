@@ -3,6 +3,17 @@
 #include "ixp_local.h"
 
 
+namespace ixp {
+char*
+NoThreadImpl::errbuf() {
+    static char errbuf[IXP_ERRMAX];
+    return errbuf;
+}
+void
+NoThreadImpl::sleep(IxpRendez*) {
+    throw "unimplemented";
+}
+}
 static char*
 errbuf(void) {
 	static char errbuf[IXP_ERRMAX];
