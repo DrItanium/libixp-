@@ -99,7 +99,7 @@ destroyfid(Ixp9Conn *p9conn, ulong fid) {
 	IxpFid *f;
 
 	f = (IxpFid*)ixp_maprm(&p9conn->fidmap, fid);
-	if(f == nullptr)
+    if (!f)
 		return 0;
 
 	if(p9conn->srv->freefid)
@@ -445,7 +445,7 @@ ixp_respond(Ixp9Req *req, const char *error) {
 
 	req->ofcall.hdr.tag = req->ifcall.hdr.tag;
 
-	if(error == nullptr)
+    if (!error)
 		req->ofcall.hdr.type = req->ifcall.hdr.type + 1;
 	else {
 		req->ofcall.hdr.type = RError;

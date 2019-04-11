@@ -24,9 +24,9 @@ getfid(IxpClient *c) {
 
 	thread->lock(&c->lk);
 	f = c->freefid;
-	if(f != nullptr)
+    if (f) {
 		c->freefid = f->next;
-	else {
+    } else {
 		f = (IxpCFid*)emallocz(sizeof *f);
 		f->client = c;
 		f->fid = ++c->lastfid;
@@ -60,8 +60,9 @@ dofcall(IxpClient *c, IxpFcall *fcall) {
 	IxpFcall *ret;
 
 	ret = muxrpc(c, fcall);
-	if(ret == nullptr)
+    if (!ret) {
 		return 0;
+    }
 	if(ret->hdr.type == RError) {
 		werrstr("%s", ret->error.ename);
 		goto fail;
@@ -208,7 +209,7 @@ ixp_nsmount(const char *name) {
 	address = ixp_namespace();
 	if(address)
 		address = ixp_smprint("unix!%s/%s", address, name);
-	if(address == nullptr)
+    if (!address) 
 		return nullptr;
 	c = ixp_mount(address);
 	free(address);
@@ -308,8 +309,10 @@ ixp_remove(IxpClient *c, const char *path) {
 	IxpCFid *f;
 	int ret;
 
-	if((f = walk(c, path)) == nullptr)
-		return 0;
+    f = walk(c, path);
+    if (!f) {
+        return 0;
+    }
 
 	fcall.hdr.type = TRemove;
 	fcall.hdr.fid = f->fid;;
@@ -367,7 +370,7 @@ ixp_create(IxpClient *c, const char *path, uint perm, uint8_t mode) {
 	tpath = estrdup(path);
 
 	f = walkdir(c, tpath, &path);
-	if(f == nullptr)
+    if (!f) 
 		goto done;
 
 	fcall.hdr.type = TCreate;
@@ -398,7 +401,7 @@ ixp_open(IxpClient *c, const char *path, uint8_t mode) {
 	IxpCFid *f;
 
 	f = walk(c, path);
-	if(f == nullptr)
+    if (!f) 
 		return nullptr;
 
 	fcall.hdr.type = TOpen;
@@ -484,7 +487,7 @@ ixp_stat(IxpClient *c, const char *path) {
 	IxpCFid *f;
 
 	f = walk(c, path);
-	if(f == nullptr)
+    if (!f) 
 		return nullptr;
 
 	stat = _stat(c, f->fid);
@@ -675,8 +678,9 @@ ixp_vprint(IxpCFid *fid, const char *fmt, va_list args) {
 	int n;
 
 	buf = ixp_vsmprint(fmt, args);
-	if(buf == nullptr)
-		return -1;
+    if (!buf) {
+        return -1;
+    }
 
 	n = ixp_write(fid, buf, strlen(buf));
 	free(buf);

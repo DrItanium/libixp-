@@ -35,7 +35,7 @@ get_port(char *addr) {
 	char *s;
 
 	s = strchr(addr, '!');
-	if(s == nullptr) {
+    if (!s) {
 		werrstr("no port provided");
 		return nullptr;
 	}
@@ -120,7 +120,7 @@ alookup(char *host, int announce) {
 
 	/* Truncates host at '!' */
 	port = get_port(host);
-	if(port == nullptr)
+    if (!port)
 		return nullptr;
 
 	memset(&hints, 0, sizeof hints);
@@ -152,7 +152,7 @@ dial_tcp(char *host) {
 	int fd;
 
 	aip = alookup(host, 0);
-	if(aip == nullptr)
+    if (!aip)
 		return -1;
 
 	SET(fd);
@@ -181,7 +181,7 @@ announce_tcp(char *host) {
 	int fd;
 
 	aip = alookup(host, 1);
-	if(aip == nullptr)
+    if (!aip)
 		return -1;
 
 	/* Probably don't need to loop */
@@ -230,13 +230,13 @@ lookup(const char *address, addrtab *tab) {
 	type = estrdup(address);
 
 	addr = strchr(type, '!');
-	if(addr == nullptr)
+    if (!addr)
 		werrstr("no address type defined");
 	else {
 		*addr++ = '\0';
 		for(; tab->type; tab++)
 			if(strcmp(tab->type, type) == 0) break;
-		if(tab->type == nullptr)
+        if (!tab->type)
 			werrstr("unsupported address type");
 		else
 			ret = tab->fn(addr);

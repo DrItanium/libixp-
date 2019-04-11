@@ -14,7 +14,7 @@ static char*
 errbuf(void) {
 
 	auto ret = (char*)pthread_getspecific(errstr_k);
-	if(ret == nullptr) {
+    if (!ret) {
 		ret = (char*)emallocz(IXP_ERRMAX);
 		pthread_setspecific(errstr_k, (void*)ret);
 	}

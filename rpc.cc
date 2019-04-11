@@ -112,7 +112,7 @@ dispatchandqlock(IxpClient *mux, IxpFcall *f)
 		goto fail;
 	}
 	r2 = mux->wait[tag];
-	if(r2 == nullptr || r2->prev == nullptr) {
+    if (!r2 || !(r2->prev)) {
 		fprintf(stderr, "libixp: received message with bad tag\n");
 		goto fail;
 	}
@@ -163,7 +163,7 @@ muxrpc(IxpClient *mux, IxpFcall *tx)
 		while(!r.p){
 			thread->unlock(&mux->lk);
 			p = muxrecv(mux);
-			if(p == nullptr){
+            if (!p) {
 				/* eof -- just give up and pass the buck */
 				thread->lock(&mux->lk);
 				dequeue(mux, &r);
@@ -176,7 +176,7 @@ muxrpc(IxpClient *mux, IxpFcall *tx)
 	p = r.p;
 	puttag(mux, &r);
 	thread->unlock(&mux->lk);
-	if(p == nullptr)
+    if (!p)
 		werrstr("unexpected eof");
 	return p;
 }
@@ -215,7 +215,7 @@ gettag(IxpClient *mux, IxpRpc *r)
 				else
 					mw <<= 1;
 				w = (decltype(w))realloc(mux->wait, mw * sizeof *w);
-				if(w == nullptr)
+                if (!w)
 					return -1;
 				memset(w+mux->mwait, 0, (mw-mux->mwait) * sizeof *w);
 				mux->wait = w;
