@@ -719,12 +719,6 @@ extern int	(*ixp_vsnprint)(char *buf, int nbuf, const char *fmt, va_list);
 extern char*	(*ixp_vsmprint)(const char *fmt, va_list);
 extern void	(*ixp_printfcall)(IxpFcall*);
 
-#ifdef VARARGCK
-#  pragma varargck	argpos	ixp_print	2
-#  pragma varargck	argpos	ixp_werrstr	1
-#  pragma varargck	argpos	ixp_eprint	1
-#endif
-
 /* client.c */
 int	ixp_close(IxpCFid*);
 long	ixp_pread(IxpCFid*, void*, long, int64_t);
