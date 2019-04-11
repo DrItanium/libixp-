@@ -700,6 +700,13 @@ class Thread {
         virtual ssize_t write(int, const void*, size_t);
         virtual int select(int, fd_set*, fd_set*, fd_set*, timeval*);
 };
+extern std::unique_ptr<Thread> thread;
+
+template<typename T>
+void setThreadingModel() noexcept {
+    // TODO: insert static assertions to make sure that the type is a child of Thread
+    thread = std::make_unique<T>();
+}
 
 class NoThreadImpl final : public Thread {
     public:
