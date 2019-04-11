@@ -15,6 +15,9 @@
 #include <sys/un.h>
 #include <unistd.h>
 #include "ixp_local.h"
+#include <map>
+#include <string>
+
 
 /* Note: These functions modify the strings that they are passed.
  *   The lookup function duplicates the original string, so it is
@@ -30,28 +33,23 @@ typedef struct sockaddr sockaddr;
 typedef struct sockaddr_un sockaddr_un;
 typedef struct sockaddr_in sockaddr_in;
 
-static char*
-get_port(char *addr) {
-    if (char* s = strchr(addr, '!'); !s) {
+static std::string
+get_port(const std::string& addr) {
+    if (auto spos = addr.find('!'); spos == std::string::npos) {
         werrstr("no port provided");
-        return nullptr;
+        return std::string();
     } else {
-        *s++ = '\0';
-        if(*s == '\0') {
-            werrstr("invalid port number");
-            return nullptr;
-        }
-        return s;
+        return addr.substr(spos);
     }
 }
 
 static int
-sock_unix(char *address, sockaddr_un *sa, socklen_t *salen) {
+sock_unix(const std::string& address, sockaddr_un *sa, socklen_t *salen) {
 
 	memset(sa, 0, sizeof *sa);
 
 	sa->sun_family = AF_UNIX;
-	strncpy(sa->sun_path, address, sizeof sa->sun_path);
+	strncpy(sa->sun_path, address.c_str(), sizeof sa->sun_path);
 	*salen = SUN_LEN(sa);
 
 	if (auto fd = socket(AF_UNIX, SOCK_STREAM, 0); fd < 0) {
@@ -62,7 +60,7 @@ sock_unix(char *address, sockaddr_un *sa, socklen_t *salen) {
 }
 
 static int
-dial_unix(char *address) {
+dial_unix(const std::string& address) {
 	sockaddr_un sa;
 	socklen_t salen;
 
@@ -78,7 +76,7 @@ dial_unix(char *address) {
 }
 
 static int
-announce_unix(char *file) {
+announce_unix(const std::string& file) {
 	const int yes = 1;
 	sockaddr_un sa;
 	socklen_t salen;
@@ -92,11 +90,11 @@ announce_unix(char *file) {
 	if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void*)&yes, sizeof yes) < 0)
 		goto fail;
 
-	unlink(file);
+	unlink(file.c_str());
 	if(bind(fd, (sockaddr*)&sa, salen) < 0)
 		goto fail;
 
-	chmod(file, S_IRWXU);
+	chmod(file.c_str(), S_IRWXU);
 	if(listen(fd, IXP_MAX_CACHE) < 0)
 		goto fail;
 
@@ -108,14 +106,14 @@ fail:
 }
 
 static addrinfo*
-alookup(char *host, int announce) {
+alookup(const std::string& host, int announce) {
+    bool useHost = true;
 	addrinfo hints, *ret;
-	char *port;
 	int err;
 
 	/* Truncates host at '!' */
-	port = get_port(host);
-    if (!port)
+	auto port = get_port(host);
+    if (!port.empty())
 		return nullptr;
 
 	memset(&hints, 0, sizeof hints);
@@ -124,11 +122,12 @@ alookup(char *host, int announce) {
 
 	if(announce) {
 		hints.ai_flags = AI_PASSIVE;
-		if(!strcmp(host, "*"))
-			host = nullptr;
+        if (!host.compare("*")) {
+            useHost = false;
+        }
 	}
 
-	err = getaddrinfo(host, port, &hints, &ret);
+	err = getaddrinfo(useHost ? host.c_str() : nullptr, port.c_str(), &hints, &ret);
 	if(err) {
 		werrstr("getaddrinfo: %s", gai_strerror(err));
 		return nullptr;
@@ -142,7 +141,7 @@ ai_socket(addrinfo *ai) {
 }
 
 static int
-dial_tcp(char *host) {
+dial_tcp(const std::string& host) {
 	addrinfo *ai, *aip;
 	int fd;
 
@@ -171,7 +170,7 @@ dial_tcp(char *host) {
 }
 
 static int
-announce_tcp(char *host) {
+announce_tcp(const std::string& host) {
 	addrinfo *ai, *aip;
 	int fd;
 
@@ -201,44 +200,33 @@ announce_tcp(char *host) {
 	return fd;
 }
 
-typedef struct addrtab addrtab;
-static
-struct addrtab {
-	char *type;
-	int (*fn)(char*);
-} dtab[] = {
-	{"tcp", dial_tcp},
-	{"unix", dial_unix},
-	{0, 0}
-}, atab[] = {
-	{"tcp", announce_tcp},
-	{"unix", announce_unix},
-	{0, 0}
+using AddressTab = std::map<std::string, std::function<int(const std::string&)>>;
+AddressTab dtab = {
+    { "tcp", dial_tcp },
+    { "unix", dial_unix },
+};
+
+
+AddressTab atab = {
+    { "tcp", announce_tcp },
+    { "unix", announce_unix },
 };
 
 static int
-lookup(const char *address, addrtab *tab) {
-	char *addr, *type;
-	int ret;
-
-	ret = -1;
-	type = estrdup(address);
-
-	addr = strchr(type, '!');
-    if (!addr)
+lookup(const char *address, AddressTab& _tab) {
+    std::string _address(address);
+	if (auto addrPos = _address.find('!'); addrPos != std::string::npos) {
 		werrstr("no address type defined");
-	else {
-		*addr++ = '\0';
-		for(; tab->type; tab++)
-			if(strcmp(tab->type, type) == 0) break;
-        if (!tab->type)
-			werrstr("unsupported address type");
-		else
-			ret = tab->fn(addr);
+        return -1;
+    } else {
+        std::string type(_address.substr(0, addrPos));
+        std::string addr(_address.substr(addrPos+1));
+        if (auto result = _tab.find(type); result != _tab.end()) {
+            return result->second(addr);
+        } else {
+            return -1;
+        }
 	}
-
-	free(type);
-	return ret;
 }
 
 /**
