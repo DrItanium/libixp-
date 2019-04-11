@@ -2,11 +2,11 @@
 #define LIBIXP_SRVUTIL_H__
 
 #include <functional>
-typedef struct IxpDirtab	IxpDirtab;
-typedef struct IxpPendingLink	IxpPendingLink;
-typedef struct IxpPending	IxpPending;
-typedef struct IxpQueue		IxpQueue;
-typedef struct IxpRequestLink	IxpRequestLink;
+struct IxpDirtab;
+struct IxpPendingLink;
+struct IxpPending;
+struct IxpQueue;
+struct IxpRequestLink;
 struct IxpFileId;
 using IxpLookupFn = std::function<IxpFileId*(IxpFileId*, char*)>;
 

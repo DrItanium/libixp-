@@ -227,25 +227,25 @@ enum IxpDMode {
 #  define DMSETGID P9_DMSETGID
 #endif
 
-typedef struct IxpMap IxpMap;
-typedef struct Ixp9Conn Ixp9Conn;
-typedef struct Ixp9Req Ixp9Req;
-typedef struct Ixp9Srv Ixp9Srv;
-typedef struct IxpCFid IxpCFid;
-typedef struct IxpClient IxpClient;
-typedef struct IxpConn IxpConn;
-typedef struct IxpFid IxpFid;
-typedef struct IxpMsg IxpMsg;
-typedef struct IxpQid IxpQid;
-typedef struct IxpRpc IxpRpc;
-typedef struct IxpServer IxpServer;
-typedef struct IxpStat IxpStat;
-typedef struct IxpTimer IxpTimer;
+struct IxpMap;
+struct Ixp9Conn;
+struct Ixp9Req;
+struct Ixp9Srv;
+struct IxpCFid;
+struct IxpClient;
+struct IxpConn;
+struct IxpFid;
+struct IxpMsg;
+struct IxpQid;
+struct IxpRpc;
+struct IxpServer;
+struct IxpStat;
+struct IxpTimer;
 
-typedef struct IxpMutex IxpMutex;
-typedef struct IxpRWLock IxpRWLock;
-typedef struct IxpRendez IxpRendez;
-typedef struct IxpThread IxpThread;
+struct IxpMutex;
+struct IxpRWLock;
+struct IxpRendez;
+struct IxpThread;
 
 /* Threading */
 enum {
@@ -300,29 +300,29 @@ struct IxpStat {
 	char*	muid;
 };
 
-typedef struct IxpFHdr		IxpFHdr;
-typedef struct IxpFError	IxpFError;
-typedef struct IxpFROpen	IxpFRAttach;
-typedef struct IxpFRAuth	IxpFRAuth;
-typedef struct IxpFROpen	IxpFRCreate;
-typedef struct IxpFROpen	IxpFROpen;
-typedef struct IxpFIO		IxpFRRead;
-typedef struct IxpFRStat	IxpFRStat;
-typedef struct IxpFVersion	IxpFRVersion;
-typedef struct IxpFRWalk	IxpFRWalk;
-typedef struct IxpFAttach	IxpFTAttach;
-typedef struct IxpFAttach	IxpFTAuth;
-typedef struct IxpFTCreate	IxpFTCreate;
-typedef struct IxpFTFlush	IxpFTFlush;
-typedef struct IxpFTCreate	IxpFTOpen;
-typedef struct IxpFIO		IxpFTRead;
-typedef struct IxpFVersion	IxpFTVersion;
-typedef struct IxpFTWalk	IxpFTWalk;
-typedef struct IxpFIO		IxpFTWrite;
-typedef struct IxpFTWStat	IxpFTWStat;
-typedef struct IxpFAttach	IxpFAttach;
-typedef struct IxpFIO		IxpFIO;
-typedef struct IxpFVersion	IxpFVersion;
+struct IxpFHdr;
+struct IxpFError;
+struct IxpFROpen;
+struct IxpFRAuth;
+struct IxpFROpen;
+struct IxpFROpen;
+struct IxpFIO;
+struct IxpFRStat;
+struct IxpFVersion;
+struct IxpFRWalk;
+struct IxpFAttach;
+struct IxpFAttach;
+struct IxpFTCreate;
+struct IxpFTFlush;
+struct IxpFTCreate;
+struct IxpFIO;
+struct IxpFVersion;
+struct IxpFTWalk;
+struct IxpFIO;
+struct IxpFTWStat;
+struct IxpFAttach;
+struct IxpFIO;
+struct IxpFVersion;
 
 struct IxpFHdr {
 	uint8_t		type;
@@ -424,7 +424,6 @@ struct IxpFTWStat {
  * See also:
  *	T<Ixp9Srv>, T<Ixp9Req>
  */
-typedef union IxpFcall	IxpFcall;
 union IxpFcall {
 	IxpFHdr		hdr;
 	IxpFVersion	version;
@@ -643,6 +642,64 @@ struct IxpThread {
     std::function<ssize_t(int, const void*, size_t)> write;
     std::function<int(int, fd_set*, fd_set*, fd_set*, timeval*)> select;
 };
+namespace ixp {
+/**
+ * Type: IxpThread
+ * Type: IxpMutex
+ * Type: IxpRWLock
+ * Type: IxpRendez
+ * Variable: ixp_thread
+ *
+ * The IxpThread structure is used to adapt libixp to any of the
+ * myriad threading systems it may be used with. Before any
+ * other of libixp's functions is called, ixp_thread may be set
+ * to a structure filled with implementations of various locking
+ * primitives, along with primitive IO functions which may
+ * perform context switches until data is available.
+ *
+ * The names of the functions should be fairly self-explanitory.
+ * Read/write locks should allow multiple readers and a single
+ * writer of a shared resource, but should not allow new readers
+ * while a writer is waitng for a lock. Mutexes should allow
+ * only one accessor at a time. Rendezvous points are similar to
+ * pthread condition types. P<errbuf> should return a
+ * thread-local buffer or the size IXP_ERRMAX.
+ *
+ * See also:
+ *	F<ixp_pthread_init>, F<ixp_taskinit>, F<ixp_rubyinit>
+ */
+class Thread {
+    public:
+        Thread() = default;
+        virtual ~Thread() = default;
+        /* Read/write lock */
+        virtual int init(IxpRWLock*) = 0;
+        virtual void rlock(IxpRWLock*) = 0;
+        virtual bool canrlock(IxpRWLock*) = 0;
+        virtual void runlock(IxpRWLock*) = 0;
+        virtual void wlock(IxpRWLock*) = 0;
+        virtual bool canwlock(IxpRWLock*) = 0;
+        virtual void wunlock(IxpRWLock*) = 0;
+        virtual void destroy(IxpRWLock*) = 0;
+        /* Mutex */
+        virtual int init(IxpMutex*) = 0;
+        virtual bool canlock(IxpMutex*) = 0;
+        virtual void lock(IxpMutex*) = 0;
+        virtual void unlock(IxpMutex*) = 0;
+        virtual void destroy(IxpMutex*) = 0;
+        /* Rendezvous point */
+        virtual int init(IxpRendez*) = 0;
+        virtual int wake(IxpRendez*) = 0;
+        virtual int wakeall(IxpRendez*) = 0;
+        virtual void sleep(IxpRendez*) = 0;
+        virtual void destroy(IxpRendez*) = 0;
+        /* Other */
+        virtual char* errbuf() = 0;
+        virtual ssize_t read(int, void*, size_t) = 0;
+        virtual ssize_t write(int, const void*, size_t) = 0;
+        virtual int select(int, fd_set*, fd_set*, fd_set*, timeval*) = 0;
+};
+}
 
 extern IxpThread*	ixp_thread;
 extern int	(*ixp_vsnprint)(char *buf, int nbuf, const char *fmt, va_list);
