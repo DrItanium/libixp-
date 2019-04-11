@@ -121,7 +121,7 @@ alookup(const std::string& host) {
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 
-	if(announce) {
+	if constexpr (announce) {
 		hints.ai_flags = AI_PASSIVE;
         if (!host.compare("*")) {
             useHost = false;
