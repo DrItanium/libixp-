@@ -27,8 +27,11 @@ _vsmprint(const char *fmt, va_list ap) {
 	return buf;
 }
 
-int (*ixp_vsnprint)(char*, int, const char*, va_list) = _vsnprint;
-char* (*ixp_vsmprint)(const char*, va_list) = _vsmprint;
+namespace ixp
+{
+    std::function<int(char*,int,const char*, va_list)> vsnprint = ::_vsnprint;
+    std::function<char*(const char*, va_list)> vsmprint = ::_vsmprint;
+} // end namespace ixp
 
 /* Approach to errno handling taken from Plan 9 Port. */
 enum {

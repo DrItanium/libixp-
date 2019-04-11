@@ -74,7 +74,7 @@ struct IxpTimer {
 	Timer*		link;
 	uint64_t	msec;
 	long		id;
-	void		(*fn)(long, void*);
+    std::function<void(long, void*)> fn;
 	void*		aux;
 };
 

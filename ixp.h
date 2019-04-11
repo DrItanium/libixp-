@@ -714,13 +714,15 @@ class PThreadImpl final : public Thread
 };
 } // end namespace ixp
 
-extern int	(*ixp_vsnprint)(char *buf, int nbuf, const char *fmt, va_list);
-extern char*	(*ixp_vsmprint)(const char *fmt, va_list);
 namespace ixp
 {
+    extern std::function<int(char*, int, const char*, va_list)> vsnprint;
+    extern std::function<char*(const char*, va_list)> vsmprint;
     extern std::function<void(IxpFcall*)> printfcall;
 } // end namespace ixp
 #define ixp_printfcall ixp::printfcall
+#define ixp_vsnprint ixp::vsnprint
+#define ixp_vsmprint ixp::vsmprint
 
 /* client.c */
 int	ixp_close(IxpCFid*);
