@@ -785,9 +785,9 @@ uint ixp_sendmsg(int, IxpMsg*);
 uint ixp_recvmsg(int, IxpMsg*);
 
 /* timer.c */
-uint64_t	ixp_msec(void);
-long	ixp_settimer(IxpServer*, long, void (*)(long, void*), void*);
-int	ixp_unsettimer(IxpServer*, long);
+uint64_t    ixp_msec(void);
+long        ixp_settimer(IxpServer*, long, void (*)(long, void*), void*);
+bool        ixp_unsettimer(IxpServer*, long);
 
 /* util.c */
 void	ixp_cleanname(char*);

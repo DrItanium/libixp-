@@ -22,33 +22,33 @@ ixp_puint(IxpMsg *msg, uint size, uint32_t *val) {
 
 	if(msg->pos + size <= msg->end) {
 		pos = (uint8_t*)msg->pos;
-		switch(msg->mode) {
-		case MsgPack:
-			v = *val;
-			switch(size) {
-			case SDWord:
-				pos[3] = v>>24;
-				pos[2] = v>>16;
-			case SWord:
-				pos[1] = v>>8;
-			case SByte:
-				pos[0] = v;
-				break;
-			}
-		case MsgUnpack:
-			v = 0;
-			switch(size) {
-			case SDWord:
-				v |= pos[3]<<24;
-				v |= pos[2]<<16;
-			case SWord:
-				v |= pos[1]<<8;
-			case SByte:
-				v |= pos[0];
-				break;
-			}
-			*val = v;
-		}
+        switch(msg->mode) {
+            case MsgPack:
+                v = *val;
+                switch(size) {
+                    case SDWord:
+                        pos[3] = v>>24;
+                        pos[2] = v>>16;
+                    case SWord:
+                        pos[1] = v>>8;
+                    case SByte:
+                        pos[0] = v;
+                        break;
+                }
+            case MsgUnpack:
+                v = 0;
+                switch(size) {
+                    case SDWord:
+                        v |= pos[3]<<24;
+                        v |= pos[2]<<16;
+                    case SWord:
+                        v |= pos[1]<<8;
+                    case SByte:
+                        v |= pos[0];
+                        break;
+                }
+                *val = v;
+        }
 	}
 	msg->pos += size;
 }
@@ -230,13 +230,14 @@ ixp_pstrings(IxpMsg *msg, uint16_t *num, char *strings[], uint max) {
  */
 void
 ixp_pdata(IxpMsg *msg, char **data, uint len) {
-	if(msg->pos + len <= msg->end) {
-		if(msg->mode == MsgUnpack) {
-			*data = (char*)emalloc(len);
-			memcpy(*data, msg->pos, len);
-		}else
-			memcpy(msg->pos, *data, len);
-		}
+    if(msg->pos + len <= msg->end) {
+        if(msg->mode == MsgUnpack) {
+            *data = (char*)emalloc(len);
+            memcpy(*data, msg->pos, len);
+        } else {
+            memcpy(msg->pos, *data, len);
+        }
+    }
 	msg->pos += len;
 }
 
@@ -270,7 +271,6 @@ ixp_pqid(IxpMsg *msg, IxpQid *qid) {
 
 void
 ixp_pqids(IxpMsg *msg, uint16_t *num, IxpQid qid[], uint max) {
-	int i;
 
 	ixp_pu16(msg, num);
 	if(*num > max) {
@@ -278,8 +278,9 @@ ixp_pqids(IxpMsg *msg, uint16_t *num, IxpQid qid[], uint max) {
 		return;
 	}
 
-	for(i = 0; i < *num; i++)
+	for(auto i = 0; i < *num; i++) {
 		ixp_pqid(msg, &qid[i]);
+    }
 }
 
 void

@@ -83,7 +83,7 @@ ixp_settimer(IxpServer *srv, long msec, void (*fn)(long, void*), void *aux) {
  * See also:
  *	F<ixp_settimer>, F<ixp_serverloop>
  */
-int
+bool
 ixp_unsettimer(IxpServer *srv, long id) {
 	Timer **tp;
 	Timer *t;
