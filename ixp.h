@@ -452,10 +452,10 @@ union IxpFcall {
 };
 
 #ifdef IXP_P9_STRUCTS
-typedef IxpFcall	Fcall;
-typedef IxpFid		Fid;
-typedef IxpQid		Qid;
-typedef IxpStat		Stat;
+using Fcall = IxpFcall;
+using Fid = IxpFid;
+using Qid = IxpQid;
+using Stat = IxpStat;
 #endif
 
 struct IxpConn {
