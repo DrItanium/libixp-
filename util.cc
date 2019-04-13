@@ -166,9 +166,8 @@ mfatal(char *name, uint size) {
 		paren[] = "() ",
 		bytes[] = " bytes\n";
 	char sizestr[8];
-	int i;
 	
-	i = sizeof sizestr;
+	int i = sizeof sizestr;
 	do {
 		sizestr[--i] = '0' + (size%10);
 		size /= 10;
@@ -196,10 +195,12 @@ mfatal(char *name, uint size) {
  */
 void*
 emalloc(uint size) {
-	void *ret = malloc(size);
-	if(!ret)
+	if (void *ret = malloc(size); !ret) {
 		mfatal("malloc", size);
-	return ret;
+        throw "SHOULDN'T GET HERE!";
+    } else {
+        return ret;
+    }
 }
 
 void*
@@ -211,27 +212,28 @@ emallocz(uint size) {
 
 void*
 erealloc(void *ptr, uint size) {
-	void *ret = realloc(ptr, size);
-	if(!ret)
+	if (void *ret = realloc(ptr, size); !ret) {
 		mfatal("realloc", size);
-	return ret;
+        throw "SHOULDN'T GET HERE!";
+    } else {
+        return ret;
+    }
 }
 
 char*
 estrdup(const char *str) {
-	void *ret = strdup(str);
-	if(!ret)
+	if (void *ret = strdup(str); !ret) {
 		mfatal("strdup", strlen(str));
-	return (char*)ret;
+        throw "SHOULDN'T GET HERE!";
+    } else {
+        return (char*)ret;
+    }
 }
 
 uint
 tokenize(char *res[], uint reslen, char *str, char delim) {
-	char *s;
-	uint i;
-
-	i = 0;
-	s = str;
+	uint i = 0;
+	char* s = str;
 	while(i < reslen && *s) {
 		while(*s == delim)
 			*(s++) = '\0';
@@ -245,16 +247,12 @@ tokenize(char *res[], uint reslen, char *str, char delim) {
 
 uint
 strlcat(char *dst, const char *src, uint size) {
-	const char *s;
-	char *d;
-	int n, len;
-
-	d = dst;
-	s = src;
-	n = size;
+	char* d = dst;
+	const char* s = src;
+	int n = size;
 	while(n-- > 0 && *d != '\0')
 		d++;
-	len = n;
+	auto len = n;
 
 	while(*s != '\0' && n-- > 0)
 		*d++ = *s++;
