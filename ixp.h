@@ -461,7 +461,7 @@ using Stat = IxpStat;
 
 struct IxpConn {
 	IxpServer*	srv;
-	void*		aux;	/* Arbitrary pointer, to be used by handlers. */
+    std::any	aux;	/* Arbitrary pointer, to be used by handlers. */
 	int		fd;	/* The file descriptor of the connection. */
     std::function<void(IxpConn*)> read, close;
 	char		closed;	/* Non-zero when P<fd> has been closed. */
@@ -475,7 +475,7 @@ struct IxpServer {
 	IxpMutex	lk;
 	IxpTimer*	timer;
     std::function<void(IxpServer*)> preselect;
-	void*		aux;
+    std::any   aux;
 	bool	running;
 	int		maxfd;
 	fd_set		rd;
