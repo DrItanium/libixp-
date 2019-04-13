@@ -35,12 +35,9 @@
  */
 IxpConn*
 ixp_listen(IxpServer *srv, int fd, void *aux,
-		void (*read)(IxpConn*),
-		void (*close)(IxpConn*)
-		) {
-	IxpConn *c;
-
-	c = (decltype(c))ixp::emallocz(sizeof *c);
+        std::function<void(IxpConn*)> read,
+        std::function<void(IxpConn*)> close) {
+	auto c = (IxpConn*)ixp::emallocz(sizeof(IxpConn));
 	c->fd = fd;
 	c->aux = aux;
 	c->srv = srv;
@@ -67,10 +64,9 @@ ixp_listen(IxpServer *srv, int fd, void *aux,
 
 void
 ixp_hangup(IxpConn *c) {
-	IxpServer *s;
 	IxpConn **tc;
 
-	s = c->srv;
+	auto s = c->srv;
 	for(tc=&s->conn; *tc; tc=&(*tc)->next)
 		if(*tc == c) break;
 	assert(*tc == c);
@@ -88,7 +84,7 @@ ixp_hangup(IxpConn *c) {
 
 void
 ixp_server_close(IxpServer *s) {
-	IxpConn *c, *next;
+	IxpConn *c = nullptr, *next = nullptr;
 
 	for(c = s->conn; c; c = next) {
 		next = c->next;
@@ -98,10 +94,8 @@ ixp_server_close(IxpServer *s) {
 
 static void
 prepare_select(IxpServer *s) {
-	IxpConn *c;
-
 	FD_ZERO(&s->rd);
-	for(c = s->conn; c; c = c->next)
+	for(auto c = s->conn; c; c = c->next)
 		if(c->read) {
 			if(s->maxfd < c->fd)
 				s->maxfd = c->fd;
@@ -111,8 +105,8 @@ prepare_select(IxpServer *s) {
 
 static void
 handle_conns(IxpServer *s) {
-	IxpConn *c, *n;
-	for(c = s->conn; c; c = n) {
+	IxpConn *n;
+	for(auto c = s->conn; c; c = n) {
 		n = c->next;
 		if(FD_ISSET(c->fd, &s->rd))
 			c->read(c);

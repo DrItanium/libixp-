@@ -757,8 +757,8 @@ uint	ixp_fcall2msg(IxpMsg*, IxpFcall*);
 
 /* server.c */
 IxpConn* ixp_listen(IxpServer*, int, void*,
-		void (*read)(IxpConn*),
-		void (*close)(IxpConn*));
+        std::function<void(IxpConn*)> read,
+        std::function<void(IxpConn*)> close);
 void	ixp_hangup(IxpConn*);
 int	    ixp_serverloop(IxpServer*);
 void	ixp_server_close(IxpServer*);
