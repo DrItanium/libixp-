@@ -765,22 +765,18 @@ void	ixp_server_close(IxpServer*);
 
 /* socket.c */
 namespace ixp {
-  int dial(const std::string&);
-  int announce(const std::string&);
-} // end namespace ixp
-
-#define ixp_dial ixp::dial
-#define ixp_announce ixp::announce
-
-/* transport.c */
-uint ixp_sendmsg(int, IxpMsg*);
-uint ixp_recvmsg(int, IxpMsg*);
-
-namespace ixp {
+    int dial(const std::string&);
+    int announce(const std::string&);
+    uint sendmsg(int, IxpMsg*);
+    uint recvmsg(int, IxpMsg*);
     uint64_t msec();
     bool unsettimer(IxpServer*, long);
     long settimer(IxpServer*, long, std::function<void(long, void*)>, void*);
 } // end namespace ixp
+#define ixp_dial ixp::dial
+#define ixp_announce ixp::announce
+#define ixp_sendmsg ixp::sendmsg
+#define ixp_recvmsg ixp::recvmsg
 #define ixp_msec ixp::msec
 #define ixp_unsettimer ixp::unsettimer
 #define ixp_settimer ixp::settimer

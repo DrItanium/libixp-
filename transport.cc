@@ -50,7 +50,6 @@ readn(int fd, IxpMsg *msg, uint count) {
 	return count - num;
 }
 
-} // end namespace ixp
 
 /**
  * Function: ixp_sendmsg
@@ -74,7 +73,7 @@ readn(int fd, IxpMsg *msg, uint count) {
  *	F<ixp_errbuf>.
  */
 uint
-ixp_sendmsg(int fd, IxpMsg *msg) {
+sendmsg(int fd, IxpMsg *msg) {
 	int r;
 
 	msg->pos = msg->data;
@@ -92,7 +91,7 @@ ixp_sendmsg(int fd, IxpMsg *msg) {
 }
 
 uint
-ixp_recvmsg(int fd, IxpMsg *msg) {
+recvmsg(int fd, IxpMsg *msg) {
 	enum { SSize = 4 };
 	uint32_t msize, size;
 
@@ -119,3 +118,4 @@ ixp_recvmsg(int fd, IxpMsg *msg) {
 	return msize;
 }
 
+} // end namespace ixp
