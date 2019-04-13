@@ -664,26 +664,26 @@ class NoThreadImpl final : public ThreadImpl {
     public:
         using ThreadImpl::ThreadImpl;
         /* Read/write lock */
-         bool init(IxpRWLock*) override { return false; }
-         void rlock(IxpRWLock*) override { }
+         bool init(IxpRWLock*) override     { return false; }
+         void rlock(IxpRWLock*) override    { }
          bool canrlock(IxpRWLock*) override { return true; }
-         void runlock(IxpRWLock*) override { }
-         void wlock(IxpRWLock*) override { }
+         void runlock(IxpRWLock*) override  { }
+         void wlock(IxpRWLock*) override    { }
          bool canwlock(IxpRWLock*) override { return true; }
-         void wunlock(IxpRWLock*) override { }
-         void destroy(IxpRWLock*) override { }
+         void wunlock(IxpRWLock*) override  { }
+         void destroy(IxpRWLock*) override  { }
         /* Mutex */
-         bool init(IxpMutex*) override { return false; }
+         bool init(IxpMutex*) override    { return false; }
          bool canlock(IxpMutex*) override { return true; }
-         void lock(IxpMutex*) override { }
-         void unlock(IxpMutex*) override { }
+         void lock(IxpMutex*) override    { }
+         void unlock(IxpMutex*) override  { }
          void destroy(IxpMutex*) override { }
         /* Rendezvous point */
-         bool init(IxpRendez*) override { return false; }
-         bool wake(IxpRendez*) override { return false; }
+         bool init(IxpRendez*) override    { return false; }
+         bool wake(IxpRendez*) override    { return false; }
          bool wakeall(IxpRendez*) override { return false; }
-         void sleep(IxpRendez*) override;
          void destroy(IxpRendez*) override { }
+         void sleep(IxpRendez*) override;
         /* Other */
          char* errbuf() override;
 };
