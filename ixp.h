@@ -705,7 +705,13 @@ long	ixp_pread(IxpCFid*, void*, long, int64_t);
 int	ixp_print(IxpCFid*, const char*, ...);
 long	ixp_pwrite(IxpCFid*, const void*, long, int64_t);
 long	ixp_read(IxpCFid*, void*, long);
-int	ixp_remove(IxpClient*, const char*);
+namespace ixp {
+    inline bool remove(IxpClient* client, const std::string& str) noexcept { return remove(client, str.c_str()); }
+    bool remove(IxpClient*, const char*);
+} // end namespace ixp
+
+#define ixp_remove ixp::remove
+
 void	ixp_unmount(IxpClient*);
 int	ixp_vprint(IxpCFid*, const char*, va_list);
 long	ixp_write(IxpCFid*, const void*, long);

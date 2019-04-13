@@ -299,12 +299,13 @@ clunk(IxpCFid *f) {
  *	F<ixp_mount>
  */
 
-int
-ixp_remove(IxpClient *c, const char *path) {
+namespace ixp {
+bool
+remove(IxpClient *c, const char *path) {
 	IxpFcall fcall;
 
     if (auto f = walk(c, path); !f) {
-        return 0;
+        return false;
     } else {
         fcall.hdr.type = TRemove;
         fcall.hdr.fid = f->fid;;
@@ -314,6 +315,7 @@ ixp_remove(IxpClient *c, const char *path) {
 
         return ret;
     }
+}
 }
 
 static void
@@ -616,10 +618,8 @@ _pwrite(IxpCFid *f, const void *buf, long count, int64_t offset) {
 
 long
 ixp_write(IxpCFid *fid, const void *buf, long count) {
-	int n;
-
 	thread->lock(&fid->iolock);
-	n = _pwrite(fid, buf, count, fid->offset);
+	auto n = _pwrite(fid, buf, count, fid->offset);
 	if(n > 0)
 		fid->offset += n;
 	thread->unlock(&fid->iolock);
@@ -666,26 +666,21 @@ ixp_pwrite(IxpCFid *fid, const void *buf, long count, int64_t offset) {
 
 int
 ixp_vprint(IxpCFid *fid, const char *fmt, va_list args) {
-	char *buf;
-	int n;
-
-	buf = ixp_vsmprint(fmt, args);
-    if (!buf) {
+	if (auto buf = ixp_vsmprint(fmt, args); !buf) {
         return -1;
+    } else {
+        auto n = ixp_write(fid, buf, strlen(buf));
+        free(buf);
+        return n;
     }
-
-	n = ixp_write(fid, buf, strlen(buf));
-	free(buf);
-	return n;
 }
 
 int
 ixp_print(IxpCFid *fid, const char *fmt, ...) {
 	va_list ap;
-	int n;
 
 	va_start(ap, fmt);
-	n = ixp_vprint(fid, fmt, ap);
+	auto n = ixp_vprint(fid, fmt, ap);
 	va_end(ap);
 
 	return n;
