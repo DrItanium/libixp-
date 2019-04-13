@@ -700,17 +700,18 @@ namespace ixp
 #define ixp_vsmprint ixp::vsmprint
 
 /* client.c */
-int	ixp_close(IxpCFid*);
 long	ixp_pread(IxpCFid*, void*, long, int64_t);
 int	ixp_print(IxpCFid*, const char*, ...);
 long	ixp_pwrite(IxpCFid*, const void*, long, int64_t);
 long	ixp_read(IxpCFid*, void*, long);
 namespace ixp {
+    bool close(IxpCFid*);
     inline bool remove(IxpClient* client, const std::string& str) noexcept { return remove(client, str.c_str()); }
     bool remove(IxpClient*, const char*);
 } // end namespace ixp
 
 #define ixp_remove ixp::remove
+#define ixp_close ixp::close
 
 void	ixp_unmount(IxpClient*);
 int	ixp_vprint(IxpCFid*, const char*, va_list);

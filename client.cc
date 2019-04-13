@@ -268,7 +268,7 @@ walkdir(IxpClient *c, char *path, const char **rest) {
 	return walk(c, path);
 }
 
-static int
+static bool 
 clunk(IxpCFid *f) {
 	IxpFcall fcall;
 
@@ -425,7 +425,7 @@ ixp_open(IxpClient *c, const char *path, uint8_t mode) {
  *	F<ixp_mount>, F<ixp_open>
  */
 
-int
+bool
 ixp_close(IxpCFid *f) {
 	return clunk(f);
 }
