@@ -5,62 +5,61 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <memory>
 #include "ixp_local.h"
 #include "thread_pthread.h"
 
 
 namespace ixp::concurrency {
+    using RawRWLock = std::shared_ptr<pthread_rwlock_t>;
+    using RawMutexLock = std::shared_ptr<pthread_mutex_t>;
+    using RawRendez = std::shared_ptr<pthread_cond_t>;
     bool 
     PThreadImpl::init(IxpRWLock* rw) { 
-        if (auto rwlock = new pthread_rwlock_t; pthread_rwlock_init(rwlock, nullptr)) {
-            delete rwlock;
+        if (auto rwlock = std::make_shared<pthread_rwlock_t>(); pthread_rwlock_init(rwlock.get(), nullptr)) {
+        //if (auto rwlock = new pthread_rwlock_t; pthread_rwlock_init(rwlock, nullptr)) {
             return true;
         } else {
-            rw->aux = rwlock;
+            rw->aux = std::move(rwlock);
             return false;
         }
     }
     bool 
     PThreadImpl::init(IxpRendez* r) {
-        if (auto cond = new pthread_cond_t; pthread_cond_init(cond, nullptr)) {
-            delete cond; 
+        if (auto cond = std::make_shared<pthread_cond_t>(); pthread_cond_init(cond.get(), nullptr)) {
             return true;
         } else {
-            r->aux = cond;
+            r->aux = std::move(cond);
             return false;
         }
     }
     bool 
     PThreadImpl::init(IxpMutex* m) { 
-        if (auto mutex = new pthread_mutex_t; pthread_mutex_init(mutex, nullptr)) {
-            delete mutex;
+        if (auto mutex = std::make_shared<pthread_mutex_t>(); pthread_mutex_init(mutex.get(), nullptr)) {
             return true;
         } else {
-            m->aux = mutex;
+            m->aux = std::move(mutex);
             return false;
         }
     }
     void 
     PThreadImpl::destroy(IxpRendez* r) { 
-        auto val = std::any_cast<pthread_cond_t*>(r->aux);
-        pthread_cond_destroy(val);
-        delete val;
+        auto val = std::any_cast<RawRendez>(r->aux);
+        pthread_cond_destroy(val.get());
         r->aux.reset();
     }
 
     void 
     PThreadImpl::destroy(IxpMutex* m) { 
-        auto mut = std::any_cast<pthread_mutex_t*>(m->aux);
-        pthread_mutex_destroy(mut);
-        delete mut;
+        auto mut = std::any_cast<RawMutexLock>(m->aux);
+        pthread_mutex_destroy(mut.get());
         m->aux.reset();
     }
 
     void 
     PThreadImpl::destroy(IxpRWLock* rw) { 
-        auto val = std::any_cast<pthread_rwlock_t*>(rw->aux);
-        pthread_rwlock_destroy(val);
-        delete val;
+        auto val = std::any_cast<RawRWLock>(rw->aux);
+        pthread_rwlock_destroy(val.get());
         rw->aux.reset();
     }
 
@@ -76,25 +75,25 @@ namespace ixp::concurrency {
     }
     bool 
     PThreadImpl::wake(IxpRendez* r) { 
-        auto val = std::any_cast<pthread_cond_t*>(r->aux);
-        pthread_cond_signal(val);
+        auto val = std::any_cast<RawRendez>(r->aux);
+        pthread_cond_signal(val.get());
         return false;
     }
     bool 
     PThreadImpl::wakeall(IxpRendez* r) { 
-        auto val = std::any_cast<pthread_cond_t*>(r->aux);
-        pthread_cond_broadcast(val);
+        auto val = std::any_cast<RawRendez>(r->aux);
+        pthread_cond_broadcast(val.get());
         return 0;
     }   
 
-    void PThreadImpl::rlock(IxpRWLock* rw) { pthread_rwlock_rdlock(std::any_cast<pthread_rwlock_t*>(rw->aux)); }
-    bool PThreadImpl::canrlock(IxpRWLock* rw) { return !pthread_rwlock_tryrdlock(std::any_cast<pthread_rwlock_t*>(rw->aux)); }
-    void PThreadImpl::runlock(IxpRWLock* rw) { pthread_rwlock_unlock(std::any_cast<pthread_rwlock_t*>(rw->aux)); }
-    void PThreadImpl::wlock(IxpRWLock* rw) { pthread_rwlock_rdlock(std::any_cast<pthread_rwlock_t*>(rw->aux)); }
-    bool PThreadImpl::canwlock(IxpRWLock* rw) { return !pthread_rwlock_tryrdlock(std::any_cast<pthread_rwlock_t*>(rw->aux)); }
-    void PThreadImpl::wunlock(IxpRWLock* rw) { pthread_rwlock_unlock(std::any_cast<pthread_rwlock_t*>(rw->aux)); }
-    bool PThreadImpl::canlock(IxpMutex* m) { return !pthread_mutex_trylock(std::any_cast<pthread_mutex_t*>(m->aux)); }
-    void PThreadImpl::lock(IxpMutex* m)   { pthread_mutex_lock(std::any_cast<pthread_mutex_t*>(m->aux)); }
-    void PThreadImpl::unlock(IxpMutex* m) { pthread_mutex_unlock(std::any_cast<pthread_mutex_t*>(m->aux)); }
-    void PThreadImpl::sleep(IxpRendez* r) { pthread_cond_wait(std::any_cast<pthread_cond_t*>(r->aux), std::any_cast<pthread_mutex_t*>(r->mutex->aux)); }
+    void PThreadImpl::rlock(IxpRWLock* rw) { pthread_rwlock_rdlock(std::any_cast<RawRWLock>(rw->aux).get()); }
+    bool PThreadImpl::canrlock(IxpRWLock* rw) { return !pthread_rwlock_tryrdlock(std::any_cast<RawRWLock>(rw->aux).get()); }
+    void PThreadImpl::runlock(IxpRWLock* rw) { pthread_rwlock_unlock(std::any_cast<RawRWLock>(rw->aux).get()); }
+    void PThreadImpl::wlock(IxpRWLock* rw) { pthread_rwlock_rdlock(std::any_cast<RawRWLock>(rw->aux).get()); }
+    bool PThreadImpl::canwlock(IxpRWLock* rw) { return !pthread_rwlock_tryrdlock(std::any_cast<RawRWLock>(rw->aux).get()); }
+    void PThreadImpl::wunlock(IxpRWLock* rw) { pthread_rwlock_unlock(std::any_cast<RawRWLock>(rw->aux).get()); }
+    bool PThreadImpl::canlock(IxpMutex* m) { return !pthread_mutex_trylock(std::any_cast<RawMutexLock>(m->aux).get()); }
+    void PThreadImpl::lock(IxpMutex* m)   { pthread_mutex_lock(std::any_cast<RawMutexLock>(m->aux).get()); }
+    void PThreadImpl::unlock(IxpMutex* m) { pthread_mutex_unlock(std::any_cast<RawMutexLock>(m->aux).get()); }
+    void PThreadImpl::sleep(IxpRendez* r) { pthread_cond_wait(std::any_cast<RawRendez>(r->aux).get(), std::any_cast<RawMutexLock>(r->mutex->aux).get()); }
 } // end namespace ixp::concurrency 
