@@ -75,13 +75,13 @@ enum {
  */
 char*
 ixp_errbuf() {
-	char *errbuf;
 
-	errbuf = thread->errbuf();
-	if(errno == EINTR)
+	auto errbuf = thread->errbuf();
+	if(errno == EINTR) {
 		strncpy(errbuf, "interrupted", IXP_ERRMAX);
-	else if(errno != EPLAN9)
+    } else if(errno != EPLAN9) {
 		strncpy(errbuf, strerror(errno), IXP_ERRMAX);
+    }
 	return errbuf;
 }
 
