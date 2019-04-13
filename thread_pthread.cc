@@ -12,19 +12,9 @@ static pthread_key_t errstr_k;
 
 namespace ixp {
 
-static void
-mlock(IxpMutex *m) {
-	pthread_mutex_lock((pthread_mutex_t*)m->aux);
-}
-
 static int
 mcanlock(IxpMutex *m) {
 	return !pthread_mutex_trylock((pthread_mutex_t*)m->aux);
-}
-
-static void
-munlock(IxpMutex *m) {
-	pthread_mutex_unlock((pthread_mutex_t*)m->aux);
 }
 
 static void
@@ -33,19 +23,9 @@ mdestroy(IxpMutex *m) {
 	free(m->aux);
 }
 
-static void
-rlock(IxpRWLock *rw) {
-	pthread_rwlock_rdlock((pthread_rwlock_t*)rw->aux);
-}
-
 static int
 canrlock(IxpRWLock *rw) {
 	return !pthread_rwlock_tryrdlock((pthread_rwlock_t*)rw->aux);
-}
-
-static void
-wlock(IxpRWLock *rw) {
-	pthread_rwlock_rdlock((pthread_rwlock_t*)rw->aux);
 }
 
 static int
@@ -81,14 +61,9 @@ rwakeall(IxpRendez *r) {
 	return 0;
 }
 
-static void
-rdestroy(IxpRendez *r) {
-	pthread_cond_destroy((pthread_cond_t*)r->aux);
-	free(r->aux);
-}
-
 namespace concurrency {
-    bool PThreadImpl::init(IxpRWLock* rw) { 
+    bool 
+    PThreadImpl::init(IxpRWLock* rw) { 
         pthread_rwlock_t *rwlock;
 
         rwlock = (pthread_rwlock_t*)emalloc(sizeof *rwlock);
@@ -100,7 +75,8 @@ namespace concurrency {
         rw->aux = rwlock;
         return 0;
     }
-    bool PThreadImpl::init(IxpRendez* r) {
+    bool 
+    PThreadImpl::init(IxpRendez* r) {
         if(auto cond = (pthread_cond_t*)emalloc(sizeof(pthread_cond_t)); pthread_cond_init(cond, nullptr)) {
             free(cond);
             return true;
@@ -109,7 +85,8 @@ namespace concurrency {
             return false;
         }
     }
-    bool PThreadImpl::init(IxpMutex* m) { 
+    bool 
+    PThreadImpl::init(IxpMutex* m) { 
         if (auto mutex = (pthread_mutex_t*)emalloc(sizeof (pthread_mutex_t)); pthread_mutex_init(mutex, nullptr)) {
             free(mutex);
             return true;
@@ -118,21 +95,27 @@ namespace concurrency {
             return false;
         }
     }
-    void PThreadImpl::rlock(IxpRWLock* a) { ixp::rlock(a); }
+    void 
+    PThreadImpl::destroy(IxpRendez* r) { 
+        pthread_cond_destroy((pthread_cond_t*)r->aux);
+        free(r->aux);
+    }
+
+    void PThreadImpl::destroy(IxpMutex* a) { ixp::mdestroy(a); }
+    void PThreadImpl::destroy(IxpRWLock* a) { ixp::rwdestroy(a); }
+
+    void PThreadImpl::rlock(IxpRWLock* rw) { pthread_rwlock_rdlock((pthread_rwlock_t*)rw->aux); }
     bool PThreadImpl::canrlock(IxpRWLock* a) { return ixp::canrlock(a); }
     void PThreadImpl::runlock(IxpRWLock* a) { ixp::rwunlock(a); }
-    void PThreadImpl::wlock(IxpRWLock* a) { ixp::wlock(a); }
+    void PThreadImpl::wlock(IxpRWLock* rw) { pthread_rwlock_rdlock((pthread_rwlock_t*)rw->aux); }
     bool PThreadImpl::canwlock(IxpRWLock* a) { return ixp::canwlock(a); }
     void PThreadImpl::wunlock(IxpRWLock* a) { ixp::rwunlock(a); }
-    void PThreadImpl::destroy(IxpRWLock* a) { ixp::rwdestroy(a); }
     bool PThreadImpl::canlock(IxpMutex* a) { return ixp::mcanlock(a); }
-    void PThreadImpl::lock(IxpMutex* a) { ixp::mlock(a); }
-    void PThreadImpl::unlock(IxpMutex* a) { ixp::munlock(a); }
-    void PThreadImpl::destroy(IxpMutex* a) { ixp::mdestroy(a); }
+    void PThreadImpl::lock(IxpMutex* m)   { pthread_mutex_lock((pthread_mutex_t*)m->aux); }
+    void PThreadImpl::unlock(IxpMutex* m) { pthread_mutex_unlock((pthread_mutex_t*)m->aux); }
     bool PThreadImpl::wake(IxpRendez* a) { return ixp::rwake(a); }
     bool PThreadImpl::wakeall(IxpRendez* a) { return ixp::rwakeall(a); }
     void PThreadImpl::sleep(IxpRendez* a) { ixp::rsleep(a); }
-    void PThreadImpl::destroy(IxpRendez* a) { ixp::rdestroy(a); }
     char* PThreadImpl::errbuf() { 
         auto ret = (char*)pthread_getspecific(errstr_k);
         if (!ret) {
