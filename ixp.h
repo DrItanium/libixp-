@@ -259,12 +259,12 @@ struct IxpMutex {
 };
 
 struct IxpRendez {
-	IxpMutex*	mutex;
-	void*	aux;
+	IxpMutex* mutex;
+    std::any aux;
 };
 
 struct IxpRWLock {
-	void*	aux;
+    std::any aux;
 };
 
 enum IxpMsgMode {
