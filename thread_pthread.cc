@@ -12,21 +12,18 @@
 namespace ixp::concurrency {
     bool 
     PThreadImpl::init(IxpRWLock* rw) { 
-        pthread_rwlock_t *rwlock;
-
-        rwlock = (pthread_rwlock_t*)emalloc(sizeof *rwlock);
-        if(pthread_rwlock_init(rwlock, nullptr)) {
-            free(rwlock);
-            return 1;
+        if (auto rwlock = new pthread_rwlock_t; pthread_rwlock_init(rwlock, nullptr)) {
+            delete rwlock;
+            return true;
+        } else {
+            rw->aux = rwlock;
+            return false;
         }
-
-        rw->aux = rwlock;
-        return 0;
     }
     bool 
     PThreadImpl::init(IxpRendez* r) {
-        if(auto cond = (pthread_cond_t*)emalloc(sizeof(pthread_cond_t)); pthread_cond_init(cond, nullptr)) {
-            free(cond);
+        if (auto cond = new pthread_cond_t; pthread_cond_init(cond, nullptr)) {
+            delete cond; 
             return true;
         } else {
             r->aux = cond;
