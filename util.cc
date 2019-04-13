@@ -123,12 +123,14 @@ ns_display(void) {
 /* Not especially threadsafe. */
 char*
 getNamespace(void) {
-	static char *_namespace;
-
-	if(!_namespace)
-		_namespace = getenv("NAMESPACE");
-	if(!_namespace)
-		_namespace = ns_display();
+    static char* _namespace;
+    if (!_namespace) {
+        if (auto ev = getenv("NAMESPACE"); !ev) {
+            _namespace = ns_display();
+        } else {
+            _namespace = ev;
+        }
+    }
 	return _namespace;
 }
 
@@ -141,9 +143,8 @@ getNamespace(void) {
 void
 ixp_eprint(const char *fmt, ...) {
 	va_list ap;
-	int err;
 
-	err = errno;
+	int err = errno;
 	fprintf(stderr, "libixp: fatal: ");
 
 	va_start(ap, fmt);
