@@ -38,9 +38,8 @@ getfid(IxpClient *c) {
 
 static void
 putfid(IxpCFid *f) {
-	IxpClient *c;
 
-	c = f->client;
+	auto c = f->client;
 	thread->lock(&c->lk);
 	if(f->fid == c->lastfid) {
 		c->lastfid--;
@@ -139,10 +138,9 @@ allocmsg(IxpClient *c, int n) {
 
 IxpClient*
 ixp_mountfd(int fd) {
-	IxpClient *c;
 	IxpFcall fcall;
 
-	c = (IxpClient*)emallocz(sizeof *c);
+	auto c = (IxpClient*)emallocz(sizeof(IxpClient));
 	c->fd = fd;
 
 	muxinit(c);
