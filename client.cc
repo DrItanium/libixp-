@@ -53,13 +53,13 @@ putfid(IxpCFid *f) {
 	thread->unlock(&c->lk);
 }
 
-static int
+static bool 
 dofcall(IxpClient *c, IxpFcall *fcall) {
 	IxpFcall *ret;
 
 	ret = muxrpc(c, fcall);
     if (!ret) {
-		return 0;
+		return false;
     }
 	if(ret->hdr.type == RError) {
 		werrstr("%s", ret->error.ename);
@@ -71,11 +71,11 @@ dofcall(IxpClient *c, IxpFcall *fcall) {
 	}
 	memcpy(fcall, ret, sizeof *fcall);
 	free(ret);
-	return 1;
+	return true;
 fail:
 	ixp_freefcall(fcall);
 	free(ret);
-	return 0;
+	return false;
 }
 
 /**
@@ -157,7 +157,7 @@ ixp_mountfd(int fd) {
 	fcall.version.msize = IXP_MAX_MSG;
 	fcall.version.version = (char*)IXP_VERSION;
 
-	if(dofcall(c, &fcall) == 0) {
+	if(!dofcall(c, &fcall)) {
 		ixp_unmount(c);
 		return nullptr;
 	}
@@ -181,7 +181,7 @@ ixp_mountfd(int fd) {
 	fcall.tattach.afid = IXP_NOFID;
 	fcall.tattach.uname = getenv("USER");
 	fcall.tattach.aname = (char*)"";
-	if(dofcall(c, &fcall) == 0) {
+	if(!dofcall(c, &fcall)) {
 		ixp_unmount(c);
 		return nullptr;
 	}
@@ -229,7 +229,7 @@ walk(IxpClient *c, const char *path) {
 	fcall.hdr.fid = RootFid;
 	fcall.twalk.nwname = n;
 	fcall.twalk.newfid = f->fid;
-	if(dofcall(c, &fcall) == 0)
+	if(!dofcall(c, &fcall))
 		goto fail;
 	if(fcall.rwalk.nwqid < n) {
 		werrstr("File does not exist");
@@ -272,15 +272,13 @@ walkdir(IxpClient *c, char *path, const char **rest) {
 
 static int
 clunk(IxpCFid *f) {
-	IxpClient *c;
 	IxpFcall fcall;
-	int ret;
 
-	c = f->client;
+	auto c = f->client;
 
 	fcall.hdr.type = TClunk;
 	fcall.hdr.fid = f->fid;
-	ret = dofcall(c, &fcall);
+	auto ret = dofcall(c, &fcall);
 	if(ret)
 		putfid(f);
 	ixp_freefcall(&fcall);
@@ -304,21 +302,18 @@ clunk(IxpCFid *f) {
 int
 ixp_remove(IxpClient *c, const char *path) {
 	IxpFcall fcall;
-	IxpCFid *f;
-	int ret;
 
-    f = walk(c, path);
-    if (!f) {
+    if (auto f = walk(c, path); !f) {
         return 0;
+    } else {
+        fcall.hdr.type = TRemove;
+        fcall.hdr.fid = f->fid;;
+        auto ret = dofcall(c, &fcall);
+        ixp_freefcall(&fcall);
+        putfid(f);
+
+        return ret;
     }
-
-	fcall.hdr.type = TRemove;
-	fcall.hdr.fid = f->fid;;
-	ret = dofcall(c, &fcall);
-	ixp_freefcall(&fcall);
-	putfid(f);
-
-	return ret;
 }
 
 static void
@@ -377,7 +372,7 @@ ixp_create(IxpClient *c, const char *path, uint perm, uint8_t mode) {
 	fcall.tcreate.perm = perm;
 	fcall.tcreate.mode = mode;
 
-	if(dofcall(c, &fcall) == 0) {
+	if(!dofcall(c, &fcall)) {
 		clunk(f);
 		f = nullptr;
 		goto done;
@@ -406,7 +401,7 @@ ixp_open(IxpClient *c, const char *path, uint8_t mode) {
 	fcall.hdr.fid = f->fid;
 	fcall.topen.mode = mode;
 
-	if(dofcall(c, &fcall) == 0) {
+	if(!dofcall(c, &fcall)) {
 		clunk(f);
 		return nullptr;
 	}
@@ -443,7 +438,7 @@ _stat(IxpClient *c, ulong fid) {
 
 	fcall.hdr.type = TStat;
 	fcall.hdr.fid = fid;
-	if(dofcall(c, &fcall) == 0)
+	if(!dofcall(c, &fcall))
 		return nullptr;
 
 	msg = ixp_message((char*)fcall.rstat.stat, fcall.rstat.nstat, MsgUnpack);
@@ -501,17 +496,16 @@ ixp_fstat(IxpCFid *fid) {
 static long
 _pread(IxpCFid *f, char *buf, long count, int64_t offset) {
 	IxpFcall fcall;
-	int n, len;
 
-	len = 0;
+	auto len = 0l;
 	while(len < count) {
-        n = ixp::min<int>(count-len, f->iounit);
+        auto n = ixp::min<int>(count-len, f->iounit);
 
 		fcall.hdr.type = TRead;
 		fcall.hdr.fid = f->fid;
 		fcall.tread.offset = offset;
 		fcall.tread.count = n;
-		if(dofcall(f->client, &fcall) == 0)
+		if(!dofcall(f->client, &fcall))
 			return -1;
 		if(fcall.rread.count > n)
 			return -1;
@@ -584,7 +578,7 @@ _pwrite(IxpCFid *f, const void *buf, long count, int64_t offset) {
 		fcall.twrite.offset = offset;
 		fcall.twrite.data = (char*)buf + len;
 		fcall.twrite.count = n;
-		if(dofcall(f->client, &fcall) == 0)
+		if(!dofcall(f->client, &fcall))
 			return -1;
 
 		offset += fcall.rwrite.count;
