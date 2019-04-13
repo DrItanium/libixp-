@@ -24,9 +24,11 @@
  *   not modified.
  */
 
+#ifndef SUN_LEN
 /* From FreeBSD's sys/su.h */
 #define SUN_LEN(su) \
 	(sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
+#endif
 
 typedef struct addrinfo addrinfo;
 typedef struct sockaddr sockaddr;
