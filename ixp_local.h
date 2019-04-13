@@ -42,13 +42,6 @@ extern char* argv0;
 
 #define thread ixp::concurrency::threadModel
 
-#define eprint ixp_eprint
-#define emalloc ixp_emalloc
-#define emallocz ixp_emallocz
-#define estrdup ixp_estrdup
-#define erealloc ixp_erealloc
-#define strlcat ixp_strlcat
-#define tokenize ixp_tokenize
 
 #define muxinit ixp_muxinit
 #define muxfree ixp_muxfree

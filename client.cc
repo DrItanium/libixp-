@@ -25,7 +25,7 @@ getfid(IxpClient *c) {
     if (f) {
 		c->freefid = f->next;
     } else {
-		f = (IxpCFid*)emallocz(sizeof *f);
+		f = (IxpCFid*)ixp::emallocz(sizeof *f);
 		f->client = c;
 		f->fid = ++c->lastfid;
 		thread->initmutex(&f->iolock);
@@ -108,8 +108,8 @@ static void
 allocmsg(IxpClient *c, int n) {
 	c->rmsg.size = n;
 	c->wmsg.size = n;
-	c->rmsg.data = (char*)erealloc(c->rmsg.data, n);
-	c->wmsg.data = (char*)erealloc(c->wmsg.data, n);
+	c->rmsg.data = (char*)ixp::erealloc(c->rmsg.data, n);
+	c->wmsg.data = (char*)ixp::erealloc(c->wmsg.data, n);
 }
 
 /**
@@ -140,7 +140,7 @@ IxpClient*
 ixp_mountfd(int fd) {
 	IxpFcall fcall;
 
-	auto c = (IxpClient*)emallocz(sizeof(IxpClient));
+	auto c = (IxpClient*)ixp::emallocz(sizeof(IxpClient));
 	c->fd = fd;
 
 	muxinit(c);
@@ -202,9 +202,9 @@ ixp_nsmount(const char *name) {
 	char *address;
 	IxpClient *c;
 
-	address = ixp_namespace();
+	address = ixp::getNamespace();
 	if(address)
-		address = ixp_smprint("unix!%s/%s", address, name);
+		address = ixp::smprint("unix!%s/%s", address, name);
     if (!address) 
 		return nullptr;
 	c = ixp_mount(address);
@@ -219,8 +219,8 @@ walk(IxpClient *c, const char *path) {
 	IxpFcall fcall;
 	int n;
 
-	p = estrdup(path);
-	n = tokenize(fcall.twalk.wname, nelem(fcall.twalk.wname), p, '/');
+	p = ixp::estrdup(path);
+	n = ixp::tokenize(fcall.twalk.wname, nelem(fcall.twalk.wname), p, '/');
 	f = getfid(c);
 
 	fcall.hdr.type = TWalk;
@@ -360,7 +360,7 @@ ixp_create(IxpClient *c, const char *path, uint perm, uint8_t mode) {
 	IxpCFid *f;
 	char *tpath;;
 
-	tpath = estrdup(path);
+	tpath = ixp::estrdup(path);
 
 	f = walkdir(c, tpath, &path);
     if (!f) 

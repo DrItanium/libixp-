@@ -33,7 +33,7 @@ void
 write_data(IxpCFid *fid, char *name) {
 	long len = 0;
 
-	auto buf = emalloc(fid->iounit);
+	auto buf = ixp::emalloc(fid->iounit);
 	do {
 		len = read(0, buf, fid->iounit);
 		if(len >= 0 && ixp_write(fid, buf, len) != len) {
@@ -147,13 +147,13 @@ xawrite(int argc, char *argv[]) {
 
 	auto nbuf = 0;
 	auto mbuf = 128;
-	auto buf = (char*)emalloc(mbuf);
+	auto buf = (char*)ixp::emalloc(mbuf);
 	while(argc) {
 		auto arg = ARGF();
 		int len = strlen(arg);
 		if(nbuf + len > mbuf) {
 			mbuf <<= 1;
-			buf = (decltype(buf))ixp_erealloc(buf, mbuf);
+			buf = (decltype(buf))ixp::erealloc(buf, mbuf);
 		}
 		memcpy(buf+nbuf, arg, len);
 		nbuf += len;
@@ -214,7 +214,7 @@ xread(int argc, char *argv[]) {
     }
 
     int count = 0;
-	auto buf = (char*)emalloc(fid->iounit);
+	auto buf = (char*)ixp::emalloc(fid->iounit);
 	while((count = ixp_read(fid, buf, fid->iounit)) > 0) {
 		write(1, buf, count);
     }
@@ -268,14 +268,14 @@ xls(int argc, char *argv[]) {
 
 	nstat = 0;
 	mstat = 16;
-	stat = (decltype(stat))emalloc(sizeof(*stat) * mstat);
-	buf = (decltype(buf))emalloc(fid->iounit);
+	stat = (decltype(stat))ixp::emalloc(sizeof(*stat) * mstat);
+	buf = (decltype(buf))ixp::emalloc(fid->iounit);
 	while((count = ixp_read(fid, buf, fid->iounit)) > 0) {
 		m = ixp_message(buf, count, MsgUnpack);
 		while(m.pos < m.end) {
 			if(nstat == mstat) {
 				mstat <<= 1;
-				stat = (decltype(stat))ixp_erealloc(stat, sizeof(*stat) * mstat);
+				stat = (decltype(stat))ixp::erealloc(stat, sizeof(*stat) * mstat);
 			}
 			ixp_pstat(&m, &stat[nstat++]);
 		}

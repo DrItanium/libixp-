@@ -782,15 +782,17 @@ namespace ixp {
 #define ixp_settimer ixp::settimer
 
 /* util.c */
-void	ixp_cleanname(char*);
-void*	ixp_emalloc(uint);
-void*	ixp_emallocz(uint);
-void	ixp_eprint(const char*, ...);
-void*	ixp_erealloc(void*, uint);
-char*	ixp_estrdup(const char*);
-char*	ixp_namespace(void);
-char*	ixp_smprint(const char*, ...);
-uint	ixp_strlcat(char*, const char*, uint);
-uint	ixp_tokenize(char**, uint len, char*, char);
+namespace ixp {
+void	cleanname(char*);
+void*	emalloc(uint);
+void*	emallocz(uint);
+void	eprint(const char*, ...);
+void*	erealloc(void*, uint);
+char*	estrdup(const char*);
+char*	getNamespace(void);
+char*	smprint(const char*, ...);
+uint	strlcat(char*, const char*, uint);
+uint	tokenize(char**, uint len, char*, char);
+}
 
 #endif

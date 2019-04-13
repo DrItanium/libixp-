@@ -13,7 +13,8 @@
 #include "ixp_local.h"
 
 namespace ixp {
-static auto 
+namespace {
+auto 
 mread(int fd, IxpMsg *msg, uint count) {
 	auto n = msg->end - msg->pos;
 	if (n <= 0) {
@@ -30,7 +31,7 @@ mread(int fd, IxpMsg *msg, uint count) {
 	return r;
 }
 
-static int
+int
 readn(int fd, IxpMsg *msg, uint count) {
 	auto num = count;
 	while(num > 0) {
@@ -44,6 +45,7 @@ readn(int fd, IxpMsg *msg, uint count) {
 		num -= r;
 	}
 	return count - num;
+}
 }
 
 

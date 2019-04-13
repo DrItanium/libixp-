@@ -40,7 +40,7 @@ ixp_listen(IxpServer *srv, int fd, void *aux,
 		) {
 	IxpConn *c;
 
-	c = (decltype(c))emallocz(sizeof *c);
+	c = (decltype(c))ixp::emallocz(sizeof *c);
 	c->fd = fd;
 	c->aux = aux;
 	c->srv = srv;

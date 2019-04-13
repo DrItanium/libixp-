@@ -46,7 +46,7 @@ ixp_srv_getfile(void) {
 
 	if(!free_fileid) {
 		i = 15;
-		file = (decltype(file))emallocz(i * sizeof *file);
+		file = (decltype(file))ixp::emallocz(i * sizeof *file);
 		for(; i; i--) {
 			file->next = free_fileid;
 			free_fileid = file++;
@@ -95,7 +95,7 @@ ixp_srv_clonefiles(IxpFileId *fileid) {
 
 	r = ixp_srv_getfile();
 	memcpy(r, fileid, sizeof *r);
-	r->tab.name = estrdup(r->tab.name);
+	r->tab.name = ixp::estrdup(r->tab.name);
 	r->nref = 1;
 	for(fileid=fileid->next; fileid; fileid=fileid->next)
 		assert(fileid->nref++);
@@ -133,7 +133,7 @@ ixp_srv_readbuf(Ixp9Req *req, char *buf, uint len) {
 	len -= req->ifcall.io.offset;
 	if(len > req->ifcall.io.count)
 		len = req->ifcall.io.count;
-	req->ofcall.io.data = (decltype(req->ofcall.io.data))emalloc(len);
+	req->ofcall.io.data = (decltype(req->ofcall.io.data))ixp::emalloc(len);
 	memcpy(req->ofcall.io.data, buf + req->ifcall.io.offset, len);
 	req->ofcall.io.count = len;
 }
@@ -161,7 +161,7 @@ ixp_srv_writebuf(Ixp9Req *req, char **buf, uint *len, uint max) {
 
 	*len = offset + count;
 	if(max == 0)
-		*buf = (char*)erealloc(*buf, *len + 1);
+		*buf = (char*)ixp::erealloc(*buf, *len + 1);
 	p = *buf;
 
 	memcpy(p+offset, req->ifcall.io.data, count);
@@ -191,7 +191,7 @@ ixp_srv_data2cstring(Ixp9Req *req) {
 	if(q)
 		i = q - p;
 
-	p = (decltype(p))erealloc(req->ifcall.io.data, i+1);
+	p = (decltype(p))ixp::erealloc(req->ifcall.io.data, i+1);
 	p[i] = '\0';
 	req->ifcall.io.data = p;
 }
@@ -303,7 +303,7 @@ ixp_pending_respond(Ixp9Req *req) {
 		ixp_respond(req, nullptr);
 		free(queue);
 	}else {
-		req_link = (decltype(req_link))emallocz(sizeof *req_link);
+		req_link = (decltype(req_link))ixp::emallocz(sizeof *req_link);
 		req_link->req = req;
 		req_link->next = &p->pending->req;
 		req_link->prev = req_link->next->prev;
@@ -333,8 +333,8 @@ ixp_pending_write(IxpPending *pending, const char *dat, long ndat) {
 	for(pp=pending->fids.next; pp != &pending->fids; pp=pp->next) {
 		for(qp=&pp->queue; *qp; qp=&qp[0]->link)
 			;
-		queue = (decltype(queue))emallocz(sizeof *queue);
-		queue->dat = (decltype(queue->dat))emalloc(ndat);
+		queue = (decltype(queue))ixp::emallocz(sizeof *queue);
+		queue->dat = (decltype(queue->dat))ixp::emalloc(ndat);
 		memcpy(queue->dat, dat, ndat);
 		queue->len = ndat;
 		*qp = queue;
@@ -391,7 +391,7 @@ ixp_pending_pushfid(IxpPending *pending, IxpFid *fid) {
 	}
 
 	file = (decltype(file))fid->aux;
-	pend_link = (decltype(pend_link))emallocz(sizeof *pend_link);
+	pend_link = (decltype(pend_link))ixp::emallocz(sizeof *pend_link);
 	pend_link->fid = fid;
 	pend_link->pending = pending;
 	pend_link->next = &pending->fids;
@@ -530,7 +530,7 @@ ixp_srv_readdir(Ixp9Req *req, IxpLookupFn lookup, void (*dostat)(IxpStat*, IxpFi
 	size = req->ifcall.io.count;
 	if(size > req->fid->iounit)
 		size = req->fid->iounit;
-	buf = (decltype(buf))emallocz(size);
+	buf = (decltype(buf))ixp::emallocz(size);
 	msg = ixp_message(buf, size, MsgPack);
 
 	file = lookup(file, nullptr);

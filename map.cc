@@ -18,7 +18,7 @@ static void
 insert(MapEnt **e, ulong val, const char *key) {
 	MapEnt *te;
 	
-	te = (MapEnt*)emallocz(sizeof *te);
+	te = (MapEnt*)ixp::emallocz(sizeof *te);
 	te->hash = val;
 	te->key = key;
 	te->next = *e;

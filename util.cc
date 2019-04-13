@@ -11,6 +11,7 @@
 #include <pwd.h>
 #include "ixp_local.h"
 
+namespace ixp {
 /**
  * Function: ixp_smprint
  *
@@ -18,7 +19,7 @@
  * a F<malloc> allocated string containing the result.
  */
 char*
-ixp_smprint(const char *fmt, ...) {
+smprint(const char *fmt, ...) {
 	va_list ap;
 	char *s;
 
@@ -84,7 +85,7 @@ ns_display(void) {
 	if(path > disp && !strcmp(path, ".0"))
 		*path = '\0';
 
-	path = ixp_smprint("/tmp/ns.%s.%s", _user(), disp);
+	path = smprint("/tmp/ns.%s.%s", _user(), disp);
 	free(disp);
 
 	if(!rmkdir(path, 0700))
@@ -121,7 +122,7 @@ ns_display(void) {
  */
 /* Not especially threadsafe. */
 char*
-ixp_namespace(void) {
+getNamespace(void) {
 	static char *_namespace;
 
 	if(!_namespace)
@@ -194,7 +195,7 @@ mfatal(char *name, uint size) {
  * result of the allocation.
  */
 void*
-ixp_emalloc(uint size) {
+emalloc(uint size) {
 	void *ret = malloc(size);
 	if(!ret)
 		mfatal("malloc", size);
@@ -202,14 +203,14 @@ ixp_emalloc(uint size) {
 }
 
 void*
-ixp_emallocz(uint size) {
+emallocz(uint size) {
 	void *ret = emalloc(size);
 	memset(ret, 0, size);
 	return ret;
 }
 
 void*
-ixp_erealloc(void *ptr, uint size) {
+erealloc(void *ptr, uint size) {
 	void *ret = realloc(ptr, size);
 	if(!ret)
 		mfatal("realloc", size);
@@ -217,7 +218,7 @@ ixp_erealloc(void *ptr, uint size) {
 }
 
 char*
-ixp_estrdup(const char *str) {
+estrdup(const char *str) {
 	void *ret = strdup(str);
 	if(!ret)
 		mfatal("strdup", strlen(str));
@@ -225,7 +226,7 @@ ixp_estrdup(const char *str) {
 }
 
 uint
-ixp_tokenize(char *res[], uint reslen, char *str, char delim) {
+tokenize(char *res[], uint reslen, char *str, char delim) {
 	char *s;
 	uint i;
 
@@ -243,7 +244,7 @@ ixp_tokenize(char *res[], uint reslen, char *str, char delim) {
 }
 
 uint
-ixp_strlcat(char *dst, const char *src, uint size) {
+strlcat(char *dst, const char *src, uint size) {
 	const char *s;
 	char *d;
 	int n, len;
@@ -263,5 +264,6 @@ ixp_strlcat(char *dst, const char *src, uint size) {
 		*d = '\0';
 	return size - n - 1;
 }
+} // end namespace ixp
 
 char* argv0 = nullptr;

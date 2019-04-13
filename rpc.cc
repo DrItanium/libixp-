@@ -83,7 +83,7 @@ muxrecv(IxpClient *mux)
 	thread->lock(&mux->rlock);
 	if(ixp_recvmsg(mux->fd, &mux->rmsg) == 0)
 		goto fail;
-	f = (decltype(f))emallocz(sizeof *f);
+	f = (decltype(f))ixp::emallocz(sizeof *f);
 	if(ixp_msg2fcall(&mux->rmsg, f) == 0) {
 		free(f);
 		f = nullptr;

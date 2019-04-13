@@ -82,7 +82,7 @@ static void*
 createfid(Map *map, int fid, Ixp9Conn *p9conn) {
 	IxpFid *f;
 
-	f = (IxpFid*)emallocz(sizeof *f);
+	f = (IxpFid*)ixp::emallocz(sizeof *f);
 	p9conn->ref++;
 	f->conn = p9conn;
 	f->fid = fid;
@@ -125,7 +125,7 @@ handlefcall(IxpConn *c) {
 		goto Fail;
 	thread->unlock(&p9conn->rlock);
 
-	req = (Ixp9Req*)emallocz(sizeof *req);
+	req = (Ixp9Req*)ixp::emallocz(sizeof *req);
 	p9conn->ref++;
 	req->conn = p9conn;
 	req->srv = p9conn->srv;
@@ -381,8 +381,8 @@ ixp_respond(Ixp9Req *req, const char *error) {
 		thread->lock(&p9conn->rlock);
 		thread->lock(&p9conn->wlock);
 		msize = ixp::min<int>(req->ofcall.version.msize, IXP_MAX_MSG);
-		p9conn->rmsg.data = (decltype(p9conn->rmsg.data))erealloc(p9conn->rmsg.data, msize);
-		p9conn->wmsg.data = (decltype(p9conn->wmsg.data))erealloc(p9conn->wmsg.data, msize);
+		p9conn->rmsg.data = (decltype(p9conn->rmsg.data))ixp::erealloc(p9conn->rmsg.data, msize);
+		p9conn->wmsg.data = (decltype(p9conn->wmsg.data))ixp::erealloc(p9conn->wmsg.data, msize);
 		p9conn->rmsg.size = msize;
 		p9conn->wmsg.size = msize;
 		thread->unlock(&p9conn->wlock);
@@ -487,7 +487,7 @@ voidrequest(void *context, void *arg) {
 	conn = orig_req->conn;
 	conn->ref++;
 
-	flush_req = (Ixp9Req*)emallocz(sizeof *orig_req);
+	flush_req = (Ixp9Req*)ixp::emallocz(sizeof *orig_req);
 	flush_req->ifcall.hdr.type = TFlush;
 	flush_req->ifcall.hdr.tag = IXP_NOTAG;
 	flush_req->ifcall.tflush.oldtag = orig_req->ifcall.hdr.tag;
@@ -508,7 +508,7 @@ voidfid(void *context, void *arg) {
 	p9conn = fid->conn;
 	p9conn->ref++;
 
-	clunk_req = (Ixp9Req*)emallocz(sizeof *clunk_req);
+	clunk_req = (Ixp9Req*)ixp::emallocz(sizeof *clunk_req);
 	clunk_req->ifcall.hdr.type = TClunk;
 	clunk_req->ifcall.hdr.tag = IXP_NOTAG;
 	clunk_req->ifcall.hdr.fid = fid->fid;
@@ -571,13 +571,13 @@ ixp_serve9conn(IxpConn *c) {
 	if(auto fd = accept(c->fd, nullptr, nullptr); fd < 0) {
 		return;
     } else {
-        auto p9conn = (Ixp9Conn*)emallocz(sizeof(Ixp9Conn));
+        auto p9conn = (Ixp9Conn*)ixp::emallocz(sizeof(Ixp9Conn));
         p9conn->ref++;
         p9conn->srv = (decltype(p9conn->srv))c->aux;
         p9conn->rmsg.size = 1024;
         p9conn->wmsg.size = 1024;
-        p9conn->rmsg.data = (decltype(p9conn->rmsg.data))emalloc(p9conn->rmsg.size);
-        p9conn->wmsg.data = (decltype(p9conn->wmsg.data))emalloc(p9conn->wmsg.size);
+        p9conn->rmsg.data = (decltype(p9conn->rmsg.data))ixp::emalloc(p9conn->rmsg.size);
+        p9conn->wmsg.data = (decltype(p9conn->wmsg.data))ixp::emalloc(p9conn->wmsg.size);
 
         ixp_mapinit(&p9conn->tagmap, p9conn->taghash, nelem(p9conn->taghash));
         ixp_mapinit(&p9conn->fidmap, p9conn->fidhash, nelem(p9conn->fidhash));
