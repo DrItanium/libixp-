@@ -15,6 +15,7 @@
 #include <sstream>
 #include <functional>
 #include <memory>
+#include <any>
 
 namespace ixp {
     using uint = unsigned int;
@@ -254,7 +255,7 @@ enum {
 };
 
 struct IxpMutex {
-	void*	aux;
+    std::any aux;
 };
 
 struct IxpRendez {
