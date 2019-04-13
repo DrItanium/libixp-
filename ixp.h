@@ -779,10 +779,12 @@ uint ixp_recvmsg(int, IxpMsg*);
 /* timer.c */
 namespace ixp {
     uint64_t msec();
+    bool unsettimer(IxpServer*, long);
+    long settimer(IxpServer*, long, std::function<void(long, void*)>, void*);
 }
 #define ixp_msec ixp::msec
-long        ixp_settimer(IxpServer*, long, std::function<void(long, void*)>, void*);
-bool        ixp_unsettimer(IxpServer*, long);
+#define ixp_unsettimer ixp::unsettimer
+#define ixp_settimer ixp::settimer
 
 /* util.c */
 void	ixp_cleanname(char*);

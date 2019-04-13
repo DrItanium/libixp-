@@ -26,7 +26,6 @@ msec() {
 	gettimeofday(&tv, 0);
 	return (uint64_t)tv.tv_sec*1000 + (uint64_t)tv.tv_usec/1000;
 }
-} // end namespace ixp
 
 /**
  * Function: ixp_settimer
@@ -48,7 +47,7 @@ msec() {
  *	F<ixp_unsettimer>, F<ixp_serverloop>
  */
 long
-ixp_settimer(IxpServer *srv, long msec, std::function<void(long, void*)> fn, void *aux) {
+settimer(IxpServer *srv, long msec, std::function<void(long, void*)> fn, void *aux) {
 	Timer **tp;
 	Timer *t;
 	uint64_t time;
@@ -86,7 +85,7 @@ ixp_settimer(IxpServer *srv, long msec, std::function<void(long, void*)> fn, voi
  *	F<ixp_settimer>, F<ixp_serverloop>
  */
 bool
-ixp_unsettimer(IxpServer *srv, long id) {
+unsettimer(IxpServer *srv, long id) {
 	Timer **tp;
 	Timer *t;
 
@@ -116,7 +115,7 @@ ixp_unsettimer(IxpServer *srv, long id) {
  *	F<ixp_settimer>, F<ixp_serverloop>
  */
 long
-ixp_nexttimer(IxpServer *srv) {
+nexttimer(IxpServer *srv) {
 	Timer *t;
 	uint64_t time;
 	long ret;
@@ -140,4 +139,5 @@ ixp_nexttimer(IxpServer *srv) {
 	thread->unlock(&srv->lk);
 	return ret;
 }
+} // end namespace ixp
 
