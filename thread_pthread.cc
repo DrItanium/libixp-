@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "ixp_local.h"
+#include "thread_pthread.h"
 
 static pthread_key_t errstr_k;
 
@@ -123,7 +124,6 @@ rdestroy(IxpRendez *r) {
 
 static int
 initrendez(IxpRendez *r) {
-
     if(auto cond = (pthread_cond_t*)emalloc(sizeof(pthread_cond_t)); pthread_cond_init(cond, nullptr)) {
         free(cond);
         return 1;

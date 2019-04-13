@@ -79,8 +79,9 @@ server.o: server.cc ixp_local.h ixp.h
 socket.o: socket.cc ixp_local.h ixp.h
 srv_util.o: srv_util.cc ixp_local.h ixp_srvutil.h ixp.h
 thread.o: thread.cc ixp_local.h ixp.h
-thread_pthread.o: thread_pthread.cc ixp_local.h ixp.h
+thread_pthread.o: thread_pthread.cc thread_pthread.h ixp.h 
 timer.o: timer.cc ixp_local.h ixp.h
 transport.o: transport.cc ixp_local.h ixp.h
 util.o: util.cc ixp_local.h ixp.h
+
 

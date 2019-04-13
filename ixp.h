@@ -610,10 +610,10 @@ namespace ixp::concurrency {
  * See also:
  *	F<ixp_pthread_init>, F<ixp_taskinit>, F<ixp_rubyinit>
  */
-class Thread {
+class ThreadImpl {
     public:
-        Thread() = default;
-        virtual ~Thread() = default;
+        ThreadImpl() = default;
+        virtual ~ThreadImpl() = default;
         /* Read/write lock */
         virtual bool init(IxpRWLock*) = 0;
         virtual void rlock(IxpRWLock*) = 0;
@@ -650,19 +650,19 @@ class Thread {
 
 };
 
-extern std::unique_ptr<Thread> threadModel;
+extern std::unique_ptr<ThreadImpl> threadModel;
 
 template<typename T>
 void setThreadingModel() noexcept {
-    static_assert(std::is_base_of_v<Thread, T>, "Threading model must be a child of Thread");
+    static_assert(std::is_base_of_v<ThreadImpl, T>, "Threading model must be a child of Thread");
     static_assert(std::is_default_constructible_v<T>, "Provided type is not default constructible");
     // TODO: insert static assertions to make sure that the type is a child of Thread
     threadModel = std::make_unique<T>();
 }
 
-class NoThreadImpl final : public Thread {
+class NoThreadImpl final : public ThreadImpl {
     public:
-        using Thread::Thread;
+        using ThreadImpl::ThreadImpl;
         /* Read/write lock */
          bool init(IxpRWLock*) override { return false; }
          void rlock(IxpRWLock*) override { }
@@ -684,34 +684,6 @@ class NoThreadImpl final : public Thread {
          bool wakeall(IxpRendez*) override { return false; }
          void sleep(IxpRendez*) override;
          void destroy(IxpRendez*) override { }
-        /* Other */
-         char* errbuf() override;
-};
-class PThreadImpl final : public Thread 
-{
-    public:
-        using Thread::Thread;
-        /* Read/write lock */
-         bool init(IxpRWLock*) override;
-         void rlock(IxpRWLock*) override;
-         bool canrlock(IxpRWLock*) override;
-         void runlock(IxpRWLock*) override;
-         void wlock(IxpRWLock*) override;
-         bool canwlock(IxpRWLock*) override;
-         void wunlock(IxpRWLock*) override;
-         void destroy(IxpRWLock*) override;
-        /* Mutex */
-         bool init(IxpMutex*) override;
-         bool canlock(IxpMutex*) override;
-         void lock(IxpMutex*) override;
-         void unlock(IxpMutex*) override;
-         void destroy(IxpMutex*) override;
-        /* Rendezvous point */
-         bool init(IxpRendez*) override;
-         bool wake(IxpRendez*) override;
-         bool wakeall(IxpRendez*) override;
-         void sleep(IxpRendez*) override;
-         void destroy(IxpRendez*) override;
         /* Other */
          char* errbuf() override;
 };
