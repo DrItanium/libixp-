@@ -562,14 +562,14 @@ struct Ixp9Req {
 	Ixp9Req*	oldreq; /* For TFlush requests, the original request. */
 	IxpFcall	ifcall; /* The incoming request fcall. */
 	IxpFcall	ofcall; /* The response fcall, to be filled by handler. */
-	void*		aux;    /* Arbitrary pointer, to be used by handlers. */
+    std::any    aux; // Arbitrary pointer, to be used by handlers. 
 
 	/* Private members */
 	Ixp9Conn *conn;
 };
 
 struct Ixp9Srv {
-	void* aux;
+    std::any aux;
     using ReqFunc = std::function<void(Ixp9Req*)>;
     ReqFunc attach,
             clunk,

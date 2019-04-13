@@ -532,7 +532,7 @@ cleanupconn(IxpConn *c) {
 		ixp_mapexec(&p9conn->tagmap, voidrequest, &req);
 	}
 	while((r = req)) {
-		req = (decltype(req))r->aux;
+        req = std::any_cast<decltype(req)>(r->aux);
 		r->aux = nullptr;
 		handlereq(r);
 	}

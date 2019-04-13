@@ -294,8 +294,8 @@ ixp_pending_respond(Ixp9Req *req) {
 		p->queue = queue->link;
 		req->ofcall.io.data = queue->dat;
 		req->ofcall.io.count = queue->len;
-		if(req->aux) {
-			req_link = (decltype(req_link))req->aux;
+		if(req->aux.has_value()) {
+            req_link = std::any_cast<decltype(req_link)>(req->aux);
 			req_link->next->prev = req_link->prev;
 			req_link->prev->next = req_link->next;
 			free(req_link);
@@ -409,7 +409,7 @@ pending_flush(Ixp9Req *req) {
 
 	file = (decltype(file))req->fid->aux;
 	if(file->pending) {
-		req_link = (decltype(req_link))req->aux;
+		req_link = std::any_cast<decltype(req_link)>(req->aux);
 		if(req_link) {
 			req_link->prev->next = req_link->next;
 			req_link->next->prev = req_link->prev;
