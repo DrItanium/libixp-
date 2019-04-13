@@ -12,17 +12,6 @@ static pthread_key_t errstr_k;
 
 namespace ixp {
 
-static char*
-errbuf(void) {
-
-	auto ret = (char*)pthread_getspecific(errstr_k);
-    if (!ret) {
-		ret = (char*)ixp::emallocz(IXP_ERRMAX);
-		pthread_setspecific(errstr_k, (void*)ret);
-	}
-	return ret;
-}
-
 static void
 mlock(IxpMutex *m) {
 	pthread_mutex_lock((pthread_mutex_t*)m->aux);
@@ -123,17 +112,6 @@ rdestroy(IxpRendez *r) {
 	free(r->aux);
 }
 
-static int
-initrendez(IxpRendez *r) {
-    if(auto cond = (pthread_cond_t*)emalloc(sizeof(pthread_cond_t)); pthread_cond_init(cond, nullptr)) {
-        free(cond);
-        return 1;
-    } else {
-        r->aux = cond;
-        return 0;
-    }
-}
-
 namespace concurrency {
     bool PThreadImpl::init(IxpRWLock* a) { return ixp::initrwlock(a); }
     void PThreadImpl::rlock(IxpRWLock* a) { ixp::rlock(a); }
@@ -148,11 +126,26 @@ namespace concurrency {
     void PThreadImpl::lock(IxpMutex* a) { ixp::mlock(a); }
     void PThreadImpl::unlock(IxpMutex* a) { ixp::munlock(a); }
     void PThreadImpl::destroy(IxpMutex* a) { ixp::mdestroy(a); }
-    bool PThreadImpl::init(IxpRendez* a) { return ixp::initrendez(a); }
+    bool PThreadImpl::init(IxpRendez* r) {
+        if(auto cond = (pthread_cond_t*)emalloc(sizeof(pthread_cond_t)); pthread_cond_init(cond, nullptr)) {
+            free(cond);
+            return true;
+        } else {
+            r->aux = cond;
+            return false;
+        }
+    }
     bool PThreadImpl::wake(IxpRendez* a) { return ixp::rwake(a); }
     bool PThreadImpl::wakeall(IxpRendez* a) { return ixp::rwakeall(a); }
     void PThreadImpl::sleep(IxpRendez* a) { ixp::rsleep(a); }
     void PThreadImpl::destroy(IxpRendez* a) { ixp::rdestroy(a); }
-    char* PThreadImpl::errbuf() { return ixp::errbuf(); }
+    char* PThreadImpl::errbuf() { 
+        auto ret = (char*)pthread_getspecific(errstr_k);
+        if (!ret) {
+            ret = (char*)ixp::emallocz(IXP_ERRMAX);
+            pthread_setspecific(errstr_k, (void*)ret);
+        }
+        return ret;
+    }
 } // end namespace concurrency 
 } // end namespace ixp
