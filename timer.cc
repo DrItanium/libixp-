@@ -6,12 +6,6 @@
 #include <sys/time.h>
 #include "ixp_local.h"
 
-/* 
- * This really needn't be threadsafe, as it has little use in
- * threaded programs, but it nonetheless is.
- */
-
-static long	lastid = 1;
 
 namespace ixp {
 /**
@@ -48,6 +42,12 @@ msec() {
  */
 long
 settimer(IxpServer *srv, long msec, std::function<void(long, void*)> fn, void *aux) {
+    /* 
+     * This really needn't be threadsafe, as it has little use in
+     * threaded programs, but it nonetheless is.
+     */
+
+    static long	lastid = 1;
 	Timer **tp;
 	Timer *t;
 	uint64_t time;
