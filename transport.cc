@@ -12,7 +12,8 @@
 #include <unistd.h>
 #include "ixp_local.h"
 
-static int
+namespace ixp {
+static auto 
 mread(int fd, IxpMsg *msg, uint count) {
 	int r, n;
 
@@ -48,6 +49,8 @@ readn(int fd, IxpMsg *msg, uint count) {
 	}
 	return count - num;
 }
+
+} // end namespace ixp
 
 /**
  * Function: ixp_sendmsg
@@ -96,7 +99,7 @@ ixp_recvmsg(int fd, IxpMsg *msg) {
 	msg->mode = MsgUnpack;
 	msg->pos = msg->data;
 	msg->end = msg->data + msg->size;
-	if(readn(fd, msg, SSize) != SSize)
+	if(ixp::readn(fd, msg, SSize) != SSize)
 		return 0;
 
 	msg->pos = msg->data;
@@ -107,7 +110,7 @@ ixp_recvmsg(int fd, IxpMsg *msg) {
 		werrstr("message too large");
 		return 0;
 	}
-	if(readn(fd, msg, size) != size) {
+	if(ixp::readn(fd, msg, size) != size) {
 		werrstr("message incomplete");
 		return 0;
 	}

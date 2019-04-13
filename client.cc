@@ -430,7 +430,6 @@ bool
 close(IxpCFid *f) {
 	return clunk(f);
 }
-}
 
 static IxpStat*
 _stat(IxpClient *c, ulong fid) {
@@ -455,6 +454,7 @@ _stat(IxpClient *c, ulong fid) {
 	return stat;
 }
 
+} // end namespace ixp
 /**
  * Function: ixp_stat
  * Function: ixp_fstat
@@ -485,14 +485,14 @@ ixp_stat(IxpClient *c, const char *path) {
     if (!f) 
 		return nullptr;
 
-	stat = _stat(c, f->fid);
+	stat = ixp::_stat(c, f->fid);
 	clunk(f);
 	return stat;
 }
 
 IxpStat*
 ixp_fstat(IxpCFid *fid) {
-	return _stat(fid->client, fid->fid);
+	return ixp::_stat(fid->client, fid->fid);
 }
 
 static long

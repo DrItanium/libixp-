@@ -687,7 +687,7 @@ class NoThreadImpl final : public ThreadImpl {
         /* Other */
          char* errbuf() override;
 };
-} // end namespace ixp
+} // end namespace ixp::concurrency
 
 namespace ixp
 {
@@ -776,12 +776,11 @@ namespace ixp {
 uint ixp_sendmsg(int, IxpMsg*);
 uint ixp_recvmsg(int, IxpMsg*);
 
-/* timer.c */
 namespace ixp {
     uint64_t msec();
     bool unsettimer(IxpServer*, long);
     long settimer(IxpServer*, long, std::function<void(long, void*)>, void*);
-}
+} // end namespace ixp
 #define ixp_msec ixp::msec
 #define ixp_unsettimer ixp::unsettimer
 #define ixp_settimer ixp::settimer
