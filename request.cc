@@ -116,7 +116,7 @@ handlefcall(IxpConn *c) {
 	Ixp9Conn *p9conn;
 	Ixp9Req *req;
 
-	p9conn = (decltype(p9conn))c->aux;
+	p9conn = std::any_cast<decltype(p9conn)>(c->aux);
 
 	thread->lock(&p9conn->rlock);
 	if(ixp_recvmsg(c->fd, &p9conn->rmsg) == 0)
@@ -524,7 +524,7 @@ cleanupconn(IxpConn *c) {
 	Ixp9Conn *p9conn;
 	Ixp9Req *req, *r;
 
-	p9conn = (decltype(p9conn))c->aux;
+    p9conn = std::any_cast<decltype(p9conn)>(c->aux);
 	p9conn->conn = nullptr;
 	req = nullptr;
 	if(p9conn->ref > 1) {
@@ -533,7 +533,7 @@ cleanupconn(IxpConn *c) {
 	}
 	while((r = req)) {
         req = std::any_cast<decltype(req)>(r->aux);
-		r->aux = nullptr;
+        r->aux.reset();
 		handlereq(r);
 	}
 	decref_p9conn(p9conn);
@@ -573,7 +573,7 @@ ixp_serve9conn(IxpConn *c) {
     } else {
         auto p9conn = (Ixp9Conn*)ixp::emallocz(sizeof(Ixp9Conn));
         p9conn->ref++;
-        p9conn->srv = (decltype(p9conn->srv))c->aux;
+        p9conn->srv = std::any_cast<decltype(p9conn->srv)>(c->aux);
         p9conn->rmsg.size = 1024;
         p9conn->wmsg.size = 1024;
         p9conn->rmsg.data = (decltype(p9conn->rmsg.data))ixp::emalloc(p9conn->rmsg.size);
