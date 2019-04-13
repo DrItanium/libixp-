@@ -51,24 +51,20 @@ comp_stat(const void *s1, const void *s2) {
 	return strcmp(st1->name, st2->name);
 }
 
-const std::string&
-setrwx(long m) {
+
+std::string
+str_of_mode(uint mode) {
     static std::vector<std::string> modes = {
 		"---", "--x", "-w-",
 		"-wx", "r--", "r-x",
 		"rw-", "rwx",
 	};
-    return modes[m];
-}
-
-std::string
-str_of_mode(uint mode) {
     std::stringstream buf;
     ixp::print(buf, (mode & P9_DMDIR ? 'd' : '-'),
             '-', 
-            setrwx((mode >> 6) & 7),
-            setrwx((mode >> 3) & 7),
-            setrwx((mode >> 0) & 7));
+            modes[(mode >> 6) & 0b111],
+            modes[(mode >> 3) & 0b111],
+            modes[(mode >> 0) & 0b111]);
     auto str = buf.str();
     return str;
 }
@@ -233,7 +229,6 @@ xread(int argc, char *argv[]) {
 int
 xls(int argc, char *argv[]) {
 	IxpMsg m;
-	Stat *stat;
 	IxpCFid *fid;
 	char *file, *buf;
 	int count, nstat, mstat, i;
@@ -254,7 +249,7 @@ xls(int argc, char *argv[]) {
 
 	file = EARGF(usage());
 
-	stat = ixp_stat(client, file);
+	auto stat = ixp_stat(client, file);
     if (!stat) {
         ixp::fatalPrint("Can't stat file '", file, "': ", ixp_errbuf(), "\n");
     }
