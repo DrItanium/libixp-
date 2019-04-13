@@ -61,11 +61,11 @@ dofcall(IxpClient *c, IxpFcall *fcall) {
 		return false;
     }
 	if(ret->hdr.type == RError) {
-		werrstr("%s", ret->error.ename);
+		ixp_werrstr("%s", ret->error.ename);
 		goto fail;
 	}
 	if(ret->hdr.type != (fcall->hdr.type^1)) {
-		werrstr("received mismatched fcall");
+		ixp_werrstr("received mismatched fcall");
 		goto fail;
 	}
 	memcpy(fcall, ret, sizeof *fcall);
@@ -162,7 +162,7 @@ ixp_mountfd(int fd) {
 
 	if(strcmp(fcall.version.version, IXP_VERSION)
 	|| fcall.version.msize > IXP_MAX_MSG) {
-		werrstr("bad 9P version response");
+		ixp_werrstr("bad 9P version response");
 		ixp_unmount(c);
 		return nullptr;
 	}
@@ -230,9 +230,9 @@ walk(IxpClient *c, const char *path) {
 	if(!dofcall(c, &fcall))
 		goto fail;
 	if(fcall.rwalk.nwqid < n) {
-		werrstr("File does not exist");
+		ixp_werrstr("File does not exist");
 		if(fcall.rwalk.nwqid == 0)
-			werrstr("Protocol botch");
+			ixp_werrstr("Protocol botch");
 		goto fail;
 	}
 
@@ -259,7 +259,7 @@ walkdir(IxpClient *c, char *path, const char **rest) {
 	while((p > path) && (*p != '/'))
 		p--;
 	if(*p != '/') {
-		werrstr("bad path");
+		ixp_werrstr("bad path");
 		return nullptr;
 	}
 

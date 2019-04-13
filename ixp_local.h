@@ -56,7 +56,6 @@ extern char* argv0;
 
 #define errstr ixp_errstr
 #define rerrstr ixp_rerrstr
-#define werrstr ixp_werrstr
 
 struct MapEnt;
 using Map = IxpMap;

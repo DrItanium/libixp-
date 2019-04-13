@@ -101,7 +101,7 @@ rerrstr(char *buf, int nbuf) {
 }
 
 void
-werrstr(const char *fmt, ...) {
+ixp_werrstr(const char *fmt, ...) {
 	char tmp[IXP_ERRMAX];
 	va_list ap;
 

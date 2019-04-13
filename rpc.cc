@@ -65,7 +65,7 @@ sendrpc(IxpRpc *r, IxpFcall *f)
 
 	thread->lock(&mux->wlock);
 	if(!ixp_fcall2msg(&mux->wmsg, f) || !ixp_sendmsg(mux->fd, &mux->wmsg)) {
-		/* werrstr("settag/send tag %d: %r", tag); fprint(2, "%r\n"); */
+		/* ixp_werrstr("settag/send tag %d: %r", tag); fprint(2, "%r\n"); */
 		thread->lock(&mux->lk);
 		dequeue(mux, r);
 		puttag(mux, r);
@@ -172,7 +172,7 @@ muxrpc(IxpClient *mux, IxpFcall *tx)
 	puttag(mux, &r);
 	thread->unlock(&mux->lk);
     if (!p)
-		werrstr("unexpected eof");
+		ixp_werrstr("unexpected eof");
 	return p;
 }
 

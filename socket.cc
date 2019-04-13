@@ -38,7 +38,7 @@ typedef struct sockaddr_in sockaddr_in;
 static std::string
 get_port(const std::string& addr) {
     if (auto spos = addr.find('!'); spos == std::string::npos) {
-        werrstr("no port provided");
+        ixp_werrstr("no port provided");
         return std::string();
     } else {
         return addr.substr(spos);
@@ -129,7 +129,7 @@ alookup(const std::string& host) {
         }
 
         if (int err = getaddrinfo(useHost ? host.c_str() : nullptr, port.c_str(), &hints, &ret); err) {
-            werrstr("getaddrinfo: %s", gai_strerror(err));
+            ixp_werrstr("getaddrinfo: %s", gai_strerror(err));
             return nullptr;
         } else {
             return ret;
@@ -152,14 +152,14 @@ dial_tcp(const std::string& host) {
         for(auto ai = aip; ai; ai = ai->ai_next) {
             fd = ai_socket(ai);
             if(fd == -1) {
-                werrstr("socket: %s", strerror(errno));
+                ixp_werrstr("socket: %s", strerror(errno));
                 continue;
             }
 
             if(connect(fd, ai->ai_addr, ai->ai_addrlen) == 0)
                 break;
 
-            werrstr("connect: %s", strerror(errno));
+            ixp_werrstr("connect: %s", strerror(errno));
             close(fd);
             fd = -1;
         }
@@ -216,7 +216,7 @@ static int
 lookup(const std::string& address, AddressTab& _tab) {
     std::string _address(address);
 	if (auto addrPos = _address.find('!'); addrPos == std::string::npos) {
-		werrstr("no address type defined");
+		ixp_werrstr("no address type defined");
         return -1;
     } else {
         std::string type(_address.substr(0, addrPos));

@@ -15,17 +15,16 @@
 namespace ixp {
 static auto 
 mread(int fd, IxpMsg *msg, uint count) {
-	int r, n;
-
-	n = msg->end - msg->pos;
-	if(n <= 0) {
-		werrstr("buffer full");
+	auto n = msg->end - msg->pos;
+	if (n <= 0) {
+		ixp_werrstr("buffer full");
 		return -1;
 	}
-	if(n > count)
+	if(n > count) {
 		n = count;
+    }
 
-	r = thread->read(fd, msg->pos, n);
+	int r = thread->read(fd, msg->pos, n);
 	if(r > 0)
 		msg->pos += r;
 	return r;
@@ -33,16 +32,13 @@ mread(int fd, IxpMsg *msg, uint count) {
 
 static int
 readn(int fd, IxpMsg *msg, uint count) {
-	uint num;
-	int r;
-
-	num = count;
+	auto num = count;
 	while(num > 0) {
-		r = mread(fd, msg, num);
+		auto r = mread(fd, msg, num);
 		if(r == -1 && errno == EINTR)
 			continue;
 		if(r == 0) {
-			werrstr("broken pipe: %s", ixp_errbuf());
+			ixp_werrstr("broken pipe: %s", ixp_errbuf());
 			return count - num;
 		}
 		num -= r;
@@ -74,26 +70,25 @@ readn(int fd, IxpMsg *msg, uint count) {
  */
 uint
 sendmsg(int fd, IxpMsg *msg) {
-	int r;
-
 	msg->pos = msg->data;
 	while(msg->pos < msg->end) {
-		r = thread->write(fd, msg->pos, msg->end - msg->pos);
-		if(r < 1) {
-			if(errno == EINTR)
+		if (auto r = thread->write(fd, msg->pos, msg->end - msg->pos); r < 1) {
+			if(errno == EINTR) {
 				continue;
-			werrstr("broken pipe: %s", ixp_errbuf());
+            }
+			ixp_werrstr("broken pipe: %s", ixp_errbuf());
 			return 0;
-		}
-		msg->pos += r;
+		} else {
+		    msg->pos += r;
+        }
 	}
 	return msg->pos - msg->data;
 }
 
 uint
 recvmsg(int fd, IxpMsg *msg) {
-	enum { SSize = 4 };
-	uint32_t msize, size;
+    static constexpr auto SSize = 4;
+	uint32_t msize;
 
 	msg->mode = MsgUnpack;
 	msg->pos = msg->data;
@@ -104,13 +99,13 @@ recvmsg(int fd, IxpMsg *msg) {
 	msg->pos = msg->data;
 	ixp_pu32(msg, &msize);
 
-	size = msize - SSize;
+	uint32_t size = msize - SSize;
 	if(size >= msg->end - msg->pos) {
-		werrstr("message too large");
+		ixp_werrstr("message too large");
 		return 0;
 	}
 	if(ixp::readn(fd, msg, size) != size) {
-		werrstr("message incomplete");
+		ixp_werrstr("message incomplete");
 		return 0;
 	}
 
