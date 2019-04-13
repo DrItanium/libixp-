@@ -544,7 +544,7 @@ struct IxpCFid {
  */
 struct IxpFid {
 	char*		uid;	/* The uid of the file opener. */
-	void*		aux;    /* Arbitrary pointer, to be used by handlers. */
+    std::any    aux;    // Arbitrary pointer, to be used by handlers. 
 	uint32_t		fid;    /* The ID number of the fid. */
 	IxpQid		qid;    /* The filesystem-unique QID of the file. */
 	signed char	omode;  /* The open mode of the file. */

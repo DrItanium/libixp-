@@ -144,7 +144,7 @@ ixp_srv_writebuf(Ixp9Req *req, char **buf, uint *len, uint max) {
 	char *p;
 	uint offset, count;
 
-	file = (decltype(file))req->fid->aux;
+	file = std::any_cast<decltype(file)>(req->fid->aux);
 
 	offset = req->ifcall.io.offset;
 	if(file->tab.perm & DMAPPEND)
@@ -214,7 +214,7 @@ ixp_srv_writectl(Ixp9Req *req, char* (*fn)(void*, IxpMsg*)) {
 	IxpFileId *file;
 	IxpMsg msg;
 
-	file = (decltype(file))req->fid->aux;
+	file = std::any_cast<decltype(file)>(req->fid->aux);
 
 	ixp_srv_data2cstring(req);
 	s = req->ifcall.io.data;
@@ -281,12 +281,11 @@ ixp_srv_writectl(Ixp9Req *req, char* (*fn)(void*, IxpMsg*)) {
 
 void
 ixp_pending_respond(Ixp9Req *req) {
-	IxpFileId *file;
 	IxpPendingLink *p;
 	IxpRequestLink *req_link;
 	IxpQueue *queue;
 
-	file = (decltype(file))req->fid->aux;
+	auto file = std::any_cast<IxpFileId*>(req->fid->aux);
 	assert(file->pending);
 	p = (decltype(p))file->p;
 	if(p->queue) {
@@ -381,7 +380,6 @@ ixp_pending_print(IxpPending *pending, const char *fmt, ...) {
 void
 ixp_pending_pushfid(IxpPending *pending, IxpFid *fid) {
 	IxpPendingLink *pend_link;
-	IxpFileId *file;
 
     if (!pending->req.next) {
 		pending->req.next = &pending->req;
@@ -390,7 +388,7 @@ ixp_pending_pushfid(IxpPending *pending, IxpFid *fid) {
 		pending->fids.next = &pending->fids;
 	}
 
-	file = (decltype(file))fid->aux;
+	auto file = std::any_cast<IxpFileId*>(fid->aux);
 	pend_link = (decltype(pend_link))ixp::emallocz(sizeof *pend_link);
 	pend_link->fid = fid;
 	pend_link->pending = pending;
@@ -404,10 +402,9 @@ ixp_pending_pushfid(IxpPending *pending, IxpFid *fid) {
 
 static void
 pending_flush(Ixp9Req *req) {
-	IxpFileId *file;
 	IxpRequestLink *req_link;
 
-	file = (decltype(file))req->fid->aux;
+	auto file = std::any_cast<IxpFileId*>(req->fid->aux);
 	if(file->pending) {
 		req_link = std::any_cast<decltype(req_link)>(req->aux);
 		if(req_link) {
@@ -430,11 +427,10 @@ ixp_pending_clunk(Ixp9Req *req) {
 	IxpPendingLink *pend_link;
 	IxpRequestLink *req_link;
 	Ixp9Req *r;
-	IxpFileId *file;
 	IxpQueue *queue;
 	bool more;
 
-	file = (decltype(file))req->fid->aux;
+	auto file = std::any_cast<IxpFileId*>(req->fid->aux);
 	pend_link = (decltype(pend_link))file->p;
 
 	pending = pend_link->pending;
@@ -519,13 +515,13 @@ ixp_srv_verifyfile(IxpFileId *file, IxpLookupFn lookup) {
 void
 ixp_srv_readdir(Ixp9Req *req, IxpLookupFn lookup, void (*dostat)(IxpStat*, IxpFileId*)) {
 	IxpMsg msg;
-	IxpFileId *file, *tfile;
+	IxpFileId *tfile;
 	IxpStat stat;
 	char *buf;
 	ulong size, n;
 	uint64_t offset;
 
-	file = (decltype(file))req->fid->aux;
+	auto file = std::any_cast<IxpFileId*>(req->fid->aux);
 
 	size = req->ifcall.io.count;
 	if(size > req->fid->iounit)
@@ -559,10 +555,10 @@ ixp_srv_readdir(Ixp9Req *req, IxpLookupFn lookup, void (*dostat)(IxpStat*, IxpFi
 
 void
 ixp_srv_walkandclone(Ixp9Req *req, IxpLookupFn lookup) {
-	IxpFileId *file, *tfile;
+	IxpFileId *tfile;
 	int i;
 
-	file = (decltype(file))ixp_srv_clonefiles((decltype(file))req->fid->aux);
+	auto file = (IxpFileId*)ixp_srv_clonefiles(std::any_cast<IxpFileId*>(req->fid->aux));
 	for(i=0; i < req->ifcall.twalk.nwname; i++) {
 		if(!strcmp(req->ifcall.twalk.wname[i], "..")) {
 			if(file->next) {
@@ -594,7 +590,7 @@ ixp_srv_walkandclone(Ixp9Req *req, IxpLookupFn lookup) {
 	}
 	/* Remove refs for req->fid if no new fid */
 	if(req->ifcall.hdr.fid == req->ifcall.twalk.newfid) {
-		tfile = (decltype(tfile))req->fid->aux;
+		tfile = std::any_cast<decltype(tfile)>(req->fid->aux);
 		req->fid->aux = file;
 		while((file = tfile)) {
 			tfile = tfile->next;
