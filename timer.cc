@@ -13,18 +13,20 @@
 
 static long	lastid = 1;
 
+namespace ixp {
 /**
  * Function: ixp_msec
  *
  * Returns the time since the Epoch in milliseconds.
  */
 uint64_t
-ixp_msec(void) {
+msec() {
 	timeval tv;
 
 	gettimeofday(&tv, 0);
 	return (uint64_t)tv.tv_sec*1000 + (uint64_t)tv.tv_usec/1000;
 }
+} // end namespace ixp
 
 /**
  * Function: ixp_settimer

@@ -413,6 +413,7 @@ ixp_open(IxpClient *c, const char *path, uint8_t mode) {
 	return f;
 }
 
+namespace ixp {
 /**
  * Function: ixp_close
  *
@@ -426,8 +427,9 @@ ixp_open(IxpClient *c, const char *path, uint8_t mode) {
  */
 
 bool
-ixp_close(IxpCFid *f) {
+close(IxpCFid *f) {
 	return clunk(f);
+}
 }
 
 static IxpStat*

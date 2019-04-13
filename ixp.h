@@ -777,7 +777,10 @@ uint ixp_sendmsg(int, IxpMsg*);
 uint ixp_recvmsg(int, IxpMsg*);
 
 /* timer.c */
-uint64_t    ixp_msec(void);
+namespace ixp {
+    uint64_t msec();
+}
+#define ixp_msec ixp::msec
 long        ixp_settimer(IxpServer*, long, std::function<void(long, void*)>, void*);
 bool        ixp_unsettimer(IxpServer*, long);
 
