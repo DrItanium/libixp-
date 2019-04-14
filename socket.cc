@@ -30,12 +30,8 @@
 	(sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
 #endif
 
-typedef struct addrinfo addrinfo;
-typedef struct sockaddr sockaddr;
-typedef struct sockaddr_un sockaddr_un;
-typedef struct sockaddr_in sockaddr_in;
-
-static std::string
+namespace {
+std::string
 get_port(const std::string& addr) {
     if (auto spos = addr.find('!'); spos == std::string::npos) {
         ixp_werrstr("no port provided");
@@ -45,7 +41,7 @@ get_port(const std::string& addr) {
     }
 }
 
-static int
+int
 sock_unix(const std::string& address, sockaddr_un *sa, socklen_t *salen) {
 
 	memset(sa, 0, sizeof *sa);
@@ -61,7 +57,7 @@ sock_unix(const std::string& address, sockaddr_un *sa, socklen_t *salen) {
     }
 }
 
-static int
+int
 dial_unix(const std::string& address) {
 	sockaddr_un sa;
 	socklen_t salen;
@@ -77,7 +73,7 @@ dial_unix(const std::string& address) {
     }
 }
 
-static int
+int
 announce_unix(const std::string& file) {
 	const int yes = 1;
 	sockaddr_un sa;
@@ -108,7 +104,7 @@ fail:
 }
 
 template<bool announce>
-static addrinfo*
+addrinfo*
 alookup(const std::string& host) {
 	/* Truncates host at '!' */
     if (auto port = get_port(host); !port.empty()) {
@@ -137,12 +133,12 @@ alookup(const std::string& host) {
     }
 }
 
-static int
+int
 ai_socket(addrinfo *ai) {
 	return socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 }
 
-static int
+int
 dial_tcp(const std::string& host) {
 	if (auto aip = alookup<false>(host); !aip) {
         return -1;
@@ -169,7 +165,7 @@ dial_tcp(const std::string& host) {
     }
 }
 
-static int
+int
 announce_tcp(const std::string& host) {
 	addrinfo *ai, *aip;
 	int fd;
@@ -212,7 +208,7 @@ AddressTab atab = {
     { "unix", announce_unix },
 };
 
-static int
+int
 lookup(const std::string& address, AddressTab& _tab) {
     std::string _address(address);
 	if (auto addrPos = _address.find('!'); addrPos == std::string::npos) {
@@ -228,6 +224,8 @@ lookup(const std::string& address, AddressTab& _tab) {
         }
 	}
 }
+
+} // end namespace
 
 
 
