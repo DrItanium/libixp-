@@ -46,7 +46,7 @@ readn(int fd, IxpMsg *msg, uint count) {
 	}
 	return count - num;
 }
-}
+} // end namespace
 
 
 /**

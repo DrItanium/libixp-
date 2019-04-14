@@ -59,7 +59,7 @@ settimer(IxpServer *srv, long msec, std::function<void(long, const std::any&)> f
 	t->id = lastid++;
 	t->msec = time;
 	t->fn = fn;
-	t->aux = aux;
+	t->aux = aux; /// @todo fix this so that we are not injecting a void* into a std::any
 
 	for(tp=&srv->timer; *tp; tp=&tp[0]->link)
 		if(tp[0]->msec < time)
