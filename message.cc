@@ -6,17 +6,15 @@
 #include <string.h>
 #include "ixp_local.h"
 
-enum {
-	SByte = 1,
-	SWord = 2,
-	SDWord = 4,
-	SQWord = 8,
-};
+namespace {
+constexpr auto SByte = 1;
+constexpr auto SWord = 2;
+constexpr auto SDWord = 4;
+constexpr auto SQWord = 8;
 
 #define SString(s) (SWord + strlen(s))
-enum {
-	SQid = SByte + SDWord + SQWord,
-};
+constexpr auto SQid = SByte + SDWord + SQWord;
+} // end namespace 
 
 /**
  * Type: IxpMsg
@@ -103,7 +101,7 @@ ixp_sizeof_stat(IxpStat *stat) {
 		+ SWord /* type */
 		+ SDWord /* dev */
 		+ SQid /* qid */
-		+ 3 * SDWord /* mode, atime, mtime */
+		+ (3 * SDWord) /* mode, atime, mtime */
 		+ SQWord /* length */
 		+ SString(stat->name)
 		+ SString(stat->uid)
