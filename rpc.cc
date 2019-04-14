@@ -8,6 +8,7 @@
 #include <string.h>
 #include "ixp_local.h"
 
+namespace ixp {
 namespace {
 void
 initrpc(IxpClient *mux, IxpRpc *r)
@@ -248,5 +249,6 @@ muxrpc(IxpClient *mux, IxpFcall *tx)
 		ixp_werrstr("unexpected eof");
 	return p;
 }
+} // end namespace ixp
 
 

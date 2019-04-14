@@ -43,10 +43,6 @@ extern char* argv0;
 #define thread ixp::concurrency::threadModel
 
 
-#define muxinit ixp_muxinit
-#define muxfree ixp_muxfree
-#define muxrpc ixp_muxrpc
-
 #define errstr ixp_errstr
 #define rerrstr ixp_rerrstr
 
@@ -78,13 +74,11 @@ bool	ixp_mapinsert(IxpMap*, ulong, void*, bool);
 void*	ixp_mapget(IxpMap*, ulong);
 void*	ixp_maprm(IxpMap*, ulong);
 
-/* mux.c */
-void	muxfree(IxpClient*);
-void	muxinit(IxpClient*);
-IxpFcall*	muxrpc(IxpClient*, IxpFcall*);
-
-/* timer.c */
+/* rpc.c */
 namespace ixp {
+    void	muxfree(IxpClient*);
+    void	muxinit(IxpClient*);
+    IxpFcall*	muxrpc(IxpClient*, IxpFcall*);
     long nexttimer(IxpServer*);
 }
 #define ixp_nexttimer ixp::nexttimer

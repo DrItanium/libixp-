@@ -56,7 +56,7 @@ static bool
 dofcall(IxpClient *c, IxpFcall *fcall) {
 	IxpFcall *ret;
 
-	ret = muxrpc(c, fcall);
+	ret = ixp::muxrpc(c, fcall);
     if (!ret) {
 		return false;
     }
@@ -92,7 +92,7 @@ ixp_unmount(IxpClient *client) {
 	shutdown(client->fd, SHUT_RDWR);
 	close(client->fd);
 
-	muxfree(client);
+    ixp::muxfree(client);
 
 	while((f = client->freefid)) {
 		client->freefid = f->next;
@@ -143,7 +143,7 @@ ixp_mountfd(int fd) {
 	auto c = (IxpClient*)ixp::emallocz(sizeof(IxpClient));
 	c->fd = fd;
 
-	muxinit(c);
+    ixp::muxinit(c);
 
 	allocmsg(c, 256);
 	c->lastfid = RootFid;
