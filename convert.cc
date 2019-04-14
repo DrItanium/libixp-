@@ -6,16 +6,14 @@
 #include <string.h>
 #include "ixp_local.h"
 
-int _IXP_ASSERT_VERSION;
 
-enum {
-	SByte = 1,
-	SWord = 2,
-	SDWord = 4,
-	SQWord = 8,
-};
 
-static void
+namespace {
+constexpr auto SByte = 1;
+constexpr auto SWord = 2;
+constexpr auto SDWord = 4;
+constexpr auto SQWord = 8;
+void
 ixp_puint(IxpMsg *msg, uint size, uint32_t *val) {
 	uint8_t *pos;
 	int v;
@@ -52,6 +50,7 @@ ixp_puint(IxpMsg *msg, uint size, uint32_t *val) {
 	}
 	msg->pos += size;
 }
+} // end namespace
 
 /**
  * Function: ixp_pu8

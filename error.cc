@@ -6,12 +6,13 @@
 #include <string.h>
 #include "ixp_local.h"
 
-static int
+namespace {
+int
 _vsnprint(char *buf, int nbuf, const char *fmt, va_list ap) {
 	return vsnprintf(buf, nbuf, fmt, ap);
 }
 
-static char*
+char*
 _vsmprint(const char *fmt, va_list ap) {
 	va_list al;
 	char *buf = "";
@@ -26,6 +27,9 @@ _vsmprint(const char *fmt, va_list ap) {
 		vsnprintf(buf, n, fmt, ap);
 	return buf;
 }
+/* Approach to errno handling taken from Plan 9 Port. */
+constexpr auto EPLAN9 = 0x19283745;
+} // end namespace
 
 namespace ixp
 {
@@ -33,10 +37,6 @@ namespace ixp
     std::function<char*(const char*, va_list)> vsmprint = ::_vsmprint;
 } // end namespace ixp
 
-/* Approach to errno handling taken from Plan 9 Port. */
-enum {
-	EPLAN9 = 0x19283745,
-};
 
 /**
  * Function: ixp_errbuf
