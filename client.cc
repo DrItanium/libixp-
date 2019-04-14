@@ -15,8 +15,8 @@
 #define nelem(ary) (sizeof(ary) / sizeof(*ary))
 
 constexpr auto RootFid = 1;
-
-static IxpCFid*
+namespace {
+IxpCFid*
 getfid(IxpClient *c) {
 	IxpCFid *f;
 
@@ -36,7 +36,7 @@ getfid(IxpClient *c) {
 	return f;
 }
 
-static void
+void
 putfid(IxpCFid *f) {
 
 	auto c = f->client;
@@ -45,14 +45,14 @@ putfid(IxpCFid *f) {
 		c->lastfid--;
 		thread->mdestroy(&f->iolock);
 		free(f);
-	}else {
+	} else {
 		f->next = c->freefid;
 		c->freefid = f;
 	}
 	thread->unlock(&c->lk);
 }
 
-static bool 
+bool 
 dofcall(IxpClient *c, IxpFcall *fcall) {
 	IxpFcall *ret;
 
@@ -76,6 +76,204 @@ fail:
 	free(ret);
 	return false;
 }
+void
+allocmsg(IxpClient *c, int n) {
+	c->rmsg.size = n;
+	c->wmsg.size = n;
+	c->rmsg.data = (char*)ixp::erealloc(c->rmsg.data, n);
+	c->wmsg.data = (char*)ixp::erealloc(c->wmsg.data, n);
+}
+IxpCFid*
+walk(IxpClient *c, const char *path) {
+	IxpCFid *f;
+	char *p;
+	IxpFcall fcall;
+	int n;
+
+	p = ixp::estrdup(path);
+	n = ixp::tokenize(fcall.twalk.wname, nelem(fcall.twalk.wname), p, '/');
+	f = getfid(c);
+
+	fcall.hdr.type = TWalk;
+	fcall.hdr.fid = RootFid;
+	fcall.twalk.nwname = n;
+	fcall.twalk.newfid = f->fid;
+	if(!dofcall(c, &fcall))
+		goto fail;
+	if(fcall.rwalk.nwqid < n) {
+		ixp_werrstr("File does not exist");
+		if(fcall.rwalk.nwqid == 0)
+			ixp_werrstr("Protocol botch");
+		goto fail;
+	}
+
+	f->qid = fcall.rwalk.wqid[n-1];
+
+	ixp_freefcall(&fcall);
+	free(p);
+	return f;
+fail:
+	putfid(f);
+	free(p);
+	return nullptr;
+}
+
+IxpCFid*
+walkdir(IxpClient *c, char *path, const char **rest) {
+	char *p;
+
+	p = path + strlen(path) - 1;
+	assert(p >= path);
+	while(*p == '/')
+		*p-- = '\0';
+
+	while((p > path) && (*p != '/'))
+		p--;
+	if(*p != '/') {
+		ixp_werrstr("bad path");
+		return nullptr;
+	}
+
+	*p++ = '\0';
+	*rest = p;
+	return walk(c, path);
+}
+
+bool 
+clunk(IxpCFid *f) {
+	IxpFcall fcall;
+
+	auto c = f->client;
+
+	fcall.hdr.type = TClunk;
+	fcall.hdr.fid = f->fid;
+	auto ret = dofcall(c, &fcall);
+	if(ret)
+		putfid(f);
+	ixp_freefcall(&fcall);
+	return ret;
+}
+
+void
+initfid(IxpCFid *f, IxpFcall *fcall) {
+	f->open = 1;
+	f->offset = 0;
+	f->iounit = fcall->ropen.iounit;
+	if(f->iounit == 0 || fcall->ropen.iounit > f->client->msize-24)
+		f->iounit =  f->client->msize-24;
+	f->qid = fcall->ropen.qid;
+}
+IxpStat*
+_stat(IxpClient *c, ulong fid) {
+	IxpMsg msg;
+	IxpFcall fcall;
+	IxpStat *stat;
+
+	fcall.hdr.type = TStat;
+	fcall.hdr.fid = fid;
+	if(!dofcall(c, &fcall))
+		return nullptr;
+
+	msg = ixp_message((char*)fcall.rstat.stat, fcall.rstat.nstat, MsgUnpack);
+
+	stat = (IxpStat*)ixp::emalloc(sizeof *stat);
+	ixp_pstat(&msg, stat);
+	ixp_freefcall(&fcall);
+	if(msg.pos > msg.end) {
+		free(stat);
+		stat = nullptr;
+	}
+	return stat;
+}
+
+long
+_pread(IxpCFid *f, char *buf, long count, int64_t offset) {
+	IxpFcall fcall;
+
+	auto len = 0l;
+	while(len < count) {
+        auto n = ixp::min<int>(count-len, f->iounit);
+
+		fcall.hdr.type = TRead;
+		fcall.hdr.fid = f->fid;
+		fcall.tread.offset = offset;
+		fcall.tread.count = n;
+		if(!dofcall(f->client, &fcall))
+			return -1;
+		if(fcall.rread.count > n)
+			return -1;
+
+		memcpy(buf+len, fcall.rread.data, fcall.rread.count);
+		offset += fcall.rread.count;
+		len += fcall.rread.count;
+
+		ixp_freefcall(&fcall);
+		if(fcall.rread.count < n)
+			break;
+	}
+	return len;
+}
+
+long
+_pwrite(IxpCFid *f, const void *buf, long count, int64_t offset) {
+	IxpFcall fcall;
+	int n, len;
+
+	len = 0;
+	do {
+		n = ixp::min<int>(count-len, f->iounit);
+		fcall.hdr.type = TWrite;
+		fcall.hdr.fid = f->fid;
+		fcall.twrite.offset = offset;
+		fcall.twrite.data = (char*)buf + len;
+		fcall.twrite.count = n;
+		if(!dofcall(f->client, &fcall))
+			return -1;
+
+		offset += fcall.rwrite.count;
+		len += fcall.rwrite.count;
+
+		ixp_freefcall(&fcall);
+		if(fcall.rwrite.count < n)
+			break;
+	} while(len < count);
+	return len;
+}
+} // end namespace
+
+/**
+ * Function: ixp_remove
+ *
+ * Params:
+ *	path: The path of the file to remove.
+ *
+ * Removes a file or directory from the remote server.
+ *
+ * Returns:
+ *	ixp_remove returns 0 on failure, 1 on success.
+ * See also:
+ *	F<ixp_mount>
+ */
+
+namespace ixp {
+bool
+remove(IxpClient *c, const char *path) {
+	IxpFcall fcall;
+
+    if (auto f = walk(c, path); !f) {
+        return false;
+    } else {
+        fcall.hdr.type = TRemove;
+        fcall.hdr.fid = f->fid;;
+        auto ret = dofcall(c, &fcall);
+        ixp_freefcall(&fcall);
+        putfid(f);
+
+        return ret;
+    }
+}
+}
+
 
 /**
  * Function: ixp_unmount
@@ -104,13 +302,6 @@ ixp_unmount(IxpClient *client) {
 	free(client);
 }
 
-static void
-allocmsg(IxpClient *c, int n) {
-	c->rmsg.size = n;
-	c->wmsg.size = n;
-	c->rmsg.data = (char*)ixp::erealloc(c->rmsg.data, n);
-	c->wmsg.data = (char*)ixp::erealloc(c->wmsg.data, n);
-}
 
 /**
  * Function: ixp_mount
@@ -212,119 +403,6 @@ ixp_nsmount(const char *name) {
 	return c;
 }
 
-static IxpCFid*
-walk(IxpClient *c, const char *path) {
-	IxpCFid *f;
-	char *p;
-	IxpFcall fcall;
-	int n;
-
-	p = ixp::estrdup(path);
-	n = ixp::tokenize(fcall.twalk.wname, nelem(fcall.twalk.wname), p, '/');
-	f = getfid(c);
-
-	fcall.hdr.type = TWalk;
-	fcall.hdr.fid = RootFid;
-	fcall.twalk.nwname = n;
-	fcall.twalk.newfid = f->fid;
-	if(!dofcall(c, &fcall))
-		goto fail;
-	if(fcall.rwalk.nwqid < n) {
-		ixp_werrstr("File does not exist");
-		if(fcall.rwalk.nwqid == 0)
-			ixp_werrstr("Protocol botch");
-		goto fail;
-	}
-
-	f->qid = fcall.rwalk.wqid[n-1];
-
-	ixp_freefcall(&fcall);
-	free(p);
-	return f;
-fail:
-	putfid(f);
-	free(p);
-	return nullptr;
-}
-
-static IxpCFid*
-walkdir(IxpClient *c, char *path, const char **rest) {
-	char *p;
-
-	p = path + strlen(path) - 1;
-	assert(p >= path);
-	while(*p == '/')
-		*p-- = '\0';
-
-	while((p > path) && (*p != '/'))
-		p--;
-	if(*p != '/') {
-		ixp_werrstr("bad path");
-		return nullptr;
-	}
-
-	*p++ = '\0';
-	*rest = p;
-	return walk(c, path);
-}
-
-static bool 
-clunk(IxpCFid *f) {
-	IxpFcall fcall;
-
-	auto c = f->client;
-
-	fcall.hdr.type = TClunk;
-	fcall.hdr.fid = f->fid;
-	auto ret = dofcall(c, &fcall);
-	if(ret)
-		putfid(f);
-	ixp_freefcall(&fcall);
-	return ret;
-}
-
-/**
- * Function: ixp_remove
- *
- * Params:
- *	path: The path of the file to remove.
- *
- * Removes a file or directory from the remote server.
- *
- * Returns:
- *	ixp_remove returns 0 on failure, 1 on success.
- * See also:
- *	F<ixp_mount>
- */
-
-namespace ixp {
-bool
-remove(IxpClient *c, const char *path) {
-	IxpFcall fcall;
-
-    if (auto f = walk(c, path); !f) {
-        return false;
-    } else {
-        fcall.hdr.type = TRemove;
-        fcall.hdr.fid = f->fid;;
-        auto ret = dofcall(c, &fcall);
-        ixp_freefcall(&fcall);
-        putfid(f);
-
-        return ret;
-    }
-}
-}
-
-static void
-initfid(IxpCFid *f, IxpFcall *fcall) {
-	f->open = 1;
-	f->offset = 0;
-	f->iounit = fcall->ropen.iounit;
-	if(f->iounit == 0 || fcall->ropen.iounit > f->client->msize-24)
-		f->iounit =  f->client->msize-24;
-	f->qid = fcall->ropen.qid;
-}
 
 /**
  * Function: ixp_open
@@ -431,28 +509,6 @@ close(IxpCFid *f) {
 	return clunk(f);
 }
 
-static IxpStat*
-_stat(IxpClient *c, ulong fid) {
-	IxpMsg msg;
-	IxpFcall fcall;
-	IxpStat *stat;
-
-	fcall.hdr.type = TStat;
-	fcall.hdr.fid = fid;
-	if(!dofcall(c, &fcall))
-		return nullptr;
-
-	msg = ixp_message((char*)fcall.rstat.stat, fcall.rstat.nstat, MsgUnpack);
-
-	stat = (IxpStat*)emalloc(sizeof *stat);
-	ixp_pstat(&msg, stat);
-	ixp_freefcall(&fcall);
-	if(msg.pos > msg.end) {
-		free(stat);
-		stat = nullptr;
-	}
-	return stat;
-}
 
 } // end namespace ixp
 /**
@@ -485,43 +541,16 @@ ixp_stat(IxpClient *c, const char *path) {
     if (!f) 
 		return nullptr;
 
-	stat = ixp::_stat(c, f->fid);
+	stat = _stat(c, f->fid);
 	clunk(f);
 	return stat;
 }
 
 IxpStat*
 ixp_fstat(IxpCFid *fid) {
-	return ixp::_stat(fid->client, fid->fid);
+	return _stat(fid->client, fid->fid);
 }
 
-static long
-_pread(IxpCFid *f, char *buf, long count, int64_t offset) {
-	IxpFcall fcall;
-
-	auto len = 0l;
-	while(len < count) {
-        auto n = ixp::min<int>(count-len, f->iounit);
-
-		fcall.hdr.type = TRead;
-		fcall.hdr.fid = f->fid;
-		fcall.tread.offset = offset;
-		fcall.tread.count = n;
-		if(!dofcall(f->client, &fcall))
-			return -1;
-		if(fcall.rread.count > n)
-			return -1;
-
-		memcpy(buf+len, fcall.rread.data, fcall.rread.count);
-		offset += fcall.rread.count;
-		len += fcall.rread.count;
-
-		ixp_freefcall(&fcall);
-		if(fcall.rread.count < n)
-			break;
-	}
-	return len;
-}
 
 /**
  * Function: ixp_read
@@ -567,31 +596,6 @@ ixp_pread(IxpCFid *fid, void *buf, long count, int64_t offset) {
 	return n;
 }
 
-static long
-_pwrite(IxpCFid *f, const void *buf, long count, int64_t offset) {
-	IxpFcall fcall;
-	int n, len;
-
-	len = 0;
-	do {
-		n = ixp::min<int>(count-len, f->iounit);
-		fcall.hdr.type = TWrite;
-		fcall.hdr.fid = f->fid;
-		fcall.twrite.offset = offset;
-		fcall.twrite.data = (char*)buf + len;
-		fcall.twrite.count = n;
-		if(!dofcall(f->client, &fcall))
-			return -1;
-
-		offset += fcall.rwrite.count;
-		len += fcall.rwrite.count;
-
-		ixp_freefcall(&fcall);
-		if(fcall.rwrite.count < n)
-			break;
-	} while(len < count);
-	return len;
-}
 
 /**
  * Function: ixp_write
