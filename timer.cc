@@ -41,7 +41,7 @@ msec() {
  *	F<ixp_unsettimer>, F<ixp_serverloop>
  */
 long
-settimer(IxpServer *srv, long msec, std::function<void(long, void*)> fn, void *aux) {
+settimer(IxpServer *srv, long msec, std::function<void(long, const std::any&)> fn, void *aux) {
     /* 
      * This really needn't be threadsafe, as it has little use in
      * threaded programs, but it nonetheless is.
@@ -129,7 +129,7 @@ nexttimer(IxpServer *srv) {
 		srv->timer = t->link;
 
 		thread->unlock(&srv->lk);
-		t->fn(t->id, std::any_cast<void*>(t->aux));
+		t->fn(t->id, t->aux);
 		free(t);
 		thread->lock(&srv->lk);
 	}
