@@ -464,7 +464,7 @@ struct IxpConn {
     std::any	aux;	/* Arbitrary pointer, to be used by handlers. */
 	int		fd;	/* The file descriptor of the connection. */
     std::function<void(IxpConn*)> read, close;
-	char		closed;	/* Non-zero when P<fd> has been closed. */
+	bool		closed;	/* Non-zero when P<fd> has been closed. */
 
 	/* Private members */
 	IxpConn		*next;
@@ -757,7 +757,7 @@ uint	ixp_msg2fcall(IxpMsg*, IxpFcall*);
 uint	ixp_fcall2msg(IxpMsg*, IxpFcall*);
 
 /* server.c */
-IxpConn* ixp_listen(IxpServer*, int, void*,
+IxpConn* ixp_listen(IxpServer*, int, const std::any&,
         std::function<void(IxpConn*)> read,
         std::function<void(IxpConn*)> close);
 void	ixp_hangup(IxpConn*);

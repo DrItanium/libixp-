@@ -34,16 +34,17 @@
  *	F<ixp_serverloop>, F<ixp_serve9conn>, F<ixp_hangup>
  */
 IxpConn*
-ixp_listen(IxpServer *srv, int fd, void *aux,
+ixp_listen(IxpServer *srv, int fd, const std::any& aux,
         std::function<void(IxpConn*)> read,
         std::function<void(IxpConn*)> close) {
-	auto c = (IxpConn*)ixp::emallocz(sizeof(IxpConn));
+    auto c = new IxpConn;
 	c->fd = fd;
 	c->aux = aux;
 	c->srv = srv;
 	c->read = read;
 	c->close = close;
 	c->next = srv->conn;
+    c->closed = false;
 	srv->conn = c;
 	return c;
 }
@@ -72,14 +73,14 @@ ixp_hangup(IxpConn *c) {
 	assert(*tc == c);
 
 	*tc = c->next;
-	c->closed = 1;
+	c->closed = true;
 	if(c->close)
 		c->close(c);
 	else
 		shutdown(c->fd, SHUT_RDWR);
 
 	close(c->fd);
-	free(c);
+    delete c;
 }
 
 void
