@@ -85,9 +85,9 @@ ixp_hangup(IxpConn *c) {
 
 void
 ixp_server_close(IxpServer *s) {
-	IxpConn *c = nullptr, *next = nullptr;
+	IxpConn *next = nullptr;
 
-	for(c = s->conn; c; c = next) {
+	for(auto c = s->conn; c; c = next) {
 		next = c->next;
 		ixp_hangup(c);
 	}
