@@ -67,12 +67,12 @@ struct IxpTimer {
 	uint64_t	msec;
 	long		id;
     std::function<void(long, void*)> fn;
-	void*		aux;
+    std::any	aux;
 };
 
 /* map.c */
-void	ixp_mapfree(IxpMap*, void(*)(void*));
-void	ixp_mapexec(IxpMap*, void(*)(void*, void*), void*);
+void	ixp_mapfree(IxpMap*, std::function<void(void*)>);
+void	ixp_mapexec(IxpMap*, std::function<void(void*, void*)>, void*);
 void	ixp_mapinit(IxpMap*, MapEnt**, int);
 bool	ixp_mapinsert(IxpMap*, ulong, void*, bool);
 void*	ixp_mapget(IxpMap*, ulong);

@@ -129,7 +129,7 @@ nexttimer(IxpServer *srv) {
 		srv->timer = t->link;
 
 		thread->unlock(&srv->lk);
-		t->fn(t->id, t->aux);
+		t->fn(t->id, std::any_cast<void*>(t->aux));
 		free(t);
 		thread->lock(&srv->lk);
 	}

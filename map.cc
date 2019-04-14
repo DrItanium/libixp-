@@ -45,7 +45,7 @@ map_getp(IxpMap *map, ulong val, bool create, bool *exists) {
 }
 
 void
-ixp_mapfree(IxpMap *map, void (*destroy)(void*)) {
+ixp_mapfree(IxpMap *map, std::function<void(void*)> destroy) {
 	int i;
 	MapEnt *e;
 
@@ -62,7 +62,7 @@ ixp_mapfree(IxpMap *map, void (*destroy)(void*)) {
 }
 
 void
-ixp_mapexec(IxpMap *map, void (*run)(void*, void*), void *context) {
+ixp_mapexec(IxpMap *map, std::function<void(void*, void*)> run, void* context) {
 	int i;
 	MapEnt *e;
 
