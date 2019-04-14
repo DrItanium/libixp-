@@ -8,34 +8,8 @@
 #include <string.h>
 #include "ixp_local.h"
 
-static int gettag(IxpClient*, IxpRpc*);
-static void puttag(IxpClient*, IxpRpc*);
-static void enqueue(IxpClient*, IxpRpc*);
-static void dequeue(IxpClient*, IxpRpc*);
-
+namespace {
 void
-muxinit(IxpClient *mux)
-{
-	mux->tagrend.mutex = &mux->lk;
-	mux->sleep.next = &mux->sleep;
-	mux->sleep.prev = &mux->sleep;
-	thread->initmutex(&mux->lk);
-	thread->initmutex(&mux->rlock);
-	thread->initmutex(&mux->wlock);
-	thread->initrendez(&mux->tagrend);
-}
-
-void
-muxfree(IxpClient *mux)
-{
-	thread->mdestroy(&mux->lk);
-	thread->mdestroy(&mux->rlock);
-	thread->mdestroy(&mux->wlock);
-	thread->rdestroy(&mux->tagrend);
-	free(mux->wait);
-}
-
-static void
 initrpc(IxpClient *mux, IxpRpc *r)
 {
 	r->mux = mux;
@@ -45,38 +19,13 @@ initrpc(IxpClient *mux, IxpRpc *r)
 	thread->initrendez(&r->r);
 }
 
-static void
+void
 freemuxrpc(IxpRpc *r)
 {
 	thread->rdestroy(&r->r);
 }
 
-static int
-sendrpc(IxpRpc *r, IxpFcall *f)
-{
-	auto ret = 0;
-	auto mux = r->mux;
-	/* assign the tag, add selves to response queue */
-	thread->lock(&mux->lk);
-	r->tag = gettag(mux, r);
-	f->hdr.tag = r->tag;
-	enqueue(mux, r);
-	thread->unlock(&mux->lk);
-
-	thread->lock(&mux->wlock);
-	if(!ixp_fcall2msg(&mux->wmsg, f) || !ixp_sendmsg(mux->fd, &mux->wmsg)) {
-		/* ixp_werrstr("settag/send tag %d: %r", tag); fprint(2, "%r\n"); */
-		thread->lock(&mux->lk);
-		dequeue(mux, r);
-		puttag(mux, r);
-		thread->unlock(&mux->lk);
-		ret = -1;
-	}
-	thread->unlock(&mux->wlock);
-	return ret;
-}
-
-static IxpFcall*
+IxpFcall*
 muxrecv(IxpClient *mux)
 {
 	IxpFcall *f = nullptr;
@@ -93,34 +42,8 @@ fail:
 	return f;
 }
 
-static void
-dispatchandqlock(IxpClient *mux, IxpFcall *f)
-{
-	int tag;
-	IxpRpc *r2;
 
-	tag = f->hdr.tag - mux->mintag;
-	thread->lock(&mux->lk);
-	/* hand packet to correct sleeper */
-	if(tag < 0 || tag >= mux->mwait) {
-		fprintf(stderr, "libixp: received unfeasible tag: %d (min: %d, max: %d)\n", f->hdr.tag, mux->mintag, mux->mintag+mux->mwait);
-		goto fail;
-	}
-	r2 = mux->wait[tag];
-    if (!r2 || !(r2->prev)) {
-		fprintf(stderr, "libixp: received message with bad tag\n");
-		goto fail;
-	}
-	r2->p = f;
-	dequeue(mux, r2);
-	thread->wake(&r2->r);
-	return;
-fail:
-	ixp_freefcall(f);
-	free(f);
-}
-
-static void
+void
 electmuxer(IxpClient *mux)
 {
 	IxpRpc *rpc;
@@ -135,48 +58,7 @@ electmuxer(IxpClient *mux)
 	}
 	mux->muxer = nullptr;
 }
-
-IxpFcall*
-muxrpc(IxpClient *mux, IxpFcall *tx)
-{
-	IxpRpc r;
-	IxpFcall *p;
-
-	initrpc(mux, &r);
-	if(sendrpc(&r, tx) < 0)
-		return nullptr;
-
-	thread->lock(&mux->lk);
-	/* wait for our packet */
-	while(mux->muxer && mux->muxer != &r && !r.p)
-		thread->sleep(&r.r);
-
-	/* if not done, there's no muxer; start muxing */
-	if(!r.p){
-		assert(mux->muxer == nullptr || mux->muxer == &r);
-		mux->muxer = &r;
-		while(!r.p){
-			thread->unlock(&mux->lk);
-			p = muxrecv(mux);
-            if (!p) {
-				/* eof -- just give up and pass the buck */
-				thread->lock(&mux->lk);
-				dequeue(mux, &r);
-				break;
-			}
-			dispatchandqlock(mux, p);
-		}
-		electmuxer(mux);
-	}
-	p = r.p;
-	puttag(mux, &r);
-	thread->unlock(&mux->lk);
-    if (!p)
-		ixp_werrstr("unexpected eof");
-	return p;
-}
-
-static void
+void
 enqueue(IxpClient *mux, IxpRpc *r)
 {
 	r->next = mux->sleep.next;
@@ -185,8 +67,8 @@ enqueue(IxpClient *mux, IxpRpc *r)
 	r->prev->next = r;
 }
 
-static void
-dequeue(IxpClient *mux, IxpRpc *r)
+void
+dequeue(IxpClient *, IxpRpc *r)
 {
 	r->next->prev = r->prev;
 	r->prev->next = r->next;
@@ -194,7 +76,7 @@ dequeue(IxpClient *mux, IxpRpc *r)
 	r->next = nullptr;
 }
 
-static int 
+int 
 gettag(IxpClient *mux, IxpRpc *r)
 {
 	int i, mw;
@@ -241,12 +123,10 @@ Found:
 	return r->tag;
 }
 
-static void
+void
 puttag(IxpClient *mux, IxpRpc *r)
 {
-	int i;
-
-	i = r->tag - mux->mintag;
+	auto i = r->tag - mux->mintag;
 	assert(mux->wait[i] == r);
 	mux->wait[i] = nullptr;
 	mux->nwait--;
@@ -254,4 +134,119 @@ puttag(IxpClient *mux, IxpRpc *r)
 	thread->wake(&mux->tagrend);
 	freemuxrpc(r);
 }
+int
+sendrpc(IxpRpc *r, IxpFcall *f)
+{
+	auto ret = 0;
+	auto mux = r->mux;
+	/* assign the tag, add selves to response queue */
+	thread->lock(&mux->lk);
+	r->tag = gettag(mux, r);
+	f->hdr.tag = r->tag;
+	enqueue(mux, r);
+	thread->unlock(&mux->lk);
+
+	thread->lock(&mux->wlock);
+	if(!ixp_fcall2msg(&mux->wmsg, f) || !ixp_sendmsg(mux->fd, &mux->wmsg)) {
+		/* ixp_werrstr("settag/send tag %d: %r", tag); fprint(2, "%r\n"); */
+		thread->lock(&mux->lk);
+		dequeue(mux, r);
+		puttag(mux, r);
+		thread->unlock(&mux->lk);
+		ret = -1;
+	}
+	thread->unlock(&mux->wlock);
+	return ret;
+}
+void
+dispatchandqlock(IxpClient *mux, IxpFcall *f)
+{
+	int tag;
+	IxpRpc *r2;
+
+	tag = f->hdr.tag - mux->mintag;
+	thread->lock(&mux->lk);
+	/* hand packet to correct sleeper */
+	if(tag < 0 || tag >= mux->mwait) {
+		fprintf(stderr, "libixp: received unfeasible tag: %d (min: %d, max: %d)\n", f->hdr.tag, mux->mintag, mux->mintag+mux->mwait);
+		goto fail;
+	}
+	r2 = mux->wait[tag];
+    if (!r2 || !(r2->prev)) {
+		fprintf(stderr, "libixp: received message with bad tag\n");
+		goto fail;
+	}
+	r2->p = f;
+	dequeue(mux, r2);
+	thread->wake(&r2->r);
+	return;
+fail:
+	ixp_freefcall(f);
+	free(f);
+}
+} // end namespace
+
+void
+muxinit(IxpClient *mux)
+{
+	mux->tagrend.mutex = &mux->lk;
+	mux->sleep.next = &mux->sleep;
+	mux->sleep.prev = &mux->sleep;
+	thread->initmutex(&mux->lk);
+	thread->initmutex(&mux->rlock);
+	thread->initmutex(&mux->wlock);
+	thread->initrendez(&mux->tagrend);
+}
+
+void
+muxfree(IxpClient *mux)
+{
+	thread->mdestroy(&mux->lk);
+	thread->mdestroy(&mux->rlock);
+	thread->mdestroy(&mux->wlock);
+	thread->rdestroy(&mux->tagrend);
+	free(mux->wait);
+}
+
+
+IxpFcall*
+muxrpc(IxpClient *mux, IxpFcall *tx)
+{
+	IxpRpc r;
+	IxpFcall *p;
+
+	initrpc(mux, &r);
+	if(sendrpc(&r, tx) < 0)
+		return nullptr;
+
+	thread->lock(&mux->lk);
+	/* wait for our packet */
+	while(mux->muxer && mux->muxer != &r && !r.p)
+		thread->sleep(&r.r);
+
+	/* if not done, there's no muxer; start muxing */
+	if(!r.p){
+		assert(mux->muxer == nullptr || mux->muxer == &r);
+		mux->muxer = &r;
+		while(!r.p){
+			thread->unlock(&mux->lk);
+			p = muxrecv(mux);
+            if (!p) {
+				/* eof -- just give up and pass the buck */
+				thread->lock(&mux->lk);
+				dequeue(mux, &r);
+				break;
+			}
+			dispatchandqlock(mux, p);
+		}
+		electmuxer(mux);
+	}
+	p = r.p;
+	puttag(mux, &r);
+	thread->unlock(&mux->lk);
+    if (!p)
+		ixp_werrstr("unexpected eof");
+	return p;
+}
+
 
