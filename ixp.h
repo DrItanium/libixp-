@@ -772,7 +772,7 @@ namespace ixp {
     uint recvmsg(int, IxpMsg*);
     uint64_t msec();
     bool unsettimer(IxpServer*, long);
-    long settimer(IxpServer*, long, std::function<void(long, const std::any&)>, void*);
+    long settimer(IxpServer*, long, std::function<void(long, const std::any&)>, const std::any& aux);
 } // end namespace ixp
 #define ixp_dial ixp::dial
 #define ixp_announce ixp::announce

@@ -41,7 +41,7 @@ msec() {
  *	F<ixp_unsettimer>, F<ixp_serverloop>
  */
 long
-settimer(IxpServer *srv, long msec, std::function<void(long, const std::any&)> fn, void *aux) {
+settimer(IxpServer *srv, long msec, std::function<void(long, const std::any&)> fn, const std::any& aux) {
     /* 
      * This really needn't be threadsafe, as it has little use in
      * threaded programs, but it nonetheless is.
@@ -59,7 +59,7 @@ settimer(IxpServer *srv, long msec, std::function<void(long, const std::any&)> f
 	t->id = lastid++;
 	t->msec = time;
 	t->fn = fn;
-	t->aux = aux; /// @todo fix this so that we are not injecting a void* into a std::any
+	t->aux = aux; // make a copy of the contents of the passed in std::aux
 
 	for(tp=&srv->timer; *tp; tp=&tp[0]->link)
 		if(tp[0]->msec < time)
