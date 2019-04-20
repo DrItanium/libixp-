@@ -6,6 +6,7 @@
 #include <string.h>
 #include "ixp_local.h"
 
+namespace ixp {
 namespace {
 constexpr auto SByte = 1;
 constexpr auto SWord = 2;
@@ -17,11 +18,11 @@ constexpr auto SQid = SByte + SDWord + SQWord;
 } // end namespace 
 
 /**
- * Type: IxpMsg
- * Type: IxpMsgMode
- * Function: ixp_message
+ * Type: Msg
+ * Type: MsgMode
+ * Function: message
  *
- * The IxpMsg struct represents a binary message, and is used
+ * The Msg struct represents a binary message, and is used
  * extensively by libixp for converting messages to and from
  * wire format. The location and size of a buffer are stored in
  * P<data> and P<size>, respectively. P<pos> points to the
@@ -32,18 +33,18 @@ constexpr auto SQid = SByte + SDWord + SQWord;
  * entirely packed or unpacked, P<pos> whould be less than or
  * equal to P<end>. Any other state indicates error.
  *
- * ixp_message is a convenience function to pack a construct an
- * IxpMsg from a buffer of a given P<length> and a given
+ * message is a convenience function to pack a construct an
+ * Msg from a buffer of a given P<length> and a given
  * P<mode>. P<pos> and P<data> are set to P<data> and P<end> is
  * set to P<data> + P<length>.
  *
  * See also:
- *	F<ixp_pu8>, F<ixp_pu16>, F<ixp_pu32>, F<ixp_pu64>,
- *	F<ixp_pstring>, F<ixp_pstrings>
+ *	F<pu8>, F<pu16>, F<pu32>, F<pu64>,
+ *	F<pstring>, F<pstrings>
  */
-IxpMsg
-ixp_message(char *data, uint length, uint mode) {
-	IxpMsg m;
+Msg
+message(char *data, uint length, uint mode) {
+	Msg m;
 
 	m.data = data;
 	m.pos = data;
@@ -54,18 +55,18 @@ ixp_message(char *data, uint length, uint mode) {
 }
 
 /**
- * Function: ixp_freestat
- * Function: ixp_freefcall
+ * Function: freestat
+ * Function: freefcall
  *
  * These functions free malloc(3) allocated data in the members
  * of the passed structures and set those members to nullptr. They
  * do not free the structures themselves.
  *
  * See also:
- *	S<IxpFcall>, S<IxpStat>
+ *	S<Fcall>, S<Stat>
  */
 void
-ixp_freestat(IxpStat *s) {
+freestat(Stat *s) {
 	free(s->name);
 	free(s->uid);
 	free(s->gid);
@@ -74,7 +75,7 @@ ixp_freestat(IxpStat *s) {
 }
 
 void
-ixp_freefcall(IxpFcall *fcall) {
+freefcall(Fcall *fcall) {
 	switch(fcall->hdr.type) {
 	case RStat:
 		free(fcall->rstat.stat);
@@ -96,7 +97,7 @@ ixp_freefcall(IxpFcall *fcall) {
 }
 
 uint16_t
-ixp_sizeof_stat(IxpStat *stat) {
+sizeof_stat(Stat *stat) {
 	return SWord /* size */
 		+ SWord /* type */
 		+ SDWord /* dev */
@@ -110,102 +111,102 @@ ixp_sizeof_stat(IxpStat *stat) {
 }
 
 void
-ixp_pfcall(IxpMsg *msg, IxpFcall *fcall) {
-	ixp_pu8(msg, &fcall->hdr.type);
-	ixp_pu16(msg, &fcall->hdr.tag);
+pfcall(Msg *msg, Fcall *fcall) {
+	pu8(msg, &fcall->hdr.type);
+	pu16(msg, &fcall->hdr.tag);
 
 	switch (fcall->hdr.type) {
 	case TVersion:
 	case RVersion:
-		ixp_pu32(msg, &fcall->version.msize);
-		ixp_pstring(msg, &fcall->version.version);
+		pu32(msg, &fcall->version.msize);
+		pstring(msg, &fcall->version.version);
 		break;
 	case TAuth:
-		ixp_pu32(msg, &fcall->tauth.afid);
-		ixp_pstring(msg, &fcall->tauth.uname);
-		ixp_pstring(msg, &fcall->tauth.aname);
+		pu32(msg, &fcall->tauth.afid);
+		pstring(msg, &fcall->tauth.uname);
+		pstring(msg, &fcall->tauth.aname);
 		break;
 	case RAuth:
-		ixp_pqid(msg, &fcall->rauth.aqid);
+		pqid(msg, &fcall->rauth.aqid);
 		break;
 	case RAttach:
-		ixp_pqid(msg, &fcall->rattach.qid);
+		pqid(msg, &fcall->rattach.qid);
 		break;
 	case TAttach:
-		ixp_pu32(msg, &fcall->hdr.fid);
-		ixp_pu32(msg, &fcall->tattach.afid);
-		ixp_pstring(msg, &fcall->tattach.uname);
-		ixp_pstring(msg, &fcall->tattach.aname);
+		pu32(msg, &fcall->hdr.fid);
+		pu32(msg, &fcall->tattach.afid);
+		pstring(msg, &fcall->tattach.uname);
+		pstring(msg, &fcall->tattach.aname);
 		break;
 	case RError:
-		ixp_pstring(msg, &fcall->error.ename);
+		pstring(msg, &fcall->error.ename);
 		break;
 	case TFlush:
-		ixp_pu16(msg, &fcall->tflush.oldtag);
+		pu16(msg, &fcall->tflush.oldtag);
 		break;
 	case TWalk:
-		ixp_pu32(msg, &fcall->hdr.fid);
-		ixp_pu32(msg, &fcall->twalk.newfid);
-		ixp_pstrings(msg, &fcall->twalk.nwname, fcall->twalk.wname, nelem(fcall->twalk.wname));
+		pu32(msg, &fcall->hdr.fid);
+		pu32(msg, &fcall->twalk.newfid);
+		pstrings(msg, &fcall->twalk.nwname, fcall->twalk.wname, nelem(fcall->twalk.wname));
 		break;
 	case RWalk:
-		ixp_pqids(msg, &fcall->rwalk.nwqid, fcall->rwalk.wqid, nelem(fcall->rwalk.wqid));
+		pqids(msg, &fcall->rwalk.nwqid, fcall->rwalk.wqid, nelem(fcall->rwalk.wqid));
 		break;
 	case TOpen:
-		ixp_pu32(msg, &fcall->hdr.fid);
-		ixp_pu8(msg, &fcall->topen.mode);
+		pu32(msg, &fcall->hdr.fid);
+		pu8(msg, &fcall->topen.mode);
 		break;
 	case ROpen:
 	case RCreate:
-		ixp_pqid(msg, &fcall->ropen.qid);
-		ixp_pu32(msg, &fcall->ropen.iounit);
+		pqid(msg, &fcall->ropen.qid);
+		pu32(msg, &fcall->ropen.iounit);
 		break;
 	case TCreate:
-		ixp_pu32(msg, &fcall->hdr.fid);
-		ixp_pstring(msg, &fcall->tcreate.name);
-		ixp_pu32(msg, &fcall->tcreate.perm);
-		ixp_pu8(msg, &fcall->tcreate.mode);
+		pu32(msg, &fcall->hdr.fid);
+		pstring(msg, &fcall->tcreate.name);
+		pu32(msg, &fcall->tcreate.perm);
+		pu8(msg, &fcall->tcreate.mode);
 		break;
 	case TRead:
-		ixp_pu32(msg, &fcall->hdr.fid);
-		ixp_pu64(msg, &fcall->tread.offset);
-		ixp_pu32(msg, &fcall->tread.count);
+		pu32(msg, &fcall->hdr.fid);
+		pu64(msg, &fcall->tread.offset);
+		pu32(msg, &fcall->tread.count);
 		break;
 	case RRead:
-		ixp_pu32(msg, &fcall->rread.count);
-		ixp_pdata(msg, &fcall->rread.data, fcall->rread.count);
+		pu32(msg, &fcall->rread.count);
+		pdata(msg, &fcall->rread.data, fcall->rread.count);
 		break;
 	case TWrite:
-		ixp_pu32(msg, &fcall->hdr.fid);
-		ixp_pu64(msg, &fcall->twrite.offset);
-		ixp_pu32(msg, &fcall->twrite.count);
-		ixp_pdata(msg, &fcall->twrite.data, fcall->twrite.count);
+		pu32(msg, &fcall->hdr.fid);
+		pu64(msg, &fcall->twrite.offset);
+		pu32(msg, &fcall->twrite.count);
+		pdata(msg, &fcall->twrite.data, fcall->twrite.count);
 		break;
 	case RWrite:
-		ixp_pu32(msg, &fcall->rwrite.count);
+		pu32(msg, &fcall->rwrite.count);
 		break;
 	case TClunk:
 	case TRemove:
 	case TStat:
-		ixp_pu32(msg, &fcall->hdr.fid);
+		pu32(msg, &fcall->hdr.fid);
 		break;
 	case RStat:
-		ixp_pu16(msg, &fcall->rstat.nstat);
-		ixp_pdata(msg, (char**)&fcall->rstat.stat, fcall->rstat.nstat);
+		pu16(msg, &fcall->rstat.nstat);
+		pdata(msg, (char**)&fcall->rstat.stat, fcall->rstat.nstat);
 		break;
 	case TWStat: {
 		uint16_t size;
-		ixp_pu32(msg, &fcall->hdr.fid);
-		ixp_pu16(msg, &size);
-		ixp_pstat(msg, &fcall->twstat.stat);
+		pu32(msg, &fcall->hdr.fid);
+		pu16(msg, &size);
+		pstat(msg, &fcall->twstat.stat);
 		break;
 		}
 	}
 }
 
 /**
- * Function: ixp_fcall2msg
- * Function: ixp_msg2fcall
+ * Function: fcall2msg
+ * Function: msg2fcall
  *
  * These functions pack or unpack a 9P protocol message. The
  * message is set to the appropriate mode and its position is
@@ -215,16 +216,16 @@ ixp_pfcall(IxpMsg *msg, IxpFcall *fcall) {
  *	These functions return the size of the message on
  *	success and 0 on failure.
  * See also:
- *	F<IxpMsg>, F<ixp_pfcall>
+ *	F<Msg>, F<pfcall>
  */
 uint
-ixp_fcall2msg(IxpMsg *msg, IxpFcall *fcall) {
+fcall2msg(Msg *msg, Fcall *fcall) {
 	uint32_t size;
 
 	msg->end = msg->data + msg->size;
 	msg->pos = msg->data + SDWord;
 	msg->mode = MsgPack;
-	ixp_pfcall(msg, fcall);
+	pfcall(msg, fcall);
 
 	if(msg->pos > msg->end)
 		return 0;
@@ -233,17 +234,17 @@ ixp_fcall2msg(IxpMsg *msg, IxpFcall *fcall) {
 	size = msg->end - msg->data;
 
 	msg->pos = msg->data;
-	ixp_pu32(msg, &size);
+	pu32(msg, &size);
 
 	msg->pos = msg->data;
 	return size;
 }
 
 uint
-ixp_msg2fcall(IxpMsg *msg, IxpFcall *fcall) {
+msg2fcall(Msg *msg, Fcall *fcall) {
 	msg->pos = msg->data + SDWord;
 	msg->mode = MsgUnpack;
-	ixp_pfcall(msg, fcall);
+	pfcall(msg, fcall);
 
 	if(msg->pos > msg->end)
 		return 0;
@@ -251,3 +252,4 @@ ixp_msg2fcall(IxpMsg *msg, IxpFcall *fcall) {
 	return msg->pos - msg->data;
 }
 
+} // end namespace ixp
