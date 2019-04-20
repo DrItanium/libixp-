@@ -8,13 +8,14 @@
 
 
 
+namespace ixp {
 namespace {
 constexpr auto SByte = 1;
 constexpr auto SWord = 2;
 constexpr auto SDWord = 4;
 constexpr auto SQWord = 8;
 void
-ixp_puint(IxpMsg *msg, uint size, uint32_t *val) {
+puint(Msg *msg, uint size, uint32_t *val) {
 	uint8_t *pos;
 	int v;
 
@@ -53,10 +54,10 @@ ixp_puint(IxpMsg *msg, uint size, uint32_t *val) {
 } // end namespace
 
 /**
- * Function: ixp_pu8
- * Function: ixp_pu16
- * Function: ixp_pu32
- * Function: ixp_pu64
+ * Function: pu8
+ * Function: pu16
+ * Function: pu32
+ * Function: pu64
  *
  * These functions pack or unpack an unsigned integer of the
  * specified size.
@@ -70,41 +71,41 @@ ixp_puint(IxpMsg *msg, uint size, uint32_t *val) {
  * advanced, but nothing is modified.
  *
  * See also:
- *	T<IxpMsg>
+ *	T<Msg>
  */
 void
-ixp_pu8(IxpMsg *msg, uint8_t *val) {
+pu8(Msg *msg, uint8_t *val) {
 	uint32_t v;
 
 	v = *val;
-	ixp_puint(msg, SByte, &v);
+	puint(msg, SByte, &v);
 	*val = (uint8_t)v;
 }
 void
-ixp_pu16(IxpMsg *msg, uint16_t *val) {
+pu16(Msg *msg, uint16_t *val) {
 	uint32_t v;
 
 	v = *val;
-	ixp_puint(msg, SWord, &v);
+	puint(msg, SWord, &v);
 	*val = (uint16_t)v;
 }
 void
-ixp_pu32(IxpMsg *msg, uint32_t *val) {
-	ixp_puint(msg, SDWord, val);
+pu32(Msg *msg, uint32_t *val) {
+	puint(msg, SDWord, val);
 }
 void
-ixp_pu64(IxpMsg *msg, uint64_t *val) {
+pu64(Msg *msg, uint64_t *val) {
 	uint32_t vl, vb;
 
 	vl = (uint)*val;
 	vb = (uint)(*val>>32);
-	ixp_puint(msg, SDWord, &vl);
-	ixp_puint(msg, SDWord, &vb);
+	puint(msg, SDWord, &vl);
+	puint(msg, SDWord, &vb);
 	*val = vl | ((uint64_t)vb<<32);
 }
 
 /**
- * Function: ixp_pstring
+ * Function: pstring
  *
  * Packs or unpacks a UTF-8 encoded string. The packed
  * representation of the string consists of a 16-bit unsigned
@@ -121,15 +122,15 @@ ixp_pu64(IxpMsg *msg, uint64_t *val) {
  * P<msg>->pos is still advanced but no other action is taken.
  *
  * See also:
- *	T<IxpMsg>, F<ixp_pstrings>, F<ixp_pdata>
+ *	T<Msg>, F<pstrings>, F<pdata>
  */
 void
-ixp_pstring(IxpMsg *msg, char **s) {
+pstring(Msg *msg, char **s) {
 	uint16_t len;
 
 	if(msg->mode == MsgPack)
 		len = strlen(*s);
-	ixp_pu16(msg, &len);
+	pu16(msg, &len);
 
 	if(msg->pos + len <= msg->end) {
 		if(msg->mode == MsgUnpack) {
@@ -143,11 +144,11 @@ ixp_pstring(IxpMsg *msg, char **s) {
 }
 
 /**
- * Function: ixp_pstrings
+ * Function: pstrings
  *
  * Packs or unpacks an array of UTF-8 encoded strings. The packed
  * representation consists of a 16-bit element count followed by
- * an array of strings as packed by F<ixp_pstring>. The unpacked
+ * an array of strings as packed by F<pstring>. The unpacked
  * representation is an array of nul-terminated character arrays.
  *
  * If P<msg>->mode is MsgPack, P<*num> strings in the array
@@ -164,15 +165,15 @@ ixp_pstring(IxpMsg *msg, char **s) {
  * taken.
  * 
  * See also:
- *	P<IxpMsg>, P<ixp_pstring>, P<ixp_pdata>
+ *	P<Msg>, P<pstring>, P<pdata>
  */
 void
-ixp_pstrings(IxpMsg *msg, uint16_t *num, char *strings[], uint max) {
+pstrings(Msg *msg, uint16_t *num, char *strings[], uint max) {
 	char *s;
 	uint i, size;
 	uint16_t len;
 
-	ixp_pu16(msg, num);
+	pu16(msg, num);
 	if(*num > max) {
 		msg->pos = msg->end+1;
 		return;
@@ -183,7 +184,7 @@ ixp_pstrings(IxpMsg *msg, uint16_t *num, char *strings[], uint max) {
 		s = msg->pos;
 		size = 0;
 		for(i=0; i < *num; i++) {
-			ixp_pu16(msg, &len);
+			pu16(msg, &len);
 			msg->pos += len;
 			size += len;
 			if(msg->pos > msg->end)
@@ -197,7 +198,7 @@ ixp_pstrings(IxpMsg *msg, uint16_t *num, char *strings[], uint max) {
 	for(i=0; i < *num; i++) {
 		if(msg->mode == MsgPack)
 			len = strlen(strings[i]);
-		ixp_pu16(msg, &len);
+		pu16(msg, &len);
 
 		if(msg->mode == MsgUnpack) {
 			memcpy(s, msg->pos, len);
@@ -206,12 +207,12 @@ ixp_pstrings(IxpMsg *msg, uint16_t *num, char *strings[], uint max) {
 			msg->pos += len;
 			*s++ = '\0';
 		}else
-			ixp_pdata(msg, &strings[i], len);
+			pdata(msg, &strings[i], len);
 	}
 }
 
 /**
- * Function: ixp_pdata
+ * Function: pdata
  *
  * Packs or unpacks a raw character buffer of size P<len>.
  *
@@ -225,10 +226,10 @@ ixp_pstrings(IxpMsg *msg, uint16_t *num, char *strings[], uint max) {
  * but no other action is taken.
  *
  * See also:
- *	T<IxpMsg>, F<ixp_pstring>
+ *	T<Msg>, F<pstring>
  */
 void
-ixp_pdata(IxpMsg *msg, char **data, uint len) {
+pdata(Msg *msg, char **data, uint len) {
     if(msg->pos + len <= msg->end) {
         if(msg->mode == MsgUnpack) {
             *data = (char*)ixp::emalloc(len);
@@ -241,64 +242,65 @@ ixp_pdata(IxpMsg *msg, char **data, uint len) {
 }
 
 /**
- * Function: ixp_pfcall
- * Function: ixp_pqid
- * Function: ixp_pqids
- * Function: ixp_pstat
- * Function: ixp_sizeof_stat
+ * Function: pfcall
+ * Function: pqid
+ * Function: pqids
+ * Function: pstat
+ * Function: sizeof_stat
  *
  * These convenience functions pack or unpack the contents of
  * libixp structures into their wire format. They behave as if
- * F<ixp_pu8>, F<ixp_pu16>, F<ixp_pu32>, F<ixp_pu64>, and
- * F<ixp_pstring> were called for each member of the structure
- * in question. ixp_pqid is to ixp_pqid as F<ixp_pstrings> is to
- * ixp_pstring.
+ * F<pu8>, F<pu16>, F<pu32>, F<pu64>, and
+ * F<pstring> were called for each member of the structure
+ * in question. pqid is to pqid as F<pstrings> is to
+ * pstring.
  *
- * ixp_sizeof_stat returns the size of the packed represention
+ * sizeof_stat returns the size of the packed represention
  * of P<stat>.
  *
  * See also:
- *	T<IxpMsg>, F<ixp_pu8>, F<ixp_pu16>, F<ixp_pu32>,
- *	F<ixp_pu64>, F<ixp_pstring>, F<ixp_pstrings>
+ *	T<Msg>, F<pu8>, F<pu16>, F<pu32>,
+ *	F<pu64>, F<pstring>, F<pstrings>
  */
 void
-ixp_pqid(IxpMsg *msg, IxpQid *qid) {
-	ixp_pu8(msg, &qid->type);
-	ixp_pu32(msg, &qid->version);
-	ixp_pu64(msg, &qid->path);
+pqid(Msg *msg, Qid *qid) {
+	pu8(msg, &qid->type);
+	pu32(msg, &qid->version);
+	pu64(msg, &qid->path);
 }
 
 void
-ixp_pqids(IxpMsg *msg, uint16_t *num, IxpQid qid[], uint max) {
+pqids(Msg *msg, uint16_t *num, Qid qid[], uint max) {
 
-	ixp_pu16(msg, num);
+	pu16(msg, num);
 	if(*num > max) {
 		msg->pos = msg->end+1;
 		return;
 	}
 
 	for(auto i = 0; i < *num; i++) {
-		ixp_pqid(msg, &qid[i]);
+		pqid(msg, &qid[i]);
     }
 }
 
 void
-ixp_pstat(IxpMsg *msg, IxpStat *stat) {
+pstat(Msg *msg, Stat *stat) {
 	uint16_t size;
 
 	if(msg->mode == MsgPack)
-		size = ixp_sizeof_stat(stat) - 2;
+		size = sizeof_stat(stat) - 2;
 
-	ixp_pu16(msg, &size);
-	ixp_pu16(msg, &stat->type);
-	ixp_pu32(msg, &stat->dev);
-	ixp_pqid(msg, &stat->qid);
-	ixp_pu32(msg, &stat->mode);
-	ixp_pu32(msg, &stat->atime);
-	ixp_pu32(msg, &stat->mtime);
-	ixp_pu64(msg, &stat->length);
-	ixp_pstring(msg, &stat->name);
-	ixp_pstring(msg, &stat->uid);
-	ixp_pstring(msg, &stat->gid);
-	ixp_pstring(msg, &stat->muid);
+	pu16(msg, &size);
+	pu16(msg, &stat->type);
+	pu32(msg, &stat->dev);
+	pqid(msg, &stat->qid);
+	pu32(msg, &stat->mode);
+	pu32(msg, &stat->atime);
+	pu32(msg, &stat->mtime);
+	pu64(msg, &stat->length);
+	pstring(msg, &stat->name);
+	pstring(msg, &stat->uid);
+	pstring(msg, &stat->gid);
+	pstring(msg, &stat->muid);
 }
+} // end namespace ixp
