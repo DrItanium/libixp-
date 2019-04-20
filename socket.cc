@@ -29,12 +29,12 @@
 #define SUN_LEN(su) \
 	(sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
 #endif
-
+namespace ixp {
 namespace {
 std::string
 get_port(const std::string& addr) {
     if (auto spos = addr.find('!'); spos == std::string::npos) {
-        ixp_werrstr("no port provided");
+        werrstr("no port provided");
         return std::string();
     } else {
         return addr.substr(spos);
@@ -66,7 +66,7 @@ dial_unix(const std::string& address) {
         return fd;
     } else {
         if(connect(fd, (sockaddr*) &sa, salen)) {
-            close(fd);
+            ::close(fd);
             return -1;
         }
         return fd;
@@ -93,13 +93,13 @@ announce_unix(const std::string& file) {
 		goto fail;
 
 	chmod(file.c_str(), S_IRWXU);
-	if(listen(fd, IXP_MAX_CACHE) < 0)
+	if(::listen(fd, IXP_MAX_CACHE) < 0)
 		goto fail;
 
 	return fd;
 
 fail:
-	close(fd);
+	::close(fd);
 	return -1;
 }
 
@@ -125,7 +125,7 @@ alookup(const std::string& host) {
         }
 
         if (int err = getaddrinfo(useHost ? host.c_str() : nullptr, port.c_str(), &hints, &ret); err) {
-            ixp_werrstr("getaddrinfo: %s", gai_strerror(err));
+            werrstr("getaddrinfo: %s", gai_strerror(err));
             return nullptr;
         } else {
             return ret;
@@ -148,15 +148,15 @@ dial_tcp(const std::string& host) {
         for(auto ai = aip; ai; ai = ai->ai_next) {
             fd = ai_socket(ai);
             if(fd == -1) {
-                ixp_werrstr("socket: %s", strerror(errno));
+                werrstr("socket: %s", strerror(errno));
                 continue;
             }
 
             if(connect(fd, ai->ai_addr, ai->ai_addrlen) == 0)
                 break;
 
-            ixp_werrstr("connect: %s", strerror(errno));
-            close(fd);
+            werrstr("connect: %s", strerror(errno));
+            ::close(fd);
             fd = -1;
         }
 
@@ -184,11 +184,11 @@ announce_tcp(const std::string& host) {
 		if(bind(fd, ai->ai_addr, ai->ai_addrlen) < 0)
 			goto fail;
 
-		if(listen(fd, IXP_MAX_CACHE) < 0)
+		if(::listen(fd, IXP_MAX_CACHE) < 0)
 			goto fail;
 		break;
 	fail:
-		close(fd);
+		::close(fd);
 		fd = -1;
 	}
 
@@ -212,7 +212,7 @@ int
 lookup(const std::string& address, AddressTab& _tab) {
     std::string _address(address);
 	if (auto addrPos = _address.find('!'); addrPos == std::string::npos) {
-		ixp_werrstr("no address type defined");
+		werrstr("no address type defined");
         return -1;
     } else {
         std::string type(_address.substr(0, addrPos));
@@ -229,10 +229,9 @@ lookup(const std::string& address, AddressTab& _tab) {
 
 
 
-namespace ixp {
 /**
- * Function: ixp_dial
- * Function: ixp_announce
+ * Function: dial
+ * Function: announce
  *
  * Params:
  *	address: An address on which to connect or listen,
@@ -241,12 +240,12 @@ namespace ixp {
  *		 (<protocol>!address[!<port>])
  *
  * These functions hide some of the ugliness of Berkely
- * Sockets. ixp_dial connects to the resource at P<address>,
- * while ixp_announce begins listening on P<address>.
+ * Sockets. dial connects to the resource at P<address>,
+ * while announce begins listening on P<address>.
  *
  * Returns:
  *	These functions return file descriptors on success, and -1
- *	on failure. ixp_errbuf(3) may be inspected on failure.
+ *	on failure. errbuf(3) may be inspected on failure.
  * See also:
  *	socket(2)
  */
@@ -259,4 +258,3 @@ announce(const std::string& address) {
     return lookup(address, atab);
 }
 } // end namespace ixp
-
