@@ -481,7 +481,11 @@ namespace ixp {
         Stat*	stat(const char*);
         inline bool  remove(const std::string& str) noexcept { return remove(str.c_str()); }
         inline CFid* create(const std::string& str, uint perm, uint8_t mode) { return create(str.c_str(), perm, mode); }
+        inline CFid* create(const std::string& str, uint perm, OMode mode) { return create(str.c_str(), perm, mode); }
+        inline CFid* create(const char* str, uint perm, OMode mode) { return create(str, perm, uint8_t(mode)); }
         inline CFid* open(const std::string& str, uint8_t val) { return open(str.c_str(), val); }
+        inline CFid* open(const std::string& str, OMode mode) { return open(str, uint8_t(mode)); }
+        inline CFid* open(const char* str, OMode mode) { return open(str, uint8_t(mode)); }
         inline Stat* stat(const std::string& str) { return stat(str.c_str()); }
         void	muxfree();
         void	muxinit();
