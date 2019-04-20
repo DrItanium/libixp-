@@ -14,16 +14,14 @@ constexpr auto SByte = 1;
 constexpr auto SWord = 2;
 constexpr auto SDWord = 4;
 constexpr auto SQWord = 8;
-void
-puint(Msg *msg, uint size, uint32_t *val) {
-	uint8_t *pos;
-	int v;
+} // end namespace
 
-	if(msg->pos + size <= msg->end) {
-		pos = (uint8_t*)msg->pos;
-        switch(msg->mode) {
-            case MsgPack:
-                v = *val;
+void
+Msg::puint(uint size, uint32_t *val) {
+	if ((this->pos + size) <= end) {
+		auto pos = (uint8_t*)this->pos;
+        auto performPack = [pos, size, val]() {
+                int v = *val;
                 switch(size) {
                     case SDWord:
                         pos[3] = v>>24;
@@ -34,24 +32,33 @@ puint(Msg *msg, uint size, uint32_t *val) {
                         pos[0] = v;
                         break;
                 }
-            case MsgUnpack:
-                v = 0;
-                switch(size) {
-                    case SDWord:
-                        v |= pos[3]<<24;
-                        v |= pos[2]<<16;
-                    case SWord:
-                        v |= pos[1]<<8;
-                    case SByte:
-                        v |= pos[0];
-                        break;
-                }
-                *val = v;
+        };
+        auto performUnpack = [pos, size]() {
+            auto v = 0;
+            switch(size) {
+                case SDWord:
+                    v |= pos[3]<<24;
+                    v |= pos[2]<<16;
+                case SWord:
+                    v |= pos[1]<<8;
+                case SByte:
+                    v |= pos[0];
+                    break;
+            }
+            return v;
+        };
+        switch(mode) {
+            case MsgPack: 
+                performPack(); 
+                break;
+            case MsgUnpack: {
+                *val = performUnpack();
+                break;
+            }
         }
 	}
-	msg->pos += size;
+    pos += size;
 }
-} // end namespace
 
 /**
  * Function: pu8
@@ -74,33 +81,33 @@ puint(Msg *msg, uint size, uint32_t *val) {
  *	T<Msg>
  */
 void
-pu8(Msg *msg, uint8_t *val) {
+Msg::pu8(uint8_t *val) {
 	uint32_t v;
 
 	v = *val;
-	puint(msg, SByte, &v);
+	puint(SByte, &v);
 	*val = (uint8_t)v;
 }
 void
-pu16(Msg *msg, uint16_t *val) {
+Msg::pu16(uint16_t *val) {
 	uint32_t v;
 
 	v = *val;
-	puint(msg, SWord, &v);
+	puint(SWord, &v);
 	*val = (uint16_t)v;
 }
 void
-pu32(Msg *msg, uint32_t *val) {
-	puint(msg, SDWord, val);
+Msg::pu32(uint32_t *val) {
+	puint(SDWord, val);
 }
 void
-pu64(Msg *msg, uint64_t *val) {
+Msg::pu64(uint64_t *val) {
 	uint32_t vl, vb;
 
 	vl = (uint)*val;
 	vb = (uint)(*val>>32);
-	puint(msg, SDWord, &vl);
-	puint(msg, SDWord, &vb);
+	puint(SDWord, &vl);
+	puint(SDWord, &vb);
 	*val = vl | ((uint64_t)vb<<32);
 }
 
@@ -125,22 +132,22 @@ pu64(Msg *msg, uint64_t *val) {
  *	T<Msg>, F<pstrings>, F<pdata>
  */
 void
-pstring(Msg *msg, char **s) {
+Msg::pstring(char **s) {
 	uint16_t len;
 
-	if(msg->mode == MsgPack)
+	if(mode == MsgPack)
 		len = strlen(*s);
-	pu16(msg, &len);
+	pu16(&len);
 
-	if(msg->pos + len <= msg->end) {
-		if(msg->mode == MsgUnpack) {
+	if((pos + len) <= end) {
+		if(mode == MsgUnpack) {
 			*s = (char*)ixp::emalloc(len + 1);
-			memcpy(*s, msg->pos, len);
+			memcpy(*s, pos, len);
 			(*s)[len] = '\0';
 		}else
-			memcpy(msg->pos, *s, len);
+			memcpy(pos, *s, len);
 	}
-	msg->pos += len;
+	pos += len;
 }
 
 /**
@@ -168,46 +175,46 @@ pstring(Msg *msg, char **s) {
  *	P<Msg>, P<pstring>, P<pdata>
  */
 void
-pstrings(Msg *msg, uint16_t *num, char *strings[], uint max) {
-	char *s;
-	uint i, size;
-	uint16_t len;
+Msg::pstrings(uint16_t *num, char *strings[], uint max) {
+	char *s = nullptr;
+	uint i = 0, size = 0;
+	uint16_t len = 0;
 
-	pu16(msg, num);
+	pu16(num);
 	if(*num > max) {
-		msg->pos = msg->end+1;
+		pos = end+1;
 		return;
 	}
 
 	SET(s);
-	if(msg->mode == MsgUnpack) {
-		s = msg->pos;
+	if(mode == MsgUnpack) {
+		s = pos;
 		size = 0;
 		for(i=0; i < *num; i++) {
-			pu16(msg, &len);
-			msg->pos += len;
+			pu16(&len);
+			pos += len;
 			size += len;
-			if(msg->pos > msg->end)
+			if(pos > end)
 				return;
 		}
-		msg->pos = s;
+		pos = s;
 		size += *num;
 		s = (char*)ixp::emalloc(size);
 	}
 
 	for(i=0; i < *num; i++) {
-		if(msg->mode == MsgPack)
+		if(mode == MsgPack)
 			len = strlen(strings[i]);
-		pu16(msg, &len);
+		pu16(&len);
 
-		if(msg->mode == MsgUnpack) {
-			memcpy(s, msg->pos, len);
+		if(mode == MsgUnpack) {
+			memcpy(s, pos, len);
 			strings[i] = (char*)s;
 			s += len;
-			msg->pos += len;
+			pos += len;
 			*s++ = '\0';
 		}else
-			pdata(msg, &strings[i], len);
+			pdata(&strings[i], len);
 	}
 }
 
@@ -229,16 +236,16 @@ pstrings(Msg *msg, uint16_t *num, char *strings[], uint max) {
  *	T<Msg>, F<pstring>
  */
 void
-pdata(Msg *msg, char **data, uint len) {
-    if(msg->pos + len <= msg->end) {
-        if(msg->mode == MsgUnpack) {
+Msg::pdata(char **data, uint len) {
+    if(pos + len <= end) {
+        if(mode == MsgUnpack) {
             *data = (char*)ixp::emalloc(len);
-            memcpy(*data, msg->pos, len);
+            memcpy(*data, pos, len);
         } else {
-            memcpy(msg->pos, *data, len);
+            memcpy(pos, *data, len);
         }
     }
-	msg->pos += len;
+	pos += len;
 }
 
 /**
@@ -263,45 +270,53 @@ pdata(Msg *msg, char **data, uint len) {
  *	F<pu64>, F<pstring>, F<pstrings>
  */
 void
-pqid(Msg *msg, Qid *qid) {
-	pu8(msg, &qid->type);
-	pu32(msg, &qid->version);
-	pu64(msg, &qid->path);
+Msg::pqid(Qid *qid) {
+    qid->packUnpack(*this);
 }
 
 void
-pqids(Msg *msg, uint16_t *num, Qid qid[], uint max) {
+Qid::packUnpack(Msg& msg) {
+	msg.pu8(&type);
+	msg.pu32(&version);
+	msg.pu64(&path);
+}
 
-	pu16(msg, num);
+void
+Msg::pqids(uint16_t *num, Qid qid[], uint max) {
+
+	pu16(num);
 	if(*num > max) {
-		msg->pos = msg->end+1;
+        pos = end + 1;
 		return;
 	}
 
 	for(auto i = 0; i < *num; i++) {
-		pqid(msg, &qid[i]);
+        pqid(&qid[i]);
     }
 }
 
 void
-pstat(Msg *msg, Stat *stat) {
-	uint16_t size;
+Msg::pstat(Stat *stat) {
+    stat->packUnpack(*this);
+}
 
-	if(msg->mode == MsgPack) {
-        size = stat->size() - 2;
+void
+Stat::packUnpack(Msg& msg) noexcept {
+    uint16_t totalSize = 0;
+    if (msg.mode == MsgPack) {
+        totalSize = (size() - 2);
     }
-
-	pu16(msg, &size);
-	pu16(msg, &stat->type);
-	pu32(msg, &stat->dev);
-	pqid(msg, &stat->qid);
-	pu32(msg, &stat->mode);
-	pu32(msg, &stat->atime);
-	pu32(msg, &stat->mtime);
-	pu64(msg, &stat->length);
-	pstring(msg, &stat->name);
-	pstring(msg, &stat->uid);
-	pstring(msg, &stat->gid);
-	pstring(msg, &stat->muid);
+    msg.pu16(&totalSize);
+	msg.pu16(&type);
+	msg.pu32(&dev);
+	msg.pqid(&qid);
+	msg.pu32(&mode);
+	msg.pu32(&atime);
+	msg.pu32(&mtime);
+	msg.pu64(&length);
+	msg.pstring(&name);
+	msg.pstring(&uid);
+	msg.pstring(&gid);
+	msg.pstring(&muid);
 }
 } // end namespace ixp

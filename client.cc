@@ -160,10 +160,10 @@ _stat(Client *c, ulong fid) {
 	if(!dofcall(c, &fcall))
 		return nullptr;
 
-	msg = message((char*)fcall.rstat.stat, fcall.rstat.nstat, MsgUnpack);
+	msg = Msg::message((char*)fcall.rstat.stat, fcall.rstat.nstat, MsgUnpack);
 
 	stat = (Stat*)emalloc(sizeof *stat);
-	pstat(&msg, stat);
+    msg.pstat(stat);
 	freefcall(&fcall);
 	if(msg.pos > msg.end) {
 		free(stat);

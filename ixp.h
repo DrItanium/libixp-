@@ -241,6 +241,7 @@ namespace ixp {
     struct Mutex;
     struct RWLock;
     struct Rendez;
+    union Fcall;
 
     /* Threading */
     enum {
@@ -276,6 +277,28 @@ namespace ixp {
         char*	end;  /* End of message. */ 
         uint	size; /* Size of buffer. */
         uint	mode; /* MsgPack or MsgUnpack. */
+        void pu8(uint8_t*);
+        void pu16(uint16_t*);
+        void pu32(uint32_t*);
+        void pu64(uint64_t*);
+        void pdata(char**, uint);
+        void pstring(char**);
+        void pstrings(uint16_t*, char**, uint);
+        void pqid(Qid*);
+        void pqids(uint16_t*, Qid*, uint);
+        void pstat(Stat*);
+        void pfcall(Fcall*);
+        static Msg	message(char*, uint len, uint mode);
+        template<typename T>
+        void pu(T value) noexcept {
+            value.packUnpack(*this);
+        }
+        template<typename T>
+        void pu(T* value) noexcept {
+            value->packUnpack(*this);
+        }
+        private:
+           void puint(uint, uint32_t*);
     };
 
     struct Qid {
@@ -284,6 +307,7 @@ namespace ixp {
         uint64_t	path;
         /* Private members */
         uint8_t		dir_type;
+        void packUnpack(Msg& msg);
     };
 
     /* stat structure */
@@ -302,6 +326,7 @@ namespace ixp {
         uint16_t    size() noexcept;
         static void	freestat(Stat*);
         static void free(Stat* stat) { freestat(stat); }
+        void packUnpack(Msg& msg) noexcept;
         //~Stat();
     };
 
@@ -728,17 +753,8 @@ namespace ixp {
 
 
     /* convert.c */
-    void pu8(Msg*, uint8_t*);
-    void pu16(Msg*, uint16_t*);
-    void pu32(Msg*, uint32_t*);
-    void pu64(Msg*, uint64_t*);
-    void pdata(Msg*, char**, uint);
-    void pstring(Msg*, char**);
-    void pstrings(Msg*, uint16_t*, char**, uint);
-    void pqid(Msg*, Qid*);
-    void pqids(Msg*, uint16_t*, Qid*, uint);
-    void pstat(Msg*, Stat*);
-    void pfcall(Msg*, Fcall*);
+    uint	msg2fcall(Msg*, Fcall*);
+    uint	fcall2msg(Msg*, Fcall*);
 
     /* error.h */
     char*	errbuf(void);
@@ -752,10 +768,7 @@ namespace ixp {
     void serve9conn(Conn*);
 
     /* message.c */
-    Msg	message(char*, uint len, uint mode);
     void	freefcall(Fcall*);
-    uint	msg2fcall(Msg*, Fcall*);
-    uint	fcall2msg(Msg*, Fcall*);
 
     /* server.c */
     Conn* listen(Server*, int, const std::any&,
