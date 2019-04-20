@@ -270,7 +270,7 @@ xls(int argc, char *argv[]) {
 	stat = (decltype(stat))ixp::emalloc(sizeof(*stat) * mstat);
 	buf = (decltype(buf))ixp::emalloc(fid->iounit);
 	while((count = fid->read(buf, fid->iounit)) > 0) {
-        m = ixp::Msg::message(buf, count, ixp::MsgUnpack);
+        m = ixp::Msg::message(buf, count, ixp::Msg::Unpack);
 		while(m.pos < m.end) {
 			if(nstat == mstat) {
 				mstat <<= 1;

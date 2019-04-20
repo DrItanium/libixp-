@@ -159,7 +159,7 @@ _stat(Client *c, ulong fid) {
 	if(!dofcall(c, &fcall))
 		return nullptr;
 
-	msg = Msg::message((char*)fcall.rstat.stat, fcall.rstat.nstat, MsgUnpack);
+	msg = Msg::message((char*)fcall.rstat.stat, fcall.rstat.nstat, Msg::Unpack);
 
 	stat = (Stat*)emalloc(sizeof *stat);
     msg.pstat(stat);

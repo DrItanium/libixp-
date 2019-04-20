@@ -43,7 +43,7 @@ constexpr auto SQid = SByte + SDWord + SQWord;
  *	F<pstring>, F<pstrings>
  */
 Msg
-Msg::message(char *data, uint length, uint mode) {
+Msg::message(char *data, uint length, Mode mode) {
 	Msg m;
 
 	m.data = data;
@@ -228,7 +228,7 @@ fcall2msg(Msg *msg, Fcall *fcall) {
 
 	msg->end = msg->data + msg->size;
 	msg->pos = msg->data + SDWord;
-	msg->mode = MsgPack;
+	msg->mode = Msg::Pack;
     msg->pfcall(fcall);
 
 	if(msg->pos > msg->end)
@@ -247,7 +247,7 @@ fcall2msg(Msg *msg, Fcall *fcall) {
 uint
 msg2fcall(Msg *msg, Fcall *fcall) {
 	msg->pos = msg->data + SDWord;
-	msg->mode = MsgUnpack;
+	msg->mode = Msg::Unpack;
     msg->pfcall(fcall);
 
 	if(msg->pos > msg->end)

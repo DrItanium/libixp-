@@ -48,10 +48,10 @@ Msg::puint(uint size, uint32_t *val) {
             return v;
         };
         switch(mode) {
-            case MsgPack: 
+            case Msg::Pack: 
                 performPack(); 
                 break;
-            case MsgUnpack: {
+            case Msg::Unpack: {
                 *val = performUnpack();
                 break;
             }
@@ -69,9 +69,9 @@ Msg::puint(uint size, uint32_t *val) {
  * These functions pack or unpack an unsigned integer of the
  * specified size.
  *
- * If P<msg>->mode is MsgPack, the value pointed to by P<val> is
+ * If P<msg>->mode is Msg::Pack, the value pointed to by P<val> is
  * packed into the buffer at P<msg>->pos. If P<msg>->mode is
- * MsgUnpack, the packed value at P<msg>->pos is loaded into the
+ * Msg::Unpack, the packed value at P<msg>->pos is loaded into the
  * location pointed to by P<val>. In both cases, P<msg>->pos is
  * advanced by the number of bytes read or written. If the call
  * would advance P<msg>->pos beyond P<msg>->end, P<msg>->pos is
@@ -119,9 +119,9 @@ Msg::pu64(uint64_t *val) {
  * integer followed by the contents of the string. The unpacked
  * representation is a nul-terminated character array.
  *
- * If P<msg>->mode is MsgPack, the string pointed to by P<s> is
+ * If P<msg>->mode is Msg::Pack, the string pointed to by P<s> is
  * packed into the buffer at P<msg>->pos. If P<msg>->mode is
- * MsgUnpack, the address pointed to by P<s> is loaded with a
+ * Msg::Unpack, the address pointed to by P<s> is loaded with a
  * malloc(3) allocated, nul-terminated representation of the
  * string packed at P<msg>->pos. In either case, P<msg>->pos is
  * advanced by the number of bytes read or written. If the
@@ -135,12 +135,12 @@ void
 Msg::pstring(char **s) {
 	uint16_t len;
 
-	if(mode == MsgPack)
+	if(mode == Msg::Pack)
 		len = strlen(*s);
 	pu16(&len);
 
 	if((pos + len) <= end) {
-		if(mode == MsgUnpack) {
+		if(mode == Msg::Unpack) {
 			*s = (char*)ixp::emalloc(len + 1);
 			memcpy(*s, pos, len);
 			(*s)[len] = '\0';
@@ -158,9 +158,9 @@ Msg::pstring(char **s) {
  * an array of strings as packed by F<pstring>. The unpacked
  * representation is an array of nul-terminated character arrays.
  *
- * If P<msg>->mode is MsgPack, P<*num> strings in the array
+ * If P<msg>->mode is Msg::Pack, P<*num> strings in the array
  * pointed to by P<strings> are packed into the buffer at
- * P<msg>->pos. If P<msg>->mode is MsgUnpack, P<*num> is loaded
+ * P<msg>->pos. If P<msg>->mode is Msg::Unpack, P<*num> is loaded
  * with the number of strings unpacked, the array at
  * P<*strings> is loaded with pointers to the unpacked strings,
  * and P<(*strings)[0]> must be freed by the user. In either
@@ -187,7 +187,7 @@ Msg::pstrings(uint16_t *num, char *strings[], uint max) {
 	}
 
 	SET(s);
-	if(mode == MsgUnpack) {
+	if(mode == Msg::Unpack) {
 		s = pos;
 		size = 0;
 		for(i=0; i < *num; i++) {
@@ -203,11 +203,11 @@ Msg::pstrings(uint16_t *num, char *strings[], uint max) {
 	}
 
 	for(i=0; i < *num; i++) {
-		if(mode == MsgPack)
+		if(mode == Msg::Pack)
 			len = strlen(strings[i]);
 		pu16(&len);
 
-		if(mode == MsgUnpack) {
+		if(mode == Msg::Unpack) {
 			memcpy(s, pos, len);
 			strings[i] = (char*)s;
 			s += len;
@@ -223,9 +223,9 @@ Msg::pstrings(uint16_t *num, char *strings[], uint max) {
  *
  * Packs or unpacks a raw character buffer of size P<len>.
  *
- * If P<msg>->mode is MsgPack, buffer pointed to by P<data> is
+ * If P<msg>->mode is Msg::Pack, buffer pointed to by P<data> is
  * packed into the buffer at P<msg>->pos. If P<msg>->mode is
- * MsgUnpack, the address pointed to by P<s> is loaded with a
+ * Msg::Unpack, the address pointed to by P<s> is loaded with a
  * malloc(3) allocated buffer with the contents of the buffer at
  * P<msg>->pos.  In either case, P<msg>->pos is advanced by the
  * number of bytes read or written. If the action would advance
@@ -238,7 +238,7 @@ Msg::pstrings(uint16_t *num, char *strings[], uint max) {
 void
 Msg::pdata(char **data, uint len) {
     if(pos + len <= end) {
-        if(mode == MsgUnpack) {
+        if(mode == Msg::Unpack) {
             *data = (char*)ixp::emalloc(len);
             memcpy(*data, pos, len);
         } else {
@@ -303,7 +303,7 @@ Msg::pstat(Stat *stat) {
 void
 Stat::packUnpack(Msg& msg) noexcept {
     uint16_t totalSize = 0;
-    if (msg.mode == MsgPack) {
+    if (msg.mode == Msg::Pack) {
         totalSize = (size() - 2);
     }
     msg.pu16(&totalSize);

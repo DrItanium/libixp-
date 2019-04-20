@@ -250,16 +250,16 @@ namespace ixp {
         std::any aux;
     };
 
-    enum MsgMode {
-        MsgPack,
-        MsgUnpack,
-    };
     struct Msg {
+        enum Mode {
+            Pack,
+            Unpack,
+        };
         char*	data; /* Begining of buffer. */
         char*	pos;  /* Current position in buffer. */
         char*	end;  /* End of message. */ 
         uint	size; /* Size of buffer. */
-        uint	mode; /* MsgPack or MsgUnpack. */
+        Mode mode; /* MsgPack or MsgUnpack. */
         void pu8(uint8_t*);
         void pu16(uint16_t*);
         void pu32(uint32_t*);
@@ -271,7 +271,7 @@ namespace ixp {
         void pqid(Qid*);
         void pstat(Stat*);
         void pfcall(Fcall*);
-        static Msg message(char*, uint len, uint mode);
+        static Msg message(char*, uint len, Mode mode);
         void packUnpack(uint8_t* v) { pu8(v); }
         void packUnpack(uint16_t* v) { pu16(v); }
         void packUnpack(uint32_t* v) { pu32(v); }
