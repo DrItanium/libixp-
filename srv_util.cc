@@ -11,15 +11,18 @@
 #include <unistd.h>
 #include "ixp_local.h"
 
-typedef void*	IxpFileIdU;
+namespace ixp {
+using FileIdU = void*;
 
 static char
 	Enofile[] = "file not found";
+} // end namespace ixp
 
 #include "ixp_srvutil.h"
 
-struct IxpQueue {
-	IxpQueue*	link;
+namespace ixp {
+struct Queue {
+	Queue*	link;
 	char*		dat;
 	long		len;
 };
@@ -28,20 +31,20 @@ constexpr auto QID(int64_t t, int64_t i) noexcept {
     return int64_t((t & 0xFF)<<32) | int64_t(i & 0xFFFF'FFFF);
 }
 
-static IxpFileId*	free_fileid;
+static FileId*	free_fileid;
 
 /**
- * Function: ixp_srv_getfile
- * Type: IxpFileId
+ * Function: srv_getfile
+ * Type: FileId
  *
- * Obtain an empty, reference counted IxpFileId struct.
+ * Obtain an empty, reference counted FileId struct.
  *
  * See also:
- *	F<ixp_srv_clonefiles>, F<ixp_srv_freefile>
+ *	F<srv_clonefiles>, F<srv_freefile>
  */
-IxpFileId*
-ixp_srv_getfile(void) {
-	IxpFileId *file;
+FileId*
+srv_getfile(void) {
+	FileId *file;
 	int i;
 
 	if(!free_fileid) {
@@ -63,16 +66,16 @@ ixp_srv_getfile(void) {
 }
 
 /**
- * Function: ixp_srv_freefile
+ * Function: srv_freefile
  *
- * Decrease the reference count of the given IxpFileId,
+ * Decrease the reference count of the given FileId,
  * and push it onto the free list when it reaches 0;
  *
  * See also:
- *	F<ixp_srv_getfile>
+ *	F<srv_getfile>
  */
 void
-ixp_srv_freefile(IxpFileId *fileid) {
+srv_freefile(FileId *fileid) {
 	if(--fileid->nref)
 		return;
 	free(fileid->tab.name);
@@ -81,19 +84,19 @@ ixp_srv_freefile(IxpFileId *fileid) {
 }
 
 /**
- * Function: ixp_srv_clonefiles
+ * Function: srv_clonefiles
  *
- * Increase the reference count of every IxpFileId linked
+ * Increase the reference count of every FileId linked
  * to P<fileid>.
  *
  * See also:
- *	F<ixp_srv_getfile>
+ *	F<srv_getfile>
  */
-IxpFileId*
-ixp_srv_clonefiles(IxpFileId *fileid) {
-	IxpFileId *r;
+FileId*
+srv_clonefiles(FileId *fileid) {
+	FileId *r;
 
-	r = ixp_srv_getfile();
+	r = srv_getfile();
 	memcpy(r, fileid, sizeof *r);
 	r->tab.name = ixp::estrdup(r->tab.name);
 	r->nref = 1;
@@ -103,29 +106,29 @@ ixp_srv_clonefiles(IxpFileId *fileid) {
 }
 
 /**
- * Function: ixp_srv_readbuf
- * Function: ixp_srv_writebuf
+ * Function: srv_readbuf
+ * Function: srv_writebuf
  *
  * Utility functions for handling TRead and TWrite requests for
  * files backed by in-memory buffers. For both functions, P<buf>
  * points to a buffer and P<len> specifies the length of the
- * buffer. In the case of ixp_srv_writebuf, these values add a
+ * buffer. In the case of srv_writebuf, these values add a
  * level of pointer indirection, and updates the values if they
  * change.
  *
- * If P<max> has a value other than 0, ixp_srv_writebuf will
+ * If P<max> has a value other than 0, srv_writebuf will
  * truncate any writes to that point in the buffer. Otherwise,
  * P<*buf> is assumed to be malloc(3) allocated, and is
  * reallocated to fit the new data as necessary. The buffer is
  * is always left nul-terminated.
  *
  * Bugs:
- *	ixp_srv_writebuf always truncates its buffer to the end
+ *	srv_writebuf always truncates its buffer to the end
  *	of the most recent write.
  */
 
 void
-ixp_srv_readbuf(Ixp9Req *req, char *buf, uint len) {
+srv_readbuf(Req9 *req, char *buf, uint len) {
 
 	if(req->ifcall.io.offset >= len)
 		return;
@@ -139,8 +142,8 @@ ixp_srv_readbuf(Ixp9Req *req, char *buf, uint len) {
 }
 
 void
-ixp_srv_writebuf(Ixp9Req *req, char **buf, uint *len, uint max) {
-	IxpFileId *file;
+srv_writebuf(Req9 *req, char **buf, uint *len, uint max) {
+	FileId *file;
 	char *p;
 	uint offset, count;
 
@@ -170,16 +173,16 @@ ixp_srv_writebuf(Ixp9Req *req, char **buf, uint *len, uint max) {
 }
 
 /**
- * Function: ixp_srv_data2cstring
+ * Function: srv_data2cstring
  *
  * Ensure that the data member of P<req> is null terminated,
  * removing any new line from its end.
  *
  * See also:
- *	S<Ixp9Req>
+ *	S<Req9>
  */
 void
-ixp_srv_data2cstring(Ixp9Req *req) {
+srv_data2cstring(Req9 *req) {
 	char *p, *q;
 	uint i;
 
@@ -197,26 +200,26 @@ ixp_srv_data2cstring(Ixp9Req *req) {
 }
 
 /**
- * Function: ixp_srv_writectl
+ * Function: srv_writectl
  *
  * This utility function is meant to simplify the writing of
  * pseudo files to which single-lined commands are written.
  * In order to use this function, the P<aux> member of
- * P<req>->fid must be nul or an S<IxpFileId>.  Each line of the
+ * P<req>->fid must be nul or an S<FileId>.  Each line of the
  * written data is stripped of its trailing newline,
- * nul-terminated, and stored in an S<IxpMsg>. For each line
- * thus prepared, P<fn> is called with the IxpMsg pointer and
- * the the P<p> member of the IxpFileId.
+ * nul-terminated, and stored in an S<Msg>. For each line
+ * thus prepared, P<fn> is called with the Msg pointer and
+ * the the P<p> member of the FileId.
  */
 char*
-ixp_srv_writectl(Ixp9Req *req, char* (*fn)(void*, IxpMsg*)) {
+srv_writectl(Req9 *req, char* (*fn)(void*, Msg*)) {
 	char *err, *s, *p, c;
-	IxpFileId *file;
-	IxpMsg msg;
+	FileId *file;
+	Msg msg;
 
 	file = std::any_cast<decltype(file)>(req->fid->aux);
 
-	ixp_srv_data2cstring(req);
+	srv_data2cstring(req);
 	s = req->ifcall.io.data;
 
 	err = nullptr;
@@ -230,7 +233,7 @@ ixp_srv_writectl(Ixp9Req *req, char* (*fn)(void*, IxpMsg*)) {
 		c = *p;
 		*p = '\0';
 
-		msg = ixp_message(s, p-s, 0);
+		msg = message(s, p-s, 0);
 		s = fn(file->p, &msg);
 		if(s)
 			err = s;
@@ -240,52 +243,52 @@ ixp_srv_writectl(Ixp9Req *req, char* (*fn)(void*, IxpMsg*)) {
 }
 
 /**
- * Function: ixp_pending_write
- * Function: ixp_pending_print
- * Function: ixp_pending_vprint
- * Function: ixp_pending_pushfid
- * Function: ixp_pending_clunk
- * Function: ixp_pending_flush
- * Function: ixp_pending_respond
- * Type: IxpPending
+ * Function: pending_write
+ * Function: pending_print
+ * Function: pending_vprint
+ * Function: pending_pushfid
+ * Function: pending_clunk
+ * Function: pending_flush
+ * Function: pending_respond
+ * Type: Pending
  *
  * These functions aid in writing virtual files used for
  * broadcasting events or writing data when it becomes
  * available. When a file to be used with these functions is
- * opened, ixp_pending_pushfid should be called with its
- * S<IxpFid> as an argument. This sets the IxpFid's P<pending>
+ * opened, pending_pushfid should be called with its
+ * S<Fid> as an argument. This sets the Fid's P<pending>
  * member to true.  Thereafter, for each file with its
- * P<pending> member set, ixp_pending_respond should be called
- * for each TRead request, ixp_pending_clunk for each TClunk
- * request, and ixp_pending_flush for each TFlush request.
+ * P<pending> member set, pending_respond should be called
+ * for each TRead request, pending_clunk for each TClunk
+ * request, and pending_flush for each TFlush request.
  *
- * ixp_pending_write queues the data in P<dat> of length P<ndat>
+ * pending_write queues the data in P<dat> of length P<ndat>
  * to be written to each currently pending fid in P<pending>. If
  * there is a read request pending for a given fid, the data is
  * written immediately. Otherwise, it is written the next time
- * ixp_pending_respond is called. Likewise, if there is data
- * queued when ixp_pending_respond is called, it is written
+ * pending_respond is called. Likewise, if there is data
+ * queued when pending_respond is called, it is written
  * immediately, otherwise the request is queued.
  *
- * ixp_pending_print and ixp_pending_vprint call ixp_pending_write
- * after formatting their arguments with V<ixp_vsmprint>.
+ * pending_print and pending_vprint call pending_write
+ * after formatting their arguments with V<vsmprint>.
  *
- * The IxpPending data structure is opaque and should be
+ * The Pending data structure is opaque and should be
  * initialized zeroed before using these functions for the first
  * time.
  *
  * Returns:
- *	ixp_pending_clunk returns true if P<pending> has any
- *	more pending IxpFids.
+ *	pending_clunk returns true if P<pending> has any
+ *	more pending Fids.
  */
 
 void
-ixp_pending_respond(Ixp9Req *req) {
-	IxpPendingLink *p;
-	IxpRequestLink *req_link;
-	IxpQueue *queue;
+pending_respond(Req9 *req) {
+	PendingLink *p;
+	RequestLink *req_link;
+	Queue *queue;
 
-	auto file = std::any_cast<IxpFileId*>(req->fid->aux);
+	auto file = std::any_cast<FileId*>(req->fid->aux);
 	assert(file->pending);
 	p = (decltype(p))file->p;
 	if(p->queue) {
@@ -299,7 +302,7 @@ ixp_pending_respond(Ixp9Req *req) {
 			req_link->prev->next = req_link->next;
 			free(req_link);
 		}
-		ixp_respond(req, nullptr);
+		respond(req, nullptr);
 		free(queue);
 	}else {
 		req_link = (decltype(req_link))ixp::emallocz(sizeof *req_link);
@@ -313,11 +316,11 @@ ixp_pending_respond(Ixp9Req *req) {
 }
 
 void
-ixp_pending_write(IxpPending *pending, const char *dat, long ndat) {
-	IxpRequestLink req_link;
-	IxpQueue **qp, *queue;
-	IxpPendingLink *pp;
-	IxpRequestLink *rp;
+pending_write(Pending *pending, const char *dat, long ndat) {
+	RequestLink req_link;
+	Queue **qp, *queue;
+	PendingLink *pp;
+	RequestLink *rp;
 
 	if(ndat == 0)
 		return;
@@ -351,35 +354,35 @@ ixp_pending_write(IxpPending *pending, const char *dat, long ndat) {
 	req_link.next->prev = &req_link;
 
 	while((rp = req_link.next) != &req_link)
-		ixp_pending_respond(rp->req);
+		pending_respond(rp->req);
 }
 
 int
-ixp_pending_vprint(IxpPending *pending, const char *fmt, va_list ap) {
+pending_vprint(Pending *pending, const char *fmt, va_list ap) {
 	char *dat;
 	int res;
 
-	dat = ixp_vsmprint(fmt, ap);
+	dat = vsmprint(fmt, ap);
 	res = strlen(dat);
-	ixp_pending_write(pending, dat, res);
+	pending_write(pending, dat, res);
 	free(dat);
 	return res;
 }
 
 int
-ixp_pending_print(IxpPending *pending, const char *fmt, ...) {
+pending_print(Pending *pending, const char *fmt, ...) {
 	va_list ap;
 	int res;
 
 	va_start(ap, fmt);
-	res = ixp_pending_vprint(pending, fmt, ap);
+	res = pending_vprint(pending, fmt, ap);
 	va_end(ap);
 	return res;
 }
 
 void
-ixp_pending_pushfid(IxpPending *pending, IxpFid *fid) {
-	IxpPendingLink *pend_link;
+pending_pushfid(Pending *pending, Fid *fid) {
+	PendingLink *pend_link;
 
     if (!pending->req.next) {
 		pending->req.next = &pending->req;
@@ -388,7 +391,7 @@ ixp_pending_pushfid(IxpPending *pending, IxpFid *fid) {
 		pending->fids.next = &pending->fids;
 	}
 
-	auto file = std::any_cast<IxpFileId*>(fid->aux);
+	auto file = std::any_cast<FileId*>(fid->aux);
 	pend_link = (decltype(pend_link))ixp::emallocz(sizeof *pend_link);
 	pend_link->fid = fid;
 	pend_link->pending = pending;
@@ -401,10 +404,10 @@ ixp_pending_pushfid(IxpPending *pending, IxpFid *fid) {
 }
 
 static void
-pending_flush(Ixp9Req *req) {
-	IxpRequestLink *req_link;
+_pending_flush(Req9 *req) {
+	RequestLink *req_link;
 
-	auto file = std::any_cast<IxpFileId*>(req->fid->aux);
+	auto file = std::any_cast<FileId*>(req->fid->aux);
 	if(file->pending) {
 		req_link = std::any_cast<decltype(req_link)>(req->aux);
 		if(req_link) {
@@ -416,21 +419,21 @@ pending_flush(Ixp9Req *req) {
 }
 
 void
-ixp_pending_flush(Ixp9Req *req) {
+pending_flush(Req9 *req) {
 
-	pending_flush(req->oldreq);
+	_pending_flush(req->oldreq);
 }
 
 bool
-ixp_pending_clunk(Ixp9Req *req) {
-	IxpPending *pending;
-	IxpPendingLink *pend_link;
-	IxpRequestLink *req_link;
-	Ixp9Req *r;
-	IxpQueue *queue;
+pending_clunk(Req9 *req) {
+	Pending *pending;
+	PendingLink *pend_link;
+	RequestLink *req_link;
+	Req9 *r;
+	Queue *queue;
 	bool more;
 
-	auto file = std::any_cast<IxpFileId*>(req->fid->aux);
+	auto file = std::any_cast<FileId*>(req->fid->aux);
 	pend_link = (decltype(pend_link))file->p;
 
 	pending = pend_link->pending;
@@ -438,8 +441,8 @@ ixp_pending_clunk(Ixp9Req *req) {
 		r = req_link->req;
 		req_link = req_link->next;
 		if(r->fid == pend_link->fid) {
-			pending_flush(r);
-			ixp_respond(r, "interrupted");
+			_pending_flush(r);
+			respond(r, "interrupted");
 		}
 	}
 
@@ -453,81 +456,81 @@ ixp_pending_clunk(Ixp9Req *req) {
 	}
 	more = (pend_link->pending->fids.next == &pend_link->pending->fids);
 	free(pend_link);
-	ixp_respond(req, nullptr);
+	respond(req, nullptr);
 	return more;
 }
 
 /**
- * Function: ixp_srv_walkandclone
- * Function: ixp_srv_readdir
- * Function: ixp_srv_verifyfile
- * Type: IxpLookupFn
+ * Function: srv_walkandclone
+ * Function: srv_readdir
+ * Function: srv_verifyfile
+ * Type: LookupFn
  *
  * These convenience functions simplify the writing of basic and
  * static file servers. They use a generic file lookup function
  * to simplify the process of walking, cloning, and returning
- * directory listings. Given the S<IxpFileId> of a directory and a
- * filename name should return a new IxpFileId (allocated via
- * F<ixp_srv_getfile>) for the matching directory entry, or null
+ * directory listings. Given the S<FileId> of a directory and a
+ * filename name should return a new FileId (allocated via
+ * F<srv_getfile>) for the matching directory entry, or null
  * if there is no match. If the passed name is null, P<lookup>
- * should return a linked list of IxpFileIds, one for each child
+ * should return a linked list of FileIds, one for each child
  * directory entry.
  *
- * ixp_srv_walkandclone handles the moderately complex process
+ * srv_walkandclone handles the moderately complex process
  * of walking from a directory entry and cloning fids, and calls
- * F<ixp_respond>. It should be called in response to a TWalk
+ * F<respond>. It should be called in response to a TWalk
  * request.
  *
- * ixp_srv_readdir should be called to handle read requests on
+ * srv_readdir should be called to handle read requests on
  * directories. It prepares a stat for each child of the
  * directory, taking into account the requested offset, and
- * calls F<ixp_respond>. The P<dostat> parameter must be a
- * function which fills the passed S<IxpStat> pointer based on
- * the contents of the passed IxpFileId.
+ * calls F<respond>. The P<dostat> parameter must be a
+ * function which fills the passed S<Stat> pointer based on
+ * the contents of the passed FileId.
  *
- * ixp_srv_verifyfile returns whether a file still exists in the
+ * srv_verifyfile returns whether a file still exists in the
  * filesystem, and should be used by filesystems that invalidate
  * files once they have been deleted.
  *
  * See also:
- *	S<IxpFileId>, S<ixp_getfile>, S<ixp_freefile>
+ *	S<FileId>, S<getfile>, S<freefile>
  */
 bool
-ixp_srv_verifyfile(IxpFileId *file, IxpLookupFn lookup) {
-	IxpFileId *tfile;
+srv_verifyfile(FileId *file, LookupFn lookup) {
+	FileId *tfile;
 	int ret;
 
 	if(!file->next)
 		return true;
 
 	ret = false;
-	if(ixp_srv_verifyfile(file->next, lookup)) {
+	if(srv_verifyfile(file->next, lookup)) {
 		tfile = lookup(file->next, file->tab.name);
 		if(tfile) {
 			if(!tfile->volatil || tfile->p == file->p)
 				ret = true;
-			ixp_srv_freefile(tfile);
+			srv_freefile(tfile);
 		}
 	}
 	return ret;
 }
 
 void
-ixp_srv_readdir(Ixp9Req *req, IxpLookupFn lookup, void (*dostat)(IxpStat*, IxpFileId*)) {
-	IxpMsg msg;
-	IxpFileId *tfile;
-	IxpStat stat;
+srv_readdir(Req9 *req, LookupFn lookup, void (*dostat)(Stat*, FileId*)) {
+	Msg msg;
+	FileId *tfile;
+	Stat stat;
 	char *buf;
 	ulong size, n;
 	uint64_t offset;
 
-	auto file = std::any_cast<IxpFileId*>(req->fid->aux);
+	auto file = std::any_cast<FileId*>(req->fid->aux);
 
 	size = req->ifcall.io.count;
 	if(size > req->fid->iounit)
 		size = req->fid->iounit;
 	buf = (decltype(buf))ixp::emallocz(size);
-	msg = ixp_message(buf, size, MsgPack);
+	msg = message(buf, size, MsgPack);
 
 	file = lookup(file, nullptr);
 	tfile = file;
@@ -535,36 +538,36 @@ ixp_srv_readdir(Ixp9Req *req, IxpLookupFn lookup, void (*dostat)(IxpStat*, IxpFi
 	offset = 0;
 	for(file=file->next; file; file=file->next) {
 		dostat(&stat, file);
-		n = ixp_sizeof_stat(&stat);
+		n = sizeof_stat(&stat);
 		if(offset >= req->ifcall.io.offset) {
 			if(size < n)
 				break;
-			ixp_pstat(&msg, &stat);
+			pstat(&msg, &stat);
 			size -= n;
 		}
 		offset += n;
 	}
 	while((file = tfile)) {
 		tfile=tfile->next;
-		ixp_srv_freefile(file);
+		srv_freefile(file);
 	}
 	req->ofcall.io.count = msg.pos - msg.data;
 	req->ofcall.io.data = msg.data;
-	ixp_respond(req, nullptr);
+	respond(req, nullptr);
 }
 
 void
-ixp_srv_walkandclone(Ixp9Req *req, IxpLookupFn lookup) {
-	IxpFileId *tfile;
+srv_walkandclone(Req9 *req, LookupFn lookup) {
+	FileId *tfile;
 	int i;
 
-	auto file = (IxpFileId*)ixp_srv_clonefiles(std::any_cast<IxpFileId*>(req->fid->aux));
+	auto file = (FileId*)srv_clonefiles(std::any_cast<FileId*>(req->fid->aux));
 	for(i=0; i < req->ifcall.twalk.nwname; i++) {
 		if(!strcmp(req->ifcall.twalk.wname[i], "..")) {
 			if(file->next) {
 				tfile = file;
 				file = file->next;
-				ixp_srv_freefile(tfile);
+				srv_freefile(tfile);
 			}
 		}else{
 			tfile = lookup(file, req->ifcall.twalk.wname[i]);
@@ -583,9 +586,9 @@ ixp_srv_walkandclone(Ixp9Req *req, IxpLookupFn lookup) {
 	if(i < req->ifcall.twalk.nwname) {
 		while((tfile = file)) {
 			file=file->next;
-			ixp_srv_freefile(tfile);
+			srv_freefile(tfile);
 		}
-		ixp_respond(req, Enofile);
+		respond(req, Enofile);
 		return;
 	}
 	/* Remove refs for req->fid if no new fid */
@@ -594,11 +597,12 @@ ixp_srv_walkandclone(Ixp9Req *req, IxpLookupFn lookup) {
 		req->fid->aux = file;
 		while((file = tfile)) {
 			tfile = tfile->next;
-			ixp_srv_freefile(file);
+			srv_freefile(file);
 		}
 	}else
 		req->newfid->aux = file;
 	req->ofcall.rwalk.nwqid = i;
-	ixp_respond(req, nullptr);
+	respond(req, nullptr);
 }
 
+} // end namespace ixp
