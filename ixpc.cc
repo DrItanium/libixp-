@@ -109,7 +109,7 @@ xappend(int argc, char *argv[]) {
 	
 	auto stat = client->stat(file);
 	fid->offset = stat->length;
-	ixp::freestat(stat);
+    ixp::Stat::free(stat);
 	free(stat);
 	write_data(fid, file);
 	return 0;
@@ -255,10 +255,10 @@ xls(int argc, char *argv[]) {
 
 	if(dflag || (stat->mode&P9_DMDIR) == 0) {
 		print_stat(stat, lflag);
-		ixp::freestat(stat);
+        ixp::Stat::free(stat);
 		return 0;
 	}
-	ixp::freestat(stat);
+    ixp::Stat::free(stat);
 
     fid = client->open(file, ixp::P9_OREAD);
 	if(!fid) {
@@ -283,7 +283,7 @@ xls(int argc, char *argv[]) {
 	qsort(stat, nstat, sizeof(*stat), comp_stat);
 	for(i = 0; i < nstat; i++) {
 		print_stat(&stat[i], lflag);
-		ixp::freestat(&stat[i]);
+        ixp::Stat::free(&stat[i]);
 	}
 	free(stat);
 

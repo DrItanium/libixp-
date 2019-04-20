@@ -299,6 +299,10 @@ namespace ixp {
         char*	uid;
         char*	gid;
         char*	muid;
+        uint16_t    getSize() noexcept;
+        static void	freestat(Stat*);
+        static void free(Stat* stat) { freestat(stat); }
+        //~Stat();
     };
 
     struct FHdr;
@@ -748,9 +752,7 @@ namespace ixp {
     void serve9conn(Conn*);
 
     /* message.c */
-    uint16_t	sizeof_stat(Stat*);
     Msg	message(char*, uint len, uint mode);
-    void	freestat(Stat*);
     void	freefcall(Fcall*);
     uint	msg2fcall(Msg*, Fcall*);
     uint	fcall2msg(Msg*, Fcall*);

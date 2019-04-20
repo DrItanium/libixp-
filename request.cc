@@ -435,7 +435,7 @@ respond(Req9 *req, const char *error) {
 			respond(req->oldreq, Eintr);
 		break;
 	case TWStat:
-		freestat(&req->ifcall.twstat.stat);
+		Stat::free(&req->ifcall.twstat.stat);
 		break;
 	case TRead:
 	case TStat:

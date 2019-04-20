@@ -287,6 +287,7 @@ Client::unmount(Client *client) {
 	}
 	free(client->rmsg.data);
 	free(client->wmsg.data);
+    free(client);
 }
 
 

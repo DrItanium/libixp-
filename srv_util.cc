@@ -538,7 +538,7 @@ srv_readdir(Req9 *req, LookupFn lookup, void (*dostat)(Stat*, FileId*)) {
 	offset = 0;
 	for(file=file->next; file; file=file->next) {
 		dostat(&stat, file);
-		n = sizeof_stat(&stat);
+        n = stat.getSize();
 		if(offset >= req->ifcall.io.offset) {
 			if(size < n)
 				break;

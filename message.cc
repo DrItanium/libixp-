@@ -66,11 +66,11 @@ message(char *data, uint length, uint mode) {
  *	S<Fcall>, S<Stat>
  */
 void
-freestat(Stat *s) {
-	free(s->name);
-	free(s->uid);
-	free(s->gid);
-	free(s->muid);
+Stat::freestat(Stat *s) {
+	::free(s->name);
+	::free(s->uid);
+	::free(s->gid);
+	::free(s->muid);
 	s->name = s->uid = s->gid = s->muid = nullptr;
 }
 
@@ -97,17 +97,17 @@ freefcall(Fcall *fcall) {
 }
 
 uint16_t
-sizeof_stat(Stat *stat) {
+Stat::getSize() noexcept {
 	return SWord /* size */
 		+ SWord /* type */
 		+ SDWord /* dev */
 		+ SQid /* qid */
 		+ (3 * SDWord) /* mode, atime, mtime */
 		+ SQWord /* length */
-		+ SString(stat->name)
-		+ SString(stat->uid)
-		+ SString(stat->gid)
-		+ SString(stat->muid);
+		+ SString(name)
+		+ SString(uid)
+		+ SString(gid)
+		+ SString(muid);
 }
 
 void
