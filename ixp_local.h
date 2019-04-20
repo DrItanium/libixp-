@@ -14,25 +14,25 @@ typedef char* va_list;
 #endif
 extern char* argv0;
 #define ARGBEGIN \
-		int _argtmp=0, _inargv=0; char *_argv=nullptr; \
-		if(!argv0) {argv0=*argv; argv++, argc--;} \
-		_inargv=1; USED(_inargv); \
-		while(argc && argv[0][0] == '-') { \
-			_argv=&argv[0][1]; argv++; argc--; \
-			if(_argv[0] == '-' && _argv[1] == '\0') \
-				break; \
-			while(*_argv) switch(*_argv++)
+    int _argtmp=0, _inargv=0; char *_argv=nullptr; \
+if(!argv0) {argv0=*argv; argv++, argc--;} \
+_inargv=1; USED(_inargv); \
+while(argc && argv[0][0] == '-') { \
+    _argv=&argv[0][1]; argv++; argc--; \
+    if(_argv[0] == '-' && _argv[1] == '\0') \
+    break; \
+    while(*_argv) switch(*_argv++)
 #define ARGEND }_inargv=0;USED(_argtmp, _argv, _inargv)
 
 #define EARGF(f) ((_inargv && *_argv) ? \
-			(_argtmp=strlen(_argv), _argv+=_argtmp, _argv-_argtmp) \
-			: ((argc > 0) ? \
-				(--argc, ++argv, _used(argc), *(argv-1)) \
-				: ((f), (char*)0)))
+        (_argtmp=strlen(_argv), _argv+=_argtmp, _argv-_argtmp) \
+        : ((argc > 0) ? \
+            (--argc, ++argv, _used(argc), *(argv-1)) \
+            : ((f), (char*)0)))
 #define ARGF() EARGF(_used(0))
 
 #ifndef KENC
-  static inline void _used(long a, ...) { if(a){} }
+static inline void _used(long a, ...) { if(a){} }
 # define USED(...) _used((long)__VA_ARGS__)
 # define SET(x) (x = 0)
 /* # define SET(x) USED(&x) GCC 4 is 'too smart' for this. */
@@ -46,41 +46,41 @@ extern char* argv0;
 #define errstr ixp_errstr
 #define rerrstr ixp_rerrstr
 
-struct MapEnt;
-using Map = IxpMap;
-using Timer = IxpTimer;
-
-
-struct IxpMap {
-	MapEnt**	bucket;
-	int		nhash;
-
-	IxpRWLock	lock;
-};
-
-struct IxpTimer {
-	Timer*		link;
-	uint64_t	msec;
-	long		id;
-    std::function<void(long, const std::any&)> fn;
-    std::any	aux;
-};
-
-/* map.c */
-void	ixp_mapfree(IxpMap*, std::function<void(void*)>);
-void	ixp_mapexec(IxpMap*, std::function<void(void*, void*)>, void*);
-void	ixp_mapinit(IxpMap*, MapEnt**, int);
-bool	ixp_mapinsert(IxpMap*, ulong, void*, bool);
-void*	ixp_mapget(IxpMap*, ulong);
-void*	ixp_maprm(IxpMap*, ulong);
-
-/* rpc.c */
 namespace ixp {
-    void	muxfree(IxpClient*);
-    void	muxinit(IxpClient*);
-    IxpFcall*	muxrpc(IxpClient*, IxpFcall*);
-    long nexttimer(IxpServer*);
-}
+    struct MapEnt;
+    using Map = Map;
+    using Timer = Timer;
+
+
+    struct Map {
+        MapEnt**	bucket;
+        int		nhash;
+
+        RWLock	lock;
+    };
+
+    struct Timer {
+        Timer*		link;
+        uint64_t	msec;
+        long		id;
+        std::function<void(long, const std::any&)> fn;
+        std::any	aux;
+    };
+
+    /* map.c */
+    void	ixp_mapfree(Map*, std::function<void(void*)>);
+    void	ixp_mapexec(Map*, std::function<void(void*, void*)>, void*);
+    void	ixp_mapinit(Map*, MapEnt**, int);
+    bool	ixp_mapinsert(Map*, ulong, void*, bool);
+    void*	ixp_mapget(Map*, ulong);
+    void*	ixp_maprm(Map*, ulong);
+
+    /* rpc.c */
+    void	muxfree(Client*);
+    void	muxinit(Client*);
+    Fcall*	muxrpc(Client*, Fcall*);
+    long nexttimer(Server*);
+} // end namespace ixp
 #define ixp_nexttimer ixp::nexttimer
 
 #endif

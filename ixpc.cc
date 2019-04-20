@@ -18,7 +18,7 @@
 
 
 namespace {
-IxpClient *client;
+ixp::Client *client;
 
 void
 usage(int errorCode = 1) {
@@ -30,14 +30,14 @@ usage(int errorCode = 1) {
 
 /* Utility Functions */
 void
-write_data(IxpCFid *fid, char *name) {
+write_data(ixp::CFid *fid, char *name) {
 	long len = 0;
 
 	auto buf = ixp::emalloc(fid->iounit);
 	do {
 		len = read(0, buf, fid->iounit);
-		if(len >= 0 && ixp_write(fid, buf, len) != len) {
-            ixp::fatalPrint("cannot write file '", name, "': ", ixp_errbuf(), "\n");
+		if(len >= 0 && ixp::write(fid, buf, len) != len) {
+            ixp::fatalPrint("cannot write file '", name, "': ", ixp::errbuf(), "\n");
         }
 	} while(len > 0);
 
@@ -46,8 +46,8 @@ write_data(IxpCFid *fid, char *name) {
 
 int
 comp_stat(const void *s1, const void *s2) {
-	auto st1 = (Stat*)s1;
-	auto st2 = (Stat*)s2;
+	auto st1 = (ixp::Stat*)s1;
+	auto st2 = (ixp::Stat*)s2;
 	return strcmp(st1->name, st2->name);
 }
 
@@ -78,7 +78,7 @@ str_of_time(uint val) {
 }
 
 void
-print_stat(Stat *s, int details) {
+print_stat(ixp::Stat *s, int details) {
 	if(details) {
         ixp::print(std::cout, str_of_mode(s->mode), " ", 
                 s->uid, " ", s->gid, " ", s->length, " ", 
@@ -102,14 +102,14 @@ xappend(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-	auto fid = ixp_open(client, file, P9_OWRITE);
+	auto fid = ixp::open(client, file, ixp::P9_OWRITE);
     if (!fid) {
-        ixp::fatalPrint("Can't open file '", file, "': ", ixp_errbuf(), "\n");
+        ixp::fatalPrint("Can't open file '", file, "': ", ixp::errbuf(), "\n");
     }
 	
-	auto stat = ixp_stat(client, file);
+	auto stat = ixp::stat(client, file);
 	fid->offset = stat->length;
-	ixp_freestat(stat);
+	ixp::freestat(stat);
 	free(stat);
 	write_data(fid, file);
 	return 0;
@@ -123,9 +123,9 @@ xwrite(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-	auto fid = ixp_open(client, file, P9_OWRITE);
+	auto fid = ixp::open(client, file, ixp::P9_OWRITE);
     if (!fid) {
-        ixp::fatalPrint("Can't open file '", file, "': ", ixp_errbuf(), "\n");
+        ixp::fatalPrint("Can't open file '", file, "': ", ixp::errbuf(), "\n");
     }
 
 	write_data(fid, file);
@@ -140,9 +140,9 @@ xawrite(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-	auto fid = ixp_open(client, file, P9_OWRITE);
+	auto fid = ixp::open(client, file, ixp::P9_OWRITE);
     if (!fid) {
-        ixp::fatalPrint("Can't open file '", file, "': ", ixp_errbuf(), "\n");
+        ixp::fatalPrint("Can't open file '", file, "': ", ixp::errbuf(), "\n");
     }
 
 	auto nbuf = 0;
@@ -161,8 +161,8 @@ xawrite(int argc, char *argv[]) {
 			buf[nbuf++] = ' ';
 	}
 
-	if(ixp_write(fid, buf, nbuf) == -1) {
-        ixp::fatalPrint("cannot write file '", file, "': ", ixp_errbuf(), "\n");
+	if(ixp::write(fid, buf, nbuf) == -1) {
+        ixp::fatalPrint("cannot write file '", file, "': ", ixp::errbuf(), "\n");
     }
 	return 0;
 }
@@ -175,9 +175,9 @@ xcreate(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-	auto fid = ixp_create(client, file, 0777, P9_OWRITE);
+	auto fid = ixp::create(client, file, 0777, ixp::P9_OWRITE);
     if (!fid) {
-        ixp::fatalPrint("Can't create file '", file, "': ", ixp_errbuf(), "\n");
+        ixp::fatalPrint("Can't create file '", file, "': ", ixp::errbuf(), "\n");
     }
 
 	if((fid->qid.type&P9_DMDIR) == 0)
@@ -194,8 +194,8 @@ xremove(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-	if(ixp_remove(client, file) == 0) {
-        ixp::fatalPrint("Can't remove file '", file, "': ", ixp_errbuf(), "\n");
+	if(ixp::remove(client, file) == 0) {
+        ixp::fatalPrint("Can't remove file '", file, "': ", ixp::errbuf(), "\n");
     }
 	return 0;
 }
@@ -208,19 +208,19 @@ xread(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-	auto fid = ixp_open(client, file, P9_OREAD);
+	auto fid = ixp::open(client, file, ixp::P9_OREAD);
     if (!fid) {
-        ixp::fatalPrint("Can't open file '", file, "': ", ixp_errbuf(), "\n");
+        ixp::fatalPrint("Can't open file '", file, "': ", ixp::errbuf(), "\n");
     }
 
     int count = 0;
 	auto buf = (char*)ixp::emalloc(fid->iounit);
-	while((count = ixp_read(fid, buf, fid->iounit)) > 0) {
+	while((count = ixp::read(fid, buf, fid->iounit)) > 0) {
 		write(1, buf, count);
     }
 
 	if(count == -1) {
-        ixp::fatalPrint("cannot read file/directory '", file, "': ", ixp_errbuf(), "\n");
+        ixp::fatalPrint("cannot read file/directory '", file, "': ", ixp::errbuf(), "\n");
     }
 
 	return 0;
@@ -228,8 +228,8 @@ xread(int argc, char *argv[]) {
 
 int
 xls(int argc, char *argv[]) {
-	IxpMsg m;
-	IxpCFid *fid;
+	ixp::Msg m;
+	ixp::CFid *fid;
 	char *file, *buf;
 	int count, nstat, mstat, i;
 
@@ -249,47 +249,47 @@ xls(int argc, char *argv[]) {
 
 	file = EARGF(usage());
 
-	auto stat = ixp_stat(client, file);
+	auto stat = ixp::stat(client, file);
     if (!stat) {
-        ixp::fatalPrint("Can't stat file '", file, "': ", ixp_errbuf(), "\n");
+        ixp::fatalPrint("Can't stat file '", file, "': ", ixp::errbuf(), "\n");
     }
 
 	if(dflag || (stat->mode&P9_DMDIR) == 0) {
 		print_stat(stat, lflag);
-		ixp_freestat(stat);
+		ixp::freestat(stat);
 		return 0;
 	}
-	ixp_freestat(stat);
+	ixp::freestat(stat);
 
-	fid = ixp_open(client, file, P9_OREAD);
+	fid = ixp::open(client, file, ixp::P9_OREAD);
 	if(!fid) {
-        ixp::fatalPrint("Can't open file '", file, "': ", ixp_errbuf(), "\n");
+        ixp::fatalPrint("Can't open file '", file, "': ", ixp::errbuf(), "\n");
     }
 
 	nstat = 0;
 	mstat = 16;
 	stat = (decltype(stat))ixp::emalloc(sizeof(*stat) * mstat);
 	buf = (decltype(buf))ixp::emalloc(fid->iounit);
-	while((count = ixp_read(fid, buf, fid->iounit)) > 0) {
-		m = ixp_message(buf, count, MsgUnpack);
+	while((count = ixp::read(fid, buf, fid->iounit)) > 0) {
+		m = ixp::message(buf, count, ixp::MsgUnpack);
 		while(m.pos < m.end) {
 			if(nstat == mstat) {
 				mstat <<= 1;
 				stat = (decltype(stat))ixp::erealloc(stat, sizeof(*stat) * mstat);
 			}
-			ixp_pstat(&m, &stat[nstat++]);
+			ixp::pstat(&m, &stat[nstat++]);
 		}
 	}
 
 	qsort(stat, nstat, sizeof(*stat), comp_stat);
 	for(i = 0; i < nstat; i++) {
 		print_stat(&stat[i], lflag);
-		ixp_freestat(&stat[i]);
+		ixp::freestat(&stat[i]);
 	}
 	free(stat);
 
 	if(count == -1)
-        ixp::fatalPrint("Can't read directory '", file, "': ", ixp_errbuf(), "\n");
+        ixp::fatalPrint("Can't read directory '", file, "': ", ixp::errbuf(), "\n");
 	return 0;
 }
 
@@ -325,12 +325,12 @@ main(int argc, char *argv[]) {
 		ixp::fatalPrint("$IXP_ADDRESS not set\n");
     }
 
-    if(client = ixp_mount(address); !client) {
-        ixp::fatalPrint(ixp_errbuf(), "\n");
+    if(client = ixp::mount(address); !client) {
+        ixp::fatalPrint(ixp::errbuf(), "\n");
     } else {
         if (auto result = etab.find(cmd); result != etab.end()) {
             auto ret = result->second(argc, argv);
-            ixp_unmount(client);
+            ixp::unmount(client);
             return ret;
         } else {
             usage();

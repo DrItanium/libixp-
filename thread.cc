@@ -2,7 +2,16 @@
 #include <unistd.h>
 #include "ixp_local.h"
 
-namespace ixp::concurrency {
+namespace ixp {
+Mutex::Mutex() { concurrency::threadModel->init(this); }
+Mutex::~Mutex() { concurrency::threadModel->destroy(this); }
+
+Rendez::Rendez() { concurrency::threadModel->init(this); }
+Rendez::~Rendez() { concurrency::threadModel->destroy(this); }
+
+RWLock::RWLock() { concurrency::threadModel->init(this); }
+RWLock::~RWLock() { concurrency::threadModel->destroy(this); }
+namespace concurrency {
 
 ssize_t 
 ThreadImpl::read(int fd, void* buf, size_t count) {
@@ -22,18 +31,11 @@ NoThreadImpl::errbuf() {
     return errbuf;
 }
 void
-NoThreadImpl::sleep(IxpRendez*) {
+NoThreadImpl::sleep(Rendez*) {
     throw "unimplemented";
 }
 std::unique_ptr<ThreadImpl> threadModel = std::make_unique<NoThreadImpl>();
-} // end namespace ixp::concurrency
+} // end namespace concurrency
 
 
-IxpMutex::IxpMutex() { ixp::concurrency::threadModel->init(this); }
-IxpMutex::~IxpMutex() { ixp::concurrency::threadModel->destroy(this); }
-
-IxpRendez::IxpRendez() { ixp::concurrency::threadModel->init(this); }
-IxpRendez::~IxpRendez() { ixp::concurrency::threadModel->destroy(this); }
-
-IxpRWLock::IxpRWLock() { ixp::concurrency::threadModel->init(this); }
-IxpRWLock::~IxpRWLock() { ixp::concurrency::threadModel->destroy(this); }
+}
