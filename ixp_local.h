@@ -40,12 +40,6 @@ static inline void _used(long a, ...) { if(a){} }
 
 #define nelem(ary) (sizeof(ary) / sizeof(*ary))
 
-#define thread ixp::concurrency::threadModel
-
-
-#define errstr ixp_errstr
-#define rerrstr ixp_rerrstr
-
 namespace ixp {
     struct MapEnt;
     using Map = Map;
@@ -68,12 +62,12 @@ namespace ixp {
     };
 
     /* map.c */
-    void	ixp_mapfree(Map*, std::function<void(void*)>);
-    void	ixp_mapexec(Map*, std::function<void(void*, void*)>, void*);
-    void	ixp_mapinit(Map*, MapEnt**, int);
-    bool	ixp_mapinsert(Map*, ulong, void*, bool);
-    void*	ixp_mapget(Map*, ulong);
-    void*	ixp_maprm(Map*, ulong);
+    void	mapfree(Map*, std::function<void(void*)>);
+    void	mapexec(Map*, std::function<void(void*, void*)>, void*);
+    void	mapinit(Map*, MapEnt**, int);
+    bool	mapinsert(Map*, ulong, void*, bool);
+    void*	mapget(Map*, ulong);
+    void*	maprm(Map*, ulong);
 
     /* rpc.c */
     void	muxfree(Client*);
@@ -81,6 +75,5 @@ namespace ixp {
     Fcall*	muxrpc(Client*, Fcall*);
     long nexttimer(Server*);
 } // end namespace ixp
-#define ixp_nexttimer ixp::nexttimer
 
 #endif

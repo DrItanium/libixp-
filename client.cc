@@ -13,85 +13,86 @@
 #include "ixp_local.h"
 
 #define nelem(ary) (sizeof(ary) / sizeof(*ary))
-
+namespace ixp {
 constexpr auto RootFid = 1;
-namespace {
-IxpCFid*
-getfid(IxpClient *c) {
-	IxpCFid *f;
 
-	thread->lock(&c->lk);
+namespace {
+CFid*
+getfid(Client *c) {
+	CFid *f;
+
+	concurrency::threadModel->lock(&c->lk);
 	f = c->freefid;
     if (f) {
 		c->freefid = f->next;
     } else {
-		f = (IxpCFid*)ixp::emallocz(sizeof *f);
+		f = (CFid*)emallocz(sizeof *f);
 		f->client = c;
 		f->fid = ++c->lastfid;
-		thread->initmutex(&f->iolock);
+		concurrency::threadModel->initmutex(&f->iolock);
 	}
 	f->next = nullptr;
 	f->open = 0;
-	thread->unlock(&c->lk);
+	concurrency::threadModel->unlock(&c->lk);
 	return f;
 }
 
 void
-putfid(IxpCFid *f) {
+putfid(CFid *f) {
 
 	auto c = f->client;
-	thread->lock(&c->lk);
+	concurrency::threadModel->lock(&c->lk);
 	if(f->fid == c->lastfid) {
 		c->lastfid--;
-		thread->mdestroy(&f->iolock);
+		concurrency::threadModel->mdestroy(&f->iolock);
 		free(f);
 	} else {
 		f->next = c->freefid;
 		c->freefid = f;
 	}
-	thread->unlock(&c->lk);
+	concurrency::threadModel->unlock(&c->lk);
 }
 
 bool 
-dofcall(IxpClient *c, IxpFcall *fcall) {
-	IxpFcall *ret;
+dofcall(Client *c, Fcall *fcall) {
+	Fcall *ret;
 
-	ret = ixp::muxrpc(c, fcall);
+	ret = muxrpc(c, fcall);
     if (!ret) {
 		return false;
     }
 	if(ret->hdr.type == RError) {
-		ixp_werrstr("%s", ret->error.ename);
+		werrstr("%s", ret->error.ename);
 		goto fail;
 	}
 	if(ret->hdr.type != (fcall->hdr.type^1)) {
-		ixp_werrstr("received mismatched fcall");
+		werrstr("received mismatched fcall");
 		goto fail;
 	}
 	memcpy(fcall, ret, sizeof *fcall);
 	free(ret);
 	return true;
 fail:
-	ixp_freefcall(fcall);
+	freefcall(fcall);
 	free(ret);
 	return false;
 }
 void
-allocmsg(IxpClient *c, int n) {
+allocmsg(Client *c, int n) {
 	c->rmsg.size = n;
 	c->wmsg.size = n;
-	c->rmsg.data = (char*)ixp::erealloc(c->rmsg.data, n);
-	c->wmsg.data = (char*)ixp::erealloc(c->wmsg.data, n);
+	c->rmsg.data = (char*)erealloc(c->rmsg.data, n);
+	c->wmsg.data = (char*)erealloc(c->wmsg.data, n);
 }
-IxpCFid*
-walk(IxpClient *c, const char *path) {
-	IxpCFid *f;
+CFid*
+walk(Client *c, const char *path) {
+	CFid *f;
 	char *p;
-	IxpFcall fcall;
+	Fcall fcall;
 	int n;
 
-	p = ixp::estrdup(path);
-	n = ixp::tokenize(fcall.twalk.wname, nelem(fcall.twalk.wname), p, '/');
+	p = estrdup(path);
+	n = tokenize(fcall.twalk.wname, nelem(fcall.twalk.wname), p, '/');
 	f = getfid(c);
 
 	fcall.hdr.type = TWalk;
@@ -101,15 +102,15 @@ walk(IxpClient *c, const char *path) {
 	if(!dofcall(c, &fcall))
 		goto fail;
 	if(fcall.rwalk.nwqid < n) {
-		ixp_werrstr("File does not exist");
+		werrstr("File does not exist");
 		if(fcall.rwalk.nwqid == 0)
-			ixp_werrstr("Protocol botch");
+			werrstr("Protocol botch");
 		goto fail;
 	}
 
 	f->qid = fcall.rwalk.wqid[n-1];
 
-	ixp_freefcall(&fcall);
+	freefcall(&fcall);
 	free(p);
 	return f;
 fail:
@@ -118,8 +119,8 @@ fail:
 	return nullptr;
 }
 
-IxpCFid*
-walkdir(IxpClient *c, char *path, const char **rest) {
+CFid*
+walkdir(Client *c, char *path, const char **rest) {
 	char *p;
 
 	p = path + strlen(path) - 1;
@@ -130,7 +131,7 @@ walkdir(IxpClient *c, char *path, const char **rest) {
 	while((p > path) && (*p != '/'))
 		p--;
 	if(*p != '/') {
-		ixp_werrstr("bad path");
+		werrstr("bad path");
 		return nullptr;
 	}
 
@@ -140,8 +141,8 @@ walkdir(IxpClient *c, char *path, const char **rest) {
 }
 
 bool 
-clunk(IxpCFid *f) {
-	IxpFcall fcall;
+clunk(CFid *f) {
+	Fcall fcall;
 
 	auto c = f->client;
 
@@ -150,12 +151,12 @@ clunk(IxpCFid *f) {
 	auto ret = dofcall(c, &fcall);
 	if(ret)
 		putfid(f);
-	ixp_freefcall(&fcall);
+	freefcall(&fcall);
 	return ret;
 }
 
 void
-initfid(IxpCFid *f, IxpFcall *fcall) {
+initfid(CFid *f, Fcall *fcall) {
 	f->open = 1;
 	f->offset = 0;
 	f->iounit = fcall->ropen.iounit;
@@ -163,22 +164,22 @@ initfid(IxpCFid *f, IxpFcall *fcall) {
 		f->iounit =  f->client->msize-24;
 	f->qid = fcall->ropen.qid;
 }
-IxpStat*
-_stat(IxpClient *c, ulong fid) {
-	IxpMsg msg;
-	IxpFcall fcall;
-	IxpStat *stat;
+Stat*
+_stat(Client *c, ulong fid) {
+	Msg msg;
+	Fcall fcall;
+	Stat *stat;
 
 	fcall.hdr.type = TStat;
 	fcall.hdr.fid = fid;
 	if(!dofcall(c, &fcall))
 		return nullptr;
 
-	msg = ixp_message((char*)fcall.rstat.stat, fcall.rstat.nstat, MsgUnpack);
+	msg = message((char*)fcall.rstat.stat, fcall.rstat.nstat, MsgUnpack);
 
-	stat = (IxpStat*)ixp::emalloc(sizeof *stat);
-	ixp_pstat(&msg, stat);
-	ixp_freefcall(&fcall);
+	stat = (Stat*)emalloc(sizeof *stat);
+	pstat(&msg, stat);
+	freefcall(&fcall);
 	if(msg.pos > msg.end) {
 		free(stat);
 		stat = nullptr;
@@ -187,12 +188,12 @@ _stat(IxpClient *c, ulong fid) {
 }
 
 long
-_pread(IxpCFid *f, char *buf, long count, int64_t offset) {
-	IxpFcall fcall;
+_pread(CFid *f, char *buf, long count, int64_t offset) {
+	Fcall fcall;
 
 	auto len = 0l;
 	while(len < count) {
-        auto n = ixp::min<int>(count-len, f->iounit);
+        auto n = min<int>(count-len, f->iounit);
 
 		fcall.hdr.type = TRead;
 		fcall.hdr.fid = f->fid;
@@ -207,7 +208,7 @@ _pread(IxpCFid *f, char *buf, long count, int64_t offset) {
 		offset += fcall.rread.count;
 		len += fcall.rread.count;
 
-		ixp_freefcall(&fcall);
+		freefcall(&fcall);
 		if(fcall.rread.count < n)
 			break;
 	}
@@ -215,13 +216,13 @@ _pread(IxpCFid *f, char *buf, long count, int64_t offset) {
 }
 
 long
-_pwrite(IxpCFid *f, const void *buf, long count, int64_t offset) {
-	IxpFcall fcall;
+_pwrite(CFid *f, const void *buf, long count, int64_t offset) {
+	Fcall fcall;
 	int n, len;
 
 	len = 0;
 	do {
-		n = ixp::min<int>(count-len, f->iounit);
+		n = min<int>(count-len, f->iounit);
 		fcall.hdr.type = TWrite;
 		fcall.hdr.fid = f->fid;
 		fcall.twrite.offset = offset;
@@ -233,7 +234,7 @@ _pwrite(IxpCFid *f, const void *buf, long count, int64_t offset) {
 		offset += fcall.rwrite.count;
 		len += fcall.rwrite.count;
 
-		ixp_freefcall(&fcall);
+		freefcall(&fcall);
 		if(fcall.rwrite.count < n)
 			break;
 	} while(len < count);
@@ -242,7 +243,7 @@ _pwrite(IxpCFid *f, const void *buf, long count, int64_t offset) {
 } // end namespace
 
 /**
- * Function: ixp_remove
+ * Function: remove
  *
  * Params:
  *	path: The path of the file to remove.
@@ -250,15 +251,15 @@ _pwrite(IxpCFid *f, const void *buf, long count, int64_t offset) {
  * Removes a file or directory from the remote server.
  *
  * Returns:
- *	ixp_remove returns 0 on failure, 1 on success.
+ *	remove returns 0 on failure, 1 on success.
  * See also:
- *	F<ixp_mount>
+ *	F<mount>
  */
 
 namespace ixp {
 bool
-remove(IxpClient *c, const char *path) {
-	IxpFcall fcall;
+remove(Client *c, const char *path) {
+	Fcall fcall;
 
     if (auto f = walk(c, path); !f) {
         return false;
@@ -266,7 +267,7 @@ remove(IxpClient *c, const char *path) {
         fcall.hdr.type = TRemove;
         fcall.hdr.fid = f->fid;;
         auto ret = dofcall(c, &fcall);
-        ixp_freefcall(&fcall);
+        freefcall(&fcall);
         putfid(f);
 
         return ret;
@@ -276,25 +277,25 @@ remove(IxpClient *c, const char *path) {
 
 
 /**
- * Function: ixp_unmount
+ * Function: unmount
  *
  * Unmounts the client P<client> and frees its data structures.
  *
  * See also:
- *	F<ixp_mount>
+ *	F<mount>
  */
 void
-ixp_unmount(IxpClient *client) {
-	IxpCFid *f;
+unmount(Client *client) {
+	CFid *f;
 
 	shutdown(client->fd, SHUT_RDWR);
-	close(client->fd);
+	::close(client->fd);
 
-    ixp::muxfree(client);
+    muxfree(client);
 
 	while((f = client->freefid)) {
 		client->freefid = f->next;
-		thread->mdestroy(&f->iolock);
+		concurrency::threadModel->mdestroy(&f->iolock);
 		free(f);
 	}
 	free(client->rmsg.data);
@@ -304,10 +305,10 @@ ixp_unmount(IxpClient *client) {
 
 
 /**
- * Function: ixp_mount
- * Function: ixp_mountfd
- * Function: ixp_nsmount
- * Type: IxpClient
+ * Function: mount
+ * Function: mountfd
+ * Function: nsmount
+ * Type: Client
  *
  * Params:
  *	fd:      A file descriptor which is already connected
@@ -324,37 +325,37 @@ ixp_unmount(IxpClient *client) {
  * Returns:
  *	A pointer to a new 9P client.
  * See also:
- *	F<ixp_open>, F<ixp_create>, F<ixp_remove>, F<ixp_unmount>
+ *	F<open>, F<create>, F<remove>, F<unmount>
  */
 
-IxpClient*
-ixp_mountfd(int fd) {
-	IxpFcall fcall;
+Client*
+mountfd(int fd) {
+	Fcall fcall;
 
-	auto c = (IxpClient*)ixp::emallocz(sizeof(IxpClient));
+	auto c = (Client*)emallocz(sizeof(Client));
 	c->fd = fd;
 
-    ixp::muxinit(c);
+    muxinit(c);
 
 	allocmsg(c, 256);
 	c->lastfid = RootFid;
 	/* Override tag matching on TVersion */
-	c->mintag = IXP_NOTAG;
-	c->maxtag = IXP_NOTAG+1;
+	c->mintag = NoTag;
+	c->maxtag = NoTag+1;
 
 	fcall.hdr.type = TVersion;
 	fcall.version.msize = IXP_MAX_MSG;
-	fcall.version.version = (char*)IXP_VERSION;
+	fcall.version.version = (char*)Version;
 
 	if(!dofcall(c, &fcall)) {
-		ixp_unmount(c);
+		unmount(c);
 		return nullptr;
 	}
 
-	if(strcmp(fcall.version.version, IXP_VERSION)
+	if(strcmp(fcall.version.version, Version)
 	|| fcall.version.msize > IXP_MAX_MSG) {
-		ixp_werrstr("bad 9P version response");
-		ixp_unmount(c);
+		werrstr("bad 9P version response");
+		unmount(c);
 		return nullptr;
 	}
 
@@ -363,52 +364,52 @@ ixp_mountfd(int fd) {
 	c->msize = fcall.version.msize;
 
 	allocmsg(c, fcall.version.msize);
-	ixp_freefcall(&fcall);
+	freefcall(&fcall);
 
 	fcall.hdr.type = TAttach;
 	fcall.hdr.fid = RootFid;
-	fcall.tattach.afid = IXP_NOFID;
+	fcall.tattach.afid = NoFid;
 	fcall.tattach.uname = getenv("USER");
 	fcall.tattach.aname = (char*)"";
 	if(!dofcall(c, &fcall)) {
-		ixp_unmount(c);
+		unmount(c);
 		return nullptr;
 	}
 
 	return c;
 }
 
-IxpClient*
-ixp_mount(const char *address) {
+Client*
+mount(const char *address) {
 	int fd;
 
-	fd = ixp_dial(address);
+	fd = dial(address);
 	if(fd < 0)
 		return nullptr;
-	return ixp_mountfd(fd);
+	return mountfd(fd);
 }
 
-IxpClient*
-ixp_nsmount(const char *name) {
+Client*
+nsmount(const char *name) {
 	char *address;
-	IxpClient *c;
+	Client *c;
 
-	address = ixp::getNamespace();
+	address = getNamespace();
 	if(address)
-		address = ixp::smprint("unix!%s/%s", address, name);
+		address = smprint("unix!%s/%s", address, name);
     if (!address) 
 		return nullptr;
-	c = ixp_mount(address);
+	c = mount(address);
 	free(address);
 	return c;
 }
 
 
 /**
- * Function: ixp_open
- * Function: ixp_create
- * Type: IxpCFid
- * Type: IxpOMode
+ * Function: open
+ * Function: create
+ * Type: CFid
+ * Type: OMode
  *
  * Params:
  *	path: The path of the file to open or create.
@@ -417,10 +418,10 @@ ixp_nsmount(const char *name) {
  *	      parent directory by the server.
  *	mode: The file's open mode.
  *
- * ixp_open and ixp_create each open a file at P<path>.
+ * open and create each open a file at P<path>.
  * P<mode> must include OREAD, OWRITE, or ORDWR, and may
- * include any of the modes specified in T<IxpOMode>.
- * ixp_create, additionally, creates a file at P<path> if it
+ * include any of the modes specified in T<OMode>.
+ * create, additionally, creates a file at P<path> if it
  * doesn't already exist.
  *
  * Returns:
@@ -428,17 +429,17 @@ ixp_nsmount(const char *name) {
  *      opened file.
  *
  * See also:
- *	F<ixp_mount>, F<ixp_read>, F<ixp_write>, F<ixp_print>,
- *	F<ixp_fstat>, F<ixp_close>
+ *	F<mount>, F<read>, F<write>, F<print>,
+ *	F<fstat>, F<close>
  */
 
-IxpCFid*
-ixp_create(IxpClient *c, const char *path, uint perm, uint8_t mode) {
-	IxpFcall fcall;
-	IxpCFid *f;
+CFid*
+create(Client *c, const char *path, uint perm, uint8_t mode) {
+	Fcall fcall;
+	CFid *f;
 	char *tpath;;
 
-	tpath = ixp::estrdup(path);
+	tpath = estrdup(path);
 
 	f = walkdir(c, tpath, &path);
     if (!f) 
@@ -459,17 +460,17 @@ ixp_create(IxpClient *c, const char *path, uint perm, uint8_t mode) {
 	initfid(f, &fcall);
 	f->mode = mode;
 
-	ixp_freefcall(&fcall);
+	freefcall(&fcall);
 
 done:
 	free(tpath);
 	return f;
 }
 
-IxpCFid*
-ixp_open(IxpClient *c, const char *path, uint8_t mode) {
-	IxpFcall fcall;
-	IxpCFid *f;
+CFid*
+open(Client *c, const char *path, uint8_t mode) {
+	Fcall fcall;
+	CFid *f;
 
 	f = walk(c, path);
     if (!f) 
@@ -487,13 +488,13 @@ ixp_open(IxpClient *c, const char *path, uint8_t mode) {
 	initfid(f, &fcall);
 	f->mode = mode;
 
-	ixp_freefcall(&fcall);
+	freefcall(&fcall);
 	return f;
 }
 
 namespace ixp {
 /**
- * Function: ixp_close
+ * Function: close
  *
  * Closes the file pointed to by P<f> and frees its
  * associated data structures;
@@ -501,23 +502,23 @@ namespace ixp {
  * Returns:
  *	Returns 1 on success, and zero on failure.
  * See also:
- *	F<ixp_mount>, F<ixp_open>
+ *	F<mount>, F<open>
  */
 
 bool
-close(IxpCFid *f) {
+close(CFid *f) {
 	return clunk(f);
 }
 
 
 } // end namespace ixp
 /**
- * Function: ixp_stat
- * Function: ixp_fstat
- * Type: IxpStat
- * Type: IxpQid
- * Type: IxpQType
- * Type: IxpDMode
+ * Function: stat
+ * Function: fstat
+ * Type: Stat
+ * Type: Qid
+ * Type: QType
+ * Type: DMode
  *
  * Params:
  *	path: The path of the file to stat.
@@ -526,16 +527,16 @@ close(IxpCFid *f) {
  * Stats the file at P<path> or pointed to by P<fid>.
  *
  * Returns:
- *	Returns an IxpStat structure, which must be freed by
+ *	Returns an Stat structure, which must be freed by
  *	the caller with free(3).
  * See also:
- *	F<ixp_mount>, F<ixp_open>
+ *	F<mount>, F<open>
  */
 
-IxpStat*
-ixp_stat(IxpClient *c, const char *path) {
-	IxpStat *stat;
-	IxpCFid *f;
+Stat*
+stat(Client *c, const char *path) {
+	Stat *stat;
+	CFid *f;
 
 	f = walk(c, path);
     if (!f) 
@@ -546,70 +547,70 @@ ixp_stat(IxpClient *c, const char *path) {
 	return stat;
 }
 
-IxpStat*
-ixp_fstat(IxpCFid *fid) {
+Stat*
+fstat(CFid *fid) {
 	return _stat(fid->client, fid->fid);
 }
 
 
 /**
- * Function: ixp_read
- * Function: ixp_pread
+ * Function: read
+ * Function: pread
  *
  * Params:
  *	buf:    A buffer in which to store the read data.
  *	count:  The number of bytes to read.
  *	offset: The offset at which to begin reading.
  *
- * ixp_read and ixp_pread each read P<count> bytes of data
- * from the file pointed to by P<fid>, into P<buf>. ixp_read
+ * read and pread each read P<count> bytes of data
+ * from the file pointed to by P<fid>, into P<buf>. read
  * begins reading at its stored offset, and increments it by
- * the number of bytes read. ixp_pread reads beginning at
+ * the number of bytes read. pread reads beginning at
  * P<offset> and does not alter P<fid>'s stored offset.
  *
  * Returns:
  *	These functions return the number of bytes read on
  *	success and -1 on failure.
  * See also:
- *	F<ixp_mount>, F<ixp_open>, F<ixp_write>
+ *	F<mount>, F<open>, F<write>
  */
 
 long
-ixp_read(IxpCFid *fid, void *buf, long count) {
+read(CFid *fid, void *buf, long count) {
 	int n;
 
-	thread->lock(&fid->iolock);
+	concurrency::threadModel->lock(&fid->iolock);
 	n = _pread(fid, (char*)buf, count, fid->offset);
 	if(n > 0)
 		fid->offset += n;
-	thread->unlock(&fid->iolock);
+	concurrency::threadModel->unlock(&fid->iolock);
 	return n;
 }
 
 long
-ixp_pread(IxpCFid *fid, void *buf, long count, int64_t offset) {
+pread(CFid *fid, void *buf, long count, int64_t offset) {
 	int n;
 
-	thread->lock(&fid->iolock);
+	concurrency::threadModel->lock(&fid->iolock);
 	n = _pread(fid, (char*)buf, count, offset);
-	thread->unlock(&fid->iolock);
+	concurrency::threadModel->unlock(&fid->iolock);
 	return n;
 }
 
 
 /**
- * Function: ixp_write
- * Function: ixp_pwrite
+ * Function: write
+ * Function: pwrite
  *
  * Params:
  *	buf:    A buffer holding the contents to store.
  *	count:  The number of bytes to store.
  *	offset: The offset at which to write the data.
  *
- * ixp_write and ixp_pwrite each write P<count> bytes of
+ * write and pwrite each write P<count> bytes of
  * data stored in P<buf> to the file pointed to by C<fid>.
- * ixp_write writes its data at its stored offset, and
- * increments it by P<count>. ixp_pwrite writes its data a
+ * write writes its data at its stored offset, and
+ * increments it by P<count>. pwrite writes its data a
  * P<offset> and does not alter C<fid>'s stored offset.
  *
  * Returns:
@@ -617,36 +618,36 @@ ixp_pread(IxpCFid *fid, void *buf, long count, int64_t offset) {
  *	written. Any value less than P<count> must be considered
  *	a failure.
  * See also:
- *	F<ixp_mount>, F<ixp_open>, F<ixp_read>
+ *	F<mount>, F<open>, F<read>
  */
 
 long
-ixp_write(IxpCFid *fid, const void *buf, long count) {
-	thread->lock(&fid->iolock);
+write(CFid *fid, const void *buf, long count) {
+	concurrency::threadModel->lock(&fid->iolock);
 	auto n = _pwrite(fid, buf, count, fid->offset);
 	if(n > 0)
 		fid->offset += n;
-	thread->unlock(&fid->iolock);
+	concurrency::threadModel->unlock(&fid->iolock);
 	return n;
 }
 
 long
-ixp_pwrite(IxpCFid *fid, const void *buf, long count, int64_t offset) {
+pwrite(CFid *fid, const void *buf, long count, int64_t offset) {
 	int n;
 
-	thread->lock(&fid->iolock);
+	concurrency::threadModel->lock(&fid->iolock);
 	n = _pwrite(fid, buf, count, offset);
-	thread->unlock(&fid->iolock);
+	concurrency::threadModel->unlock(&fid->iolock);
 	return n;
 }
 
 /**
- * Function: ixp_print
- * Function: ixp_vprint
- * Variable: ixp_vsmprint
+ * Function: print
+ * Function: vprint
+ * Variable: vsmprint
  *
  * Params:
- *      fid:  An open IxpCFid to which to write the result.
+ *      fid:  An open CFid to which to write the result.
  *	fmt:  The string with which to format the data.
  *	args: A va_list holding the arguments to the format
  *	      string.
@@ -656,7 +657,7 @@ ixp_pwrite(IxpCFid *fid, const void *buf, long count, int64_t offset) {
  * functions. They write the result of the formatting to the
  * file pointed to by C<fid>.
  *
- * V<ixp_vsmprint> may be set to a function which will
+ * V<vsmprint> may be set to a function which will
  * format its arguments and return a nul-terminated string
  * allocated by malloc(3). The default formats its arguments as
  * printf(3).
@@ -665,28 +666,29 @@ ixp_pwrite(IxpCFid *fid, const void *buf, long count, int64_t offset) {
  *	These functions return the number of bytes written.
  *	There is currently no way to detect failure.
  * See also:
- *	F<ixp_mount>, F<ixp_open>, printf(3)
+ *	F<mount>, F<open>, printf(3)
  */
 
 int
-ixp_vprint(IxpCFid *fid, const char *fmt, va_list args) {
-	if (auto buf = ixp_vsmprint(fmt, args); !buf) {
+vprint(CFid *fid, const char *fmt, va_list args) {
+	if (auto buf = vsmprint(fmt, args); !buf) {
         return -1;
     } else {
-        auto n = ixp_write(fid, buf, strlen(buf));
+        auto n = write(fid, buf, strlen(buf));
         free(buf);
         return n;
     }
 }
 
 int
-ixp_print(IxpCFid *fid, const char *fmt, ...) {
+print(CFid *fid, const char *fmt, ...) {
 	va_list ap;
 
 	va_start(ap, fmt);
-	auto n = ixp_vprint(fid, fmt, ap);
+	auto n = vprint(fid, fmt, ap);
 	va_end(ap);
 
 	return n;
 }
+} // end namespace ixp
 

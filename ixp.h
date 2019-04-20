@@ -23,12 +23,6 @@ namespace ixp {
     constexpr auto Version = "9P2000";
     constexpr auto NoTag = uint16_t(~0); 
     constexpr auto NoFid = ~0u;
-#define STRUCT(x) __extension__ struct {x};
-#define UNION(x) __extension__ union {x};
-#define IXP_NOTAG	ixp::NoTag /* Dummy tag */
-#define IXP_NOFID	ixp::NoFid
-#define IXP_VERSION ixp::Version
-#define IXP_API ixp::ApiVersion
     class FileHeader {
         public:
             FileHeader() = default;
