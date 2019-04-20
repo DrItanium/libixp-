@@ -317,8 +317,7 @@ namespace ixp {
         char*	gid;
         char*	muid;
         uint16_t    size() noexcept;
-        static void	freestat(Stat*);
-        static void free(Stat* stat) { freestat(stat); }
+        static void free(Stat* stat);
         void packUnpack(Msg& msg) noexcept;
         //~Stat();
     };

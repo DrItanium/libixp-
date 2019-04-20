@@ -66,7 +66,7 @@ Msg::message(char *data, uint length, Mode mode) {
  *	S<Fcall>, S<Stat>
  */
 void
-Stat::freestat(Stat *s) {
+Stat::free(Stat *s) {
 	::free(s->name);
 	::free(s->uid);
 	::free(s->gid);
