@@ -603,22 +603,22 @@ CFid::pread(void *buf, long count, int64_t offset) {
  */
 
 long
-write(CFid *fid, const void *buf, long count) {
-	concurrency::threadModel->lock(&fid->iolock);
-	auto n = _pwrite(fid, buf, count, fid->offset);
+CFid::write(const void *buf, long count) {
+	concurrency::threadModel->lock(&iolock);
+	auto n = _pwrite(this, buf, count, offset);
 	if(n > 0)
-		fid->offset += n;
-	concurrency::threadModel->unlock(&fid->iolock);
+		offset += n;
+	concurrency::threadModel->unlock(&iolock);
 	return n;
 }
 
 long
-pwrite(CFid *fid, const void *buf, long count, int64_t offset) {
+CFid::pwrite(const void *buf, long count, int64_t offset) {
 	int n;
 
-	concurrency::threadModel->lock(&fid->iolock);
-	n = _pwrite(fid, buf, count, offset);
-	concurrency::threadModel->unlock(&fid->iolock);
+	concurrency::threadModel->lock(&iolock);
+	n = _pwrite(this, buf, count, offset);
+	concurrency::threadModel->unlock(&iolock);
 	return n;
 }
 
@@ -651,22 +651,22 @@ pwrite(CFid *fid, const void *buf, long count, int64_t offset) {
  */
 
 int
-vprint(CFid *fid, const char *fmt, va_list args) {
+CFid::vprint(const char *fmt, va_list args) {
 	if (auto buf = vsmprint(fmt, args); !buf) {
         return -1;
     } else {
-        auto n = write(fid, buf, strlen(buf));
+        auto n = write(buf, strlen(buf));
         free(buf);
         return n;
     }
 }
 
 int
-print(CFid *fid, const char *fmt, ...) {
+CFid::print(const char *fmt, ...) {
 	va_list ap;
 
 	va_start(ap, fmt);
-	auto n = vprint(fid, fmt, ap);
+	auto n = vprint(fmt, ap);
 	va_end(ap);
 
 	return n;

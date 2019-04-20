@@ -36,7 +36,7 @@ write_data(ixp::CFid *fid, char *name) {
 	auto buf = ixp::emalloc(fid->iounit);
 	do {
 		len = read(0, buf, fid->iounit);
-		if(len >= 0 && ixp::write(fid, buf, len) != len) {
+		if(len >= 0 && fid->write(buf, len) != len) {
             ixp::fatalPrint("cannot write file '", name, "': ", ixp::errbuf(), "\n");
         }
 	} while(len > 0);
@@ -161,7 +161,7 @@ xawrite(int argc, char *argv[]) {
 			buf[nbuf++] = ' ';
 	}
 
-	if(ixp::write(fid, buf, nbuf) == -1) {
+	if(fid->write(buf, nbuf) == -1) {
         ixp::fatalPrint("cannot write file '", file, "': ", ixp::errbuf(), "\n");
     }
 	return 0;

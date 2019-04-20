@@ -530,6 +530,11 @@ namespace ixp {
         bool clunk(); 
         long read(void*, long);
         long pread(void*, long, int64_t);
+        int  print(const char*, ...);
+        long pwrite(const void*, long, int64_t);
+        int vprint(const char*, va_list);
+        inline int vprint(const std::string& str, va_list l) { return vprint(str.c_str(), l); }
+        long write(const void*, long);
     };
 
     /**
@@ -698,15 +703,11 @@ namespace ixp {
     extern std::function<void(Fcall*)> printfcall;
 
     /* client.c */
-    int	print(CFid*, const char*, ...);
-    long	pwrite(CFid*, const void*, long, int64_t);
     bool remove(Client*, const char*);
     inline bool remove(Client* client, const std::string& str) noexcept { return remove(client, str.c_str()); }
 
 
     void	unmount(Client*);
-    int	vprint(CFid*, const char*, va_list);
-    long	write(CFid*, const void*, long);
     CFid*	create(Client*, const char*, uint perm, uint8_t mode);
     inline CFid*   create(Client* c, const std::string& str, uint perm, uint8_t mode) { return create(c, str.c_str(), perm, mode); }
     Stat*	fstat(CFid*);
