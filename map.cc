@@ -46,88 +46,88 @@ map_getp(Map *map, ulong val, bool create, bool *exists) {
 }
 
 void
-mapfree(Map *map, std::function<void(void*)> destroy) {
+Map::free(std::function<void(void*)> destroy) {
 	int i;
 	MapEnt *e;
 
-	concurrency::threadModel->wlock(&map->lock);
-	for(i=0; i < map->nhash; i++)
-		while((e = map->bucket[i])) {
-			map->bucket[i] = e->next;
+	concurrency::threadModel->wlock(&lock);
+	for(i=0; i < nhash; i++)
+		while((e = bucket[i])) {
+			bucket[i] = e->next;
 			if(destroy)
 				destroy(e->val);
-			free(e);
+			::free(e);
 		}
-	concurrency::threadModel->wunlock(&map->lock);
-	concurrency::threadModel->rwdestroy(&map->lock);
+	concurrency::threadModel->wunlock(&lock);
+	concurrency::threadModel->rwdestroy(&lock);
 }
 
 void
-mapexec(Map *map, std::function<void(void*, void*)> run, void* context) {
+Map::exec(std::function<void(void*, void*)> run, void* context) {
 	int i;
 	MapEnt *e;
 
-	concurrency::threadModel->rlock(&map->lock);
-	for(i=0; i < map->nhash; i++)
-		for(e=map->bucket[i]; e; e=e->next)
+	concurrency::threadModel->rlock(&lock);
+	for(i=0; i < nhash; i++)
+		for(e=bucket[i]; e; e=e->next)
 			run(context, e->val);
-	concurrency::threadModel->runlock(&map->lock);
+	concurrency::threadModel->runlock(&lock);
 }
 
 void
-mapinit(Map *map, MapEnt **buckets, int nbuckets) {
+Map::init(MapEnt **buckets, int nbuckets) {
 
-	map->bucket = buckets;
-	map->nhash = nbuckets;
+	bucket = buckets;
+	nhash = nbuckets;
 
-	concurrency::threadModel->initrwlock(&map->lock);
+	concurrency::threadModel->initrwlock(&lock);
 }
 
 bool
-mapinsert(Map *map, ulong key, void *val, bool overwrite) {
+Map::insert(ulong key, void *val, bool overwrite) {
 	MapEnt *e;
 	bool existed, res;
 	
 	res = true;
-	concurrency::threadModel->wlock(&map->lock);
-	e = *map_getp(map, key, true, &existed);
+	concurrency::threadModel->wlock(&lock);
+	e = *map_getp(this, key, true, &existed);
 	if(existed && !overwrite)
 		res = false;
 	else
 		e->val = val;
-	concurrency::threadModel->wunlock(&map->lock);
+	concurrency::threadModel->wunlock(&lock);
 	return res;
 }
 
 void*
-mapget(Map *map, ulong val) {
+Map::get(ulong val) {
 	MapEnt *e;
 	void *res;
 	
-	concurrency::threadModel->rlock(&map->lock);
-	e = *map_getp(map, val, false, nullptr);
+	concurrency::threadModel->rlock(&lock);
+	e = *map_getp(this, val, false, nullptr);
 	res = e ? e->val : nullptr;
-	concurrency::threadModel->runlock(&map->lock);
+	concurrency::threadModel->runlock(&lock);
 	return res;
 }
 
 void*
-maprm(Map *map, ulong val) {
+Map::rm(ulong val) {
 	MapEnt **e, *te;
 	void *ret;
 	
 	ret = nullptr;
-	concurrency::threadModel->wlock(&map->lock);
-	e = map_getp(map, val, false, nullptr);
+	concurrency::threadModel->wlock(&lock);
+	e = map_getp(this, val, false, nullptr);
 	if(*e) {
 		te = *e;
 		ret = te->val;
 		*e = te->next;
-		concurrency::threadModel->wunlock(&map->lock);
-		free(te);
+		concurrency::threadModel->wunlock(&lock);
+		::free(te);
 	}
 	else
-		concurrency::threadModel->wunlock(&map->lock);
+		concurrency::threadModel->wunlock(&lock);
 	return ret;
 }
 

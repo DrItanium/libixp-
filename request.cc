@@ -70,8 +70,8 @@ decref_p9conn(Conn9 *p9conn) {
 	concurrency::threadModel->mdestroy(&p9conn->rlock);
 	concurrency::threadModel->mdestroy(&p9conn->wlock);
 
-	mapfree(&p9conn->tagmap, nullptr);
-	mapfree(&p9conn->fidmap, nullptr);
+    p9conn->tagmap.free(nullptr);
+    p9conn->fidmap.free(nullptr);
 
 	free(p9conn->rmsg.data);
 	free(p9conn->wmsg.data);
@@ -88,7 +88,7 @@ createfid(Map *map, int fid, Conn9 *p9conn) {
 	f->fid = fid;
 	f->omode = -1;
 	f->map = map;
-	if(mapinsert(map, fid, f, false))
+	if(map->insert(fid, f, false))
 		return f;
 	free(f);
 	return nullptr;
@@ -98,7 +98,7 @@ static bool
 destroyfid(Conn9 *p9conn, ulong fid) {
 	Fid *f;
 
-	f = (Fid*)maprm(&p9conn->fidmap, fid);
+	f = (Fid*)p9conn->fidmap.rm(fid);
     if (!f)
 		return false;
 
@@ -132,7 +132,7 @@ handlefcall(Conn *c) {
 	req->ifcall = fcall;
 	p9conn->conn = c;
 
-	if(!mapinsert(&p9conn->tagmap, fcall.hdr.tag, req, false)) {
+    if (!p9conn->tagmap.insert(fcall.hdr.tag, req, false)) {
         req->respond(Eduptag);
 		return;
 	}
@@ -180,7 +180,7 @@ handlereq(Req9 *r) {
 		srv->attach(r);
 		break;
 	case TClunk:
-		if(!(r->fid = (decltype(r->fid))mapget(&p9conn->fidmap, r->ifcall.hdr.fid))) {
+		if(r->fid = (decltype(r->fid))p9conn->fidmap.get(r->ifcall.hdr.fid); !r->fid) {
 			r->respond(Enofid);
 			return;
 		}
@@ -191,7 +191,7 @@ handlereq(Req9 *r) {
 		srv->clunk(r);
 		break;
 	case TFlush:
-		if(!(r->oldreq = decltype(r->oldreq)(mapget(&p9conn->tagmap, r->ifcall.tflush.oldtag)))) {
+        if (r->oldreq = decltype(r->oldreq)(p9conn->tagmap.get(r->ifcall.tflush.oldtag)); !r->oldreq) {
 			r->respond(Enotag);
 			return;
 		}
@@ -202,7 +202,7 @@ handlereq(Req9 *r) {
 		srv->flush(r);
 		break;
 	case TCreate:
-		if(!(r->fid = decltype(r->fid)(mapget(&p9conn->fidmap, r->ifcall.hdr.fid)))) {
+        if (r->fid = decltype(r->fid)(p9conn->fidmap.get(r->ifcall.hdr.fid)); !r->fid) {
 			r->respond(Enofid);
 			return;
 		}
@@ -221,7 +221,7 @@ handlereq(Req9 *r) {
 		p9conn->srv->create(r);
 		break;
 	case TOpen:
-		if(!(r->fid = decltype(r->fid)(mapget(&p9conn->fidmap, r->ifcall.hdr.fid)))) {
+        if (r->fid = decltype(r->fid)(p9conn->fidmap.get(r->ifcall.hdr.fid)); !r->fid) {
 			r->respond(Enofid);
 			return;
 		}
@@ -237,7 +237,7 @@ handlereq(Req9 *r) {
 		p9conn->srv->open(r);
 		break;
 	case TRead:
-		if(!(r->fid = decltype(r->fid)(mapget(&p9conn->fidmap, r->ifcall.hdr.fid)))) {
+        if (r->fid = decltype(r->fid)(p9conn->fidmap.get(r->ifcall.hdr.fid)); !r->fid) {
 			r->respond(Enofid);
 			return;
 		}
@@ -252,7 +252,7 @@ handlereq(Req9 *r) {
 		p9conn->srv->read(r);
 		break;
 	case TRemove:
-		if(!(r->fid = decltype(r->fid)(mapget(&p9conn->fidmap, r->ifcall.hdr.fid)))) {
+		if(r->fid = decltype(r->fid)(p9conn->fidmap.get(r->ifcall.hdr.fid)); !r->fid) {
 			r->respond(Enofid);
 			return;
 		}
@@ -263,7 +263,7 @@ handlereq(Req9 *r) {
 		p9conn->srv->remove(r);
 		break;
 	case TStat:
-		if(!(r->fid = decltype(r->fid)(mapget(&p9conn->fidmap, r->ifcall.hdr.fid)))) {
+		if(r->fid = decltype(r->fid)(p9conn->fidmap.get(r->ifcall.hdr.fid)); !r->fid) {
 			r->respond(Enofid);
 			return;
 		}
@@ -274,7 +274,7 @@ handlereq(Req9 *r) {
 		p9conn->srv->stat(r);
 		break;
 	case TWalk:
-		if(!(r->fid = decltype(r->fid)(mapget(&p9conn->fidmap, r->ifcall.hdr.fid)))) {
+		if(r->fid = decltype(r->fid)(p9conn->fidmap.get(r->ifcall.hdr.fid)); !r->fid) {
 			r->respond(Enofid);
 			return;
 		}
@@ -300,7 +300,7 @@ handlereq(Req9 *r) {
 		p9conn->srv->walk(r);
 		break;
 	case TWrite:
-		if(!(r->fid = decltype(r->fid)(mapget(&p9conn->fidmap, r->ifcall.hdr.fid)))) {
+		if(r->fid = decltype(r->fid)(p9conn->fidmap.get(r->ifcall.hdr.fid)); !r->fid) {
 			r->respond(Enofid);
 			return;
 		}
@@ -315,7 +315,7 @@ handlereq(Req9 *r) {
 		p9conn->srv->write(r);
 		break;
 	case TWStat:
-		if(!(r->fid = decltype(r->fid)(mapget(&p9conn->fidmap, r->ifcall.hdr.fid)))) {
+		if(r->fid = decltype(r->fid)(p9conn->fidmap.get( r->ifcall.hdr.fid)); !r->fid) {
 			r->respond(Enofid);
 			return;
 		}
@@ -431,7 +431,7 @@ Req9::respond(const char *error) {
 			destroyfid(p9conn, fid->fid);
 		break;
 	case TFlush:
-		if((oldreq = decltype(oldreq) (mapget(&p9conn->tagmap, ifcall.tflush.oldtag))))
+		if (oldreq = decltype(oldreq)( p9conn->tagmap.get(ifcall.tflush.oldtag)); oldreq) 
             oldreq->respond(Eintr);
 		break;
 	case TWStat:
@@ -455,7 +455,7 @@ Req9::respond(const char *error) {
 	if(printfcall)
 		printfcall(&ofcall);
 
-	maprm(&p9conn->tagmap, ifcall.hdr.tag);;
+    p9conn->tagmap.rm(ifcall.hdr.tag);;
 
 	if(p9conn->conn) {
 		concurrency::threadModel->lock(&p9conn->wlock);
@@ -528,8 +528,8 @@ cleanupconn(Conn *c) {
 	p9conn->conn = nullptr;
 	req = nullptr;
 	if(p9conn->ref > 1) {
-		mapexec(&p9conn->fidmap, voidfid, &req);
-		mapexec(&p9conn->tagmap, voidrequest, &req);
+        p9conn->fidmap.exec(voidfid, &req);
+		p9conn->tagmap.exec(voidrequest, &req);
 	}
 	while((r = req)) {
         req = std::any_cast<decltype(req)>(r->aux);
@@ -579,8 +579,8 @@ serve9conn(Conn *c) {
         p9conn->rmsg.data = (decltype(p9conn->rmsg.data))ixp::emalloc(p9conn->rmsg.size);
         p9conn->wmsg.data = (decltype(p9conn->wmsg.data))ixp::emalloc(p9conn->wmsg.size);
 
-        mapinit(&p9conn->tagmap, p9conn->taghash, nelem(p9conn->taghash));
-        mapinit(&p9conn->fidmap, p9conn->fidhash, nelem(p9conn->fidhash));
+        p9conn->tagmap.init(p9conn->taghash, nelem(p9conn->taghash));
+        p9conn->fidmap.init(p9conn->fidhash, nelem(p9conn->fidhash));
         concurrency::threadModel->initmutex(&p9conn->rlock);
         concurrency::threadModel->initmutex(&p9conn->wlock);
 

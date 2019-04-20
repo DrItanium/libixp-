@@ -51,6 +51,12 @@ namespace ixp {
         int		nhash;
 
         RWLock	lock;
+        void	free(std::function<void(void*)>);
+        void	exec(std::function<void(void*, void*)>, void*);
+        void	init(MapEnt**, int);
+        bool	insert(ulong, void*, bool);
+        void*	get(ulong);
+        void*	rm(ulong);
     };
 
     struct Timer {
@@ -61,15 +67,6 @@ namespace ixp {
         std::any	aux;
     };
 
-    /* map.c */
-    void	mapfree(Map*, std::function<void(void*)>);
-    void	mapexec(Map*, std::function<void(void*, void*)>, void*);
-    void	mapinit(Map*, MapEnt**, int);
-    bool	mapinsert(Map*, ulong, void*, bool);
-    void*	mapget(Map*, ulong);
-    void*	maprm(Map*, ulong);
-
-    /* rpc.c */
 } // end namespace ixp
 
 #endif
