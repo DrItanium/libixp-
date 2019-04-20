@@ -64,7 +64,8 @@ dofcall(Client *c, Fcall *fcall) {
 		werrstr("%s", ret->error.ename);
 		goto fail;
 	}
-    if (auto hdrVal = uint8_t(ret->hdr.type); hdrVal != (hdrVal^1)) {
+    if (auto hdrVal = uint8_t(ret->hdr.type), fhdrVal = uint8_t(fcall->getType()); hdrVal != (fhdrVal^1)) {
+        std::cout << "hdrVal: " << hdrVal << std::endl;
 		werrstr("received mismatched fcall");
 		goto fail;
 	}
@@ -308,11 +309,11 @@ Client::unmount(Client *client) {
 
 Client*
 Client::mountfd(int fd) {
-	Fcall fcall(FType::TVersion);
+	Fcall fcall;
 
+    fcall.setType(FType::TVersion);
 	auto c = (Client*)emallocz(sizeof(Client));
 	c->fd = fd;
-
     c->muxinit();
 
 	allocmsg(c, 256);
