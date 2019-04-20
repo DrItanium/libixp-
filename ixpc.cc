@@ -324,12 +324,12 @@ main(int argc, char *argv[]) {
 		ixp::fatalPrint("$IXP_ADDRESS not set\n");
     }
 
-    if(client = ixp::mount(address); !client) {
+    if (client = ixp::Client::mount(address); !client) {
         ixp::fatalPrint(ixp::errbuf(), "\n");
     } else {
         if (auto result = etab.find(cmd); result != etab.end()) {
             auto ret = result->second(argc, argv);
-            ixp::unmount(client);
+            ixp::Client::unmount(client);
             return ret;
         } else {
             usage();

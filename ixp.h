@@ -492,6 +492,14 @@ namespace ixp {
     };
 
     struct Client {
+        static void	unmount(Client*);
+        static Client*	mount(const char*);
+        static Client*	mountfd(int);
+        static Client*	nsmount(const char*);
+
+        static inline Client* mount(const std::string& str) { return mount(str.c_str()); }
+        static inline Client* nsmount(const std::string& str) { return nsmount(str.c_str()); }
+        ~Client();
         int	fd;
         uint	msize;
         uint	lastfid;
@@ -714,12 +722,6 @@ namespace ixp {
     /* client.c */
 
 
-    void	unmount(Client*);
-    Client*	mount(const char*);
-    inline Client* mount(const std::string& str) { return mount(str.c_str()); }
-    Client*	mountfd(int);
-    Client*	nsmount(const char*);
-    inline Client* nsmount(const std::string& str) { return nsmount(str.c_str()); }
 
     /* convert.c */
     void pu8(Msg*, uint8_t*);

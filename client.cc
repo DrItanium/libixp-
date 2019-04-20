@@ -267,8 +267,11 @@ Client::remove(const char *path) {
  * See also:
  *	F<mount>
  */
+Client::~Client() {
+    unmount(this);
+}
 void
-unmount(Client *client) {
+Client::unmount(Client *client) {
 	CFid *f;
     // TODO migrate this to the client destructor eventually
 
@@ -312,7 +315,7 @@ unmount(Client *client) {
  */
 
 Client*
-mountfd(int fd) {
+Client::mountfd(int fd) {
 	Fcall fcall;
 
 	auto c = (Client*)emallocz(sizeof(Client));
@@ -363,7 +366,7 @@ mountfd(int fd) {
 }
 
 Client*
-mount(const char *address) {
+Client::mount(const char *address) {
 	int fd;
 
 	fd = dial(address);
@@ -373,7 +376,7 @@ mount(const char *address) {
 }
 
 Client*
-nsmount(const char *name) {
+Client::nsmount(const char *name) {
 	char *address;
 	Client *c;
 
