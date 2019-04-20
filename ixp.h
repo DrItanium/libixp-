@@ -512,6 +512,8 @@ namespace ixp {
         Rpc		sleep;
         int		mintag;
         int		maxtag;
+        bool remove(const char*);
+        inline bool remove(const std::string& str) noexcept { return remove(str.c_str()); }
     };
 
     struct CFid {
@@ -703,8 +705,6 @@ namespace ixp {
     extern std::function<void(Fcall*)> printfcall;
 
     /* client.c */
-    bool remove(Client*, const char*);
-    inline bool remove(Client* client, const std::string& str) noexcept { return remove(client, str.c_str()); }
 
 
     void	unmount(Client*);

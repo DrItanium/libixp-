@@ -193,8 +193,7 @@ xremove(int argc, char *argv[]) {
 		usage();
 	}ARGEND;
 
-	auto file = EARGF(usage());
-	if(ixp::remove(client, file) == 0) {
+    if (auto file = EARGF(usage()); !client->remove(file)) {
         ixp::fatalPrint("Can't remove file '", file, "': ", ixp::errbuf(), "\n");
     }
 	return 0;

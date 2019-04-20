@@ -242,15 +242,15 @@ _pwrite(CFid *f, const void *buf, long count, int64_t offset) {
  */
 
 bool
-remove(Client *c, const char *path) {
+Client::remove(const char *path) {
 	Fcall fcall;
 
-    if (auto f = walk(c, path); !f) {
+    if (auto f = walk(this, path); !f) {
         return false;
     } else {
         fcall.hdr.type = TRemove;
         fcall.hdr.fid = f->fid;;
-        auto ret = dofcall(c, &fcall);
+        auto ret = dofcall(this, &fcall);
         freefcall(&fcall);
         putfid(f);
 
@@ -270,6 +270,7 @@ remove(Client *c, const char *path) {
 void
 unmount(Client *client) {
 	CFid *f;
+    // TODO migrate this to the client destructor eventually
 
 	shutdown(client->fd, SHUT_RDWR);
 	::close(client->fd);
@@ -283,7 +284,6 @@ unmount(Client *client) {
 	}
 	free(client->rmsg.data);
 	free(client->wmsg.data);
-	free(client);
 }
 
 
