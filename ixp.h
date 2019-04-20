@@ -403,8 +403,8 @@ namespace ixp {
         FIO		io;
         void packUnpack(Msg& msg) noexcept;
         static void free(Fcall*);
-        FHdr& getHeader() noexcept { return hdr; }
-        const FHdr& getHeader() const noexcept { return hdr; }
+        FType getType() const noexcept { return hdr.type; }
+        decltype(FHdr::fid) getFid() const noexcept { return hdr.fid; }
         void setType(FType type) noexcept { hdr.type = type; }
         void setFid(decltype(FHdr::fid) value) noexcept { hdr.fid = value; }
         void setTypeAndFid(FType type, decltype(FHdr::fid) value) noexcept {
