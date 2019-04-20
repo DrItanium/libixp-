@@ -526,6 +526,8 @@ namespace ixp {
         /* Private members */
         CFid*	next;
         Mutex	iolock;
+        bool close();
+        bool clunk(); 
     };
 
     /**
@@ -698,7 +700,6 @@ namespace ixp {
     int	print(CFid*, const char*, ...);
     long	pwrite(CFid*, const void*, long, int64_t);
     long	read(CFid*, void*, long);
-    bool close(CFid*);
     bool remove(Client*, const char*);
     inline bool remove(Client* client, const std::string& str) noexcept { return remove(client, str.c_str()); }
 

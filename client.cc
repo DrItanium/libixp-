@@ -140,21 +140,6 @@ walkdir(Client *c, char *path, const char **rest) {
 	return walk(c, path);
 }
 
-bool 
-clunk(CFid *f) {
-	Fcall fcall;
-
-	auto c = f->client;
-
-	fcall.hdr.type = TClunk;
-	fcall.hdr.fid = f->fid;
-	auto ret = dofcall(c, &fcall);
-	if(ret)
-		putfid(f);
-	freefcall(&fcall);
-	return ret;
-}
-
 void
 initfid(CFid *f, Fcall *fcall) {
 	f->open = 1;
@@ -450,7 +435,7 @@ create(Client *c, const char *path, uint perm, uint8_t mode) {
 	fcall.tcreate.mode = mode;
 
 	if(!dofcall(c, &fcall)) {
-		clunk(f);
+        f->clunk();
 		f = nullptr;
 		goto done;
 	}
@@ -479,7 +464,7 @@ open(Client *c, const char *path, uint8_t mode) {
 	fcall.topen.mode = mode;
 
 	if(!dofcall(c, &fcall)) {
-		clunk(f);
+		f->clunk();
 		return nullptr;
 	}
 
@@ -490,7 +475,6 @@ open(Client *c, const char *path, uint8_t mode) {
 	return f;
 }
 
-namespace ixp {
 /**
  * Function: close
  *
@@ -504,12 +488,11 @@ namespace ixp {
  */
 
 bool
-close(CFid *f) {
-	return clunk(f);
+CFid::close() {
+    return clunk();
 }
 
 
-} // end namespace ixp
 /**
  * Function: stat
  * Function: fstat
@@ -541,7 +524,7 @@ stat(Client *c, const char *path) {
 		return nullptr;
 
 	stat = _stat(c, f->fid);
-	clunk(f);
+    f->clunk();
 	return stat;
 }
 
@@ -687,6 +670,20 @@ print(CFid *fid, const char *fmt, ...) {
 	va_end(ap);
 
 	return n;
+}
+bool 
+CFid::clunk() {
+	Fcall fcall;
+
+	auto c = client;
+
+	fcall.hdr.type = TClunk;
+	fcall.hdr.fid = fid;
+	auto ret = dofcall(c, &fcall);
+	if(ret)
+		putfid(this);
+	freefcall(&fcall);
+	return ret;
 }
 } // end namespace ixp
 
