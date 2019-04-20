@@ -577,6 +577,9 @@ namespace ixp {
         inline CFid* create(const std::string& str, uint perm, uint8_t mode) { return create(str.c_str(), perm, mode); }
         inline CFid* open(const std::string& str, uint8_t val) { return open(str.c_str(), val); }
         inline Stat* stat(const std::string& str) { return stat(str.c_str()); }
+        void	muxfree();
+        void	muxinit();
+        Fcall*	muxrpc(Fcall*);
     };
 
     struct CFid {
@@ -778,9 +781,6 @@ namespace ixp {
     void	werrstr(const char*, ...);
     void serve9conn(Conn*);
     void	hangup(Conn*);
-
-
-    /* server.c */
 
     /* socket.c */
     int dial(const std::string&);

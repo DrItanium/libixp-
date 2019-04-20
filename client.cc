@@ -55,9 +55,8 @@ putfid(CFid *f) {
 
 bool 
 dofcall(Client *c, Fcall *fcall) {
-	Fcall *ret;
 
-	ret = muxrpc(c, fcall);
+    auto ret = c->muxrpc(fcall);
     if (!ret) {
 		return false;
     }
@@ -278,7 +277,7 @@ Client::unmount(Client *client) {
 	shutdown(client->fd, SHUT_RDWR);
 	::close(client->fd);
 
-    muxfree(client);
+    client->muxfree();
 
 	while((f = client->freefid)) {
 		client->freefid = f->next;
@@ -322,7 +321,7 @@ Client::mountfd(int fd) {
 	auto c = (Client*)emallocz(sizeof(Client));
 	c->fd = fd;
 
-    muxinit(c);
+    c->muxinit();
 
 	allocmsg(c, 256);
 	c->lastfid = RootFid;

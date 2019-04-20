@@ -188,63 +188,63 @@ fail:
 } // end namespace
 
 void
-muxinit(Client *mux)
+Client::muxinit()
 {
-	mux->tagrend.mutex = &mux->lk;
-	mux->sleep.next = &mux->sleep;
-	mux->sleep.prev = &mux->sleep;
-	concurrency::threadModel->initmutex(&mux->lk);
-	concurrency::threadModel->initmutex(&mux->rlock);
-	concurrency::threadModel->initmutex(&mux->wlock);
-	concurrency::threadModel->initrendez(&mux->tagrend);
+	tagrend.mutex = &lk;
+	sleep.next = &sleep;
+	sleep.prev = &sleep;
+	concurrency::threadModel->initmutex(&lk);
+	concurrency::threadModel->initmutex(&rlock);
+	concurrency::threadModel->initmutex(&wlock);
+	concurrency::threadModel->initrendez(&tagrend);
 }
 
 void
-muxfree(Client *mux)
+Client::muxfree()
 {
-	concurrency::threadModel->mdestroy(&mux->lk);
-	concurrency::threadModel->mdestroy(&mux->rlock);
-	concurrency::threadModel->mdestroy(&mux->wlock);
-	concurrency::threadModel->rdestroy(&mux->tagrend);
-	free(mux->wait);
+	concurrency::threadModel->mdestroy(&lk);
+	concurrency::threadModel->mdestroy(&rlock);
+	concurrency::threadModel->mdestroy(&wlock);
+	concurrency::threadModel->rdestroy(&tagrend);
+	free(wait);
 }
 
 
 Fcall*
-muxrpc(Client *mux, Fcall *tx)
+Client::muxrpc(Fcall *tx)
 {
 	Rpc r;
 	Fcall *p;
 
-	initrpc(mux, &r);
+	initrpc(this, &r);
 	if(sendrpc(&r, tx) < 0)
 		return nullptr;
 
-	concurrency::threadModel->lock(&mux->lk);
+	concurrency::threadModel->lock(&lk);
 	/* wait for our packet */
-	while(mux->muxer && mux->muxer != &r && !r.p)
+	while(muxer && muxer != &r && !r.p)
 		concurrency::threadModel->sleep(&r.r);
 
 	/* if not done, there's no muxer; start muxing */
 	if(!r.p){
-		assert(mux->muxer == nullptr || mux->muxer == &r);
-		mux->muxer = &r;
+		assert(muxer == nullptr || muxer == &r);
+		muxer = &r;
 		while(!r.p){
-			concurrency::threadModel->unlock(&mux->lk);
-			p = muxrecv(mux);
+			concurrency::threadModel->unlock(&lk);
+			p = muxrecv(this);
             if (!p) {
 				/* eof -- just give up and pass the buck */
-				concurrency::threadModel->lock(&mux->lk);
-				dequeue(mux, &r);
+				concurrency::threadModel->lock(&lk);
+				dequeue(this, &r);
 				break;
 			}
-			dispatchandqlock(mux, p);
+			dispatchandqlock(this, p);
 		}
-		electmuxer(mux);
+		electmuxer(this);
 	}
 	p = r.p;
-	puttag(mux, &r);
-	concurrency::threadModel->unlock(&mux->lk);
+	puttag(this, &r);
+	concurrency::threadModel->unlock(&lk);
     if (!p)
 		werrstr("unexpected eof");
 	return p;

@@ -70,9 +70,6 @@ namespace ixp {
     void*	maprm(Map*, ulong);
 
     /* rpc.c */
-    void	muxfree(Client*);
-    void	muxinit(Client*);
-    Fcall*	muxrpc(Client*, Fcall*);
 } // end namespace ixp
 
 #endif
