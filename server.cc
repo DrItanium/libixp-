@@ -10,34 +10,35 @@
 #include <unistd.h>
 #include "ixp_local.h"
 
+namespace ixp {
 /**
- * Function: ixp_listen
- * Type: IxpConn
+ * Function: listen
+ * Type: Conn
  *
  * Params:
  *	fs:    The file descriptor on which to listen.
  *	aux:   A piece of data to store in the connection's
- *	       P<aux> member of the IxpConn data structure.
+ *	       P<aux> member of the Conn data structure.
  *	read:  The function called when the connection has
  *	       data available to read.
  *	close: A cleanup function called when the
  *	       connection is closed.
  *
  * Starts the server P<srv> listening on P<fd>. The optional
- * P<read> and P<close> callbacks are called with the IxpConn
+ * P<read> and P<close> callbacks are called with the Conn
  * structure for the connection as their sole argument.
  *
  * Returns:
- *	Returns the connection's new IxpConn data structure.
+ *	Returns the connection's new Conn data structure.
  *
  * See also:
- *	F<ixp_serverloop>, F<ixp_serve9conn>, F<ixp_hangup>
+ *	F<serverloop>, F<serve9conn>, F<hangup>
  */
-IxpConn*
-ixp_listen(IxpServer *srv, int fd, const std::any& aux,
-        std::function<void(IxpConn*)> read,
-        std::function<void(IxpConn*)> close) {
-    auto c = new IxpConn;
+Conn*
+listen(Server *srv, int fd, const std::any& aux,
+        std::function<void(Conn*)> read,
+        std::function<void(Conn*)> close) {
+    auto c = new Conn;
 	c->fd = fd;
 	c->aux = aux;
 	c->srv = srv;
@@ -50,22 +51,22 @@ ixp_listen(IxpServer *srv, int fd, const std::any& aux,
 }
 
 /**
- * Function: ixp_hangup
- * Function: ixp_server_close
+ * Function: hangup
+ * Function: server_close
  *
- * ixp_hangup closes a connection, and stops the server
+ * hangup closes a connection, and stops the server
  * listening on it. It calls the connection's close
- * function, if it exists. ixp_server_close calls ixp_hangup
+ * function, if it exists. server_close calls hangup
  * on all of the connections on which the server is
  * listening.
  *
  * See also:
- *	F<ixp_listen>, S<IxpServer>, S<IxpConn>
+ *	F<listen>, S<Server>, S<Conn>
  */
 
 void
-ixp_hangup(IxpConn *c) {
-	IxpConn **tc;
+hangup(Conn *c) {
+	Conn **tc;
 
 	auto s = c->srv;
 	for(tc=&s->conn; *tc; tc=&(*tc)->next)
@@ -79,22 +80,22 @@ ixp_hangup(IxpConn *c) {
 	else
 		shutdown(c->fd, SHUT_RDWR);
 
-	close(c->fd);
+	::close(c->fd);
     delete c;
 }
 
 void
-ixp_server_close(IxpServer *s) {
-	IxpConn *next = nullptr;
+server_close(Server *s) {
+	Conn *next = nullptr;
 
 	for(auto c = s->conn; c; c = next) {
 		next = c->next;
-		ixp_hangup(c);
+		hangup(c);
 	}
 }
 
 static void
-prepare_select(IxpServer *s) {
+prepare_select(Server *s) {
 	FD_ZERO(&s->rd);
 	for(auto c = s->conn; c; c = c->next)
 		if(c->read) {
@@ -105,8 +106,8 @@ prepare_select(IxpServer *s) {
 }
 
 static void
-handle_conns(IxpServer *s) {
-	IxpConn *n;
+handle_conns(Server *s) {
+	Conn *n;
 	for(auto c = s->conn; c; c = n) {
 		n = c->next;
 		if(FD_ISSET(c->fd, &s->rd))
@@ -115,8 +116,8 @@ handle_conns(IxpServer *s) {
 }
 
 /**
- * Function: ixp_serverloop
- * Type: IxpServer
+ * Function: serverloop
+ * Type: Server
  *
  * Enters the main loop of the server. Exits when
  * P<srv>->running becomes false, or when select(2) returns an
@@ -125,20 +126,20 @@ handle_conns(IxpServer *s) {
  * Returns:
  *	Returns false when the loop exits normally, and true when
  *	it exits on error. V<errno> or the return value of
- *	F<ixp_errbuf> may be inspected.
+ *	F<errbuf> may be inspected.
  * See also:
- *	F<ixp_listen>, F<ixp_settimer>
+ *	F<listen>, F<settimer>
  */
 
 int
-ixp_serverloop(IxpServer *srv) {
+serverloop(Server *srv) {
 	timeval tv;
 
 	srv->running = true;
-	thread->initmutex(&srv->lk);
+	concurrency::threadModel->initmutex(&srv->lk);
 	while(srv->running) {
 		timeval* tvp = nullptr;
-		if (long timeout = ixp_nexttimer(srv); timeout > 0) {
+		if (long timeout = nexttimer(srv); timeout > 0) {
 			tv.tv_sec = timeout/1000;
 			tv.tv_usec = timeout%1000 * 1000;
 			tvp = &tv;
@@ -153,7 +154,7 @@ ixp_serverloop(IxpServer *srv) {
         }
 
 		prepare_select(srv);
-		if (int r = thread->select(srv->maxfd + 1, &srv->rd, 0, 0, tvp); r < 0) {
+		if (int r = concurrency::threadModel->select(srv->maxfd + 1, &srv->rd, 0, 0, tvp); r < 0) {
 			if(errno == EINTR)
 				continue;
 			return true;
@@ -163,3 +164,4 @@ ixp_serverloop(IxpServer *srv) {
 	return false;
 }
 
+} // end namespace ixp
