@@ -255,15 +255,21 @@ enum {
 };
 
 struct IxpMutex {
+    IxpMutex();
+    ~IxpMutex();
     std::any aux;
 };
 
 struct IxpRendez {
-	IxpMutex* mutex;
+    IxpRendez();
+    ~IxpRendez();
+    IxpMutex* mutex;
     std::any aux;
 };
 
 struct IxpRWLock {
+    IxpRWLock();
+    ~IxpRWLock();
     std::any aux;
 };
 

@@ -27,3 +27,13 @@ NoThreadImpl::sleep(IxpRendez*) {
 }
 std::unique_ptr<ThreadImpl> threadModel = std::make_unique<NoThreadImpl>();
 } // end namespace ixp::concurrency
+
+
+IxpMutex::IxpMutex() { ixp::concurrency::threadModel->init(this); }
+IxpMutex::~IxpMutex() { ixp::concurrency::threadModel->destroy(this); }
+
+IxpRendez::IxpRendez() { ixp::concurrency::threadModel->init(this); }
+IxpRendez::~IxpRendez() { ixp::concurrency::threadModel->destroy(this); }
+
+IxpRWLock::IxpRWLock() { ixp::concurrency::threadModel->init(this); }
+IxpRWLock::~IxpRWLock() { ixp::concurrency::threadModel->destroy(this); }
