@@ -23,23 +23,6 @@ namespace ixp {
     constexpr auto Version = "9P2000";
     constexpr auto NoTag = uint16_t(~0); 
     constexpr auto NoFid = ~0u;
-    class FileHeader {
-        public:
-            FileHeader() = default;
-            ~FileHeader() = default;
-            FileHeader(const FileHeader&) = default;
-            FileHeader(FileHeader&&) = default;
-            constexpr auto getType() const noexcept { return _type; }
-            void setType(uint8_t type) noexcept { _type = type; }
-            constexpr auto getTag() const noexcept { return _tag; }
-            void setTag(uint16_t tag) noexcept { _tag = tag; }
-            constexpr auto getFid() const noexcept { return _fid; }
-            void setFid(uint32_t fid) noexcept { _fid = fid; }
-        private:
-            uint8_t _type;
-            uint16_t _tag;
-            uint32_t _fid;
-    };
 
     template<typename ... Args>
         void print(std::ostream& os, Args&& ... args) {
