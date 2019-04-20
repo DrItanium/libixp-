@@ -308,7 +308,7 @@ Client::unmount(Client *client) {
 
 Client*
 Client::mountfd(int fd) {
-	Fcall fcall;
+	Fcall fcall(FType::TVersion);
 
 	auto c = (Client*)emallocz(sizeof(Client));
 	c->fd = fd;
@@ -321,7 +321,6 @@ Client::mountfd(int fd) {
 	c->mintag = NoTag;
 	c->maxtag = NoTag+1;
 
-	fcall.hdr.type = FType::TVersion;
 	fcall.version.msize = maximum::Msg;
 	fcall.version.version = (char*)Version;
 
@@ -344,8 +343,7 @@ Client::mountfd(int fd) {
 	allocmsg(c, fcall.version.msize);
 	Fcall::free(&fcall);
 
-	fcall.hdr.type = FType::TAttach;
-	fcall.hdr.fid = RootFid;
+    fcall.setTypeAndFid(FType::TAttach, RootFid);
 	fcall.tattach.afid = NoFid;
 	fcall.tattach.uname = getenv("USER");
 	fcall.tattach.aname = (char*)"";
@@ -666,12 +664,8 @@ CFid::print(const char *fmt, ...) {
 }
 bool 
 CFid::clunk() {
-	Fcall fcall;
-
+	Fcall fcall(FType::TClunk, fid);
 	auto c = client;
-
-	fcall.hdr.type = FType::TClunk;
-	fcall.hdr.fid = fid;
 	auto ret = dofcall(c, &fcall);
 	if(ret)
 		putfid(this);
