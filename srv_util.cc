@@ -150,7 +150,7 @@ srv_writebuf(Req9 *req, char **buf, uint *len, uint max) {
 	file = std::any_cast<decltype(file)>(req->fid->aux);
 
 	offset = req->ifcall.io.offset;
-	if(file->tab.perm & DMAPPEND)
+	if(file->tab.perm & uint32_t(DMode::APPEND))
 		offset = *len;
 
 	if(offset > *len || req->ifcall.io.count == 0) {
