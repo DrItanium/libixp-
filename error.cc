@@ -6,6 +6,8 @@
 #include <string.h>
 #include "ixp_local.h"
 
+
+namespace ixp {
 namespace {
 int
 _vsnprint(char *buf, int nbuf, const char *fmt, va_list ap) {
@@ -31,19 +33,16 @@ _vsmprint(const char *fmt, va_list ap) {
 constexpr auto EPLAN9 = 0x19283745;
 } // end namespace
 
-namespace ixp
-{
-    std::function<int(char*,int,const char*, va_list)> vsnprint = ::_vsnprint;
-    std::function<char*(const char*, va_list)> vsmprint = ::_vsmprint;
-} // end namespace ixp
+    std::function<int(char*,int,const char*, va_list)> vsnprint = _vsnprint;
+    std::function<char*(const char*, va_list)> vsmprint = _vsmprint;
 
 
 /**
- * Function: ixp_errbuf
- * Function: ixp_errstr
- * Function: ixp_rerrstr
- * Function: ixp_werrstr
- * Variable: ixp_vsnprint
+ * Function: errbuf
+ * Function: errstr
+ * Function: rerrstr
+ * Function: werrstr
+ * Variable: vsnprint
  *
  * Params:
  *	buf:  The buffer to read and/or fill.
@@ -55,15 +54,15 @@ namespace ixp
  * They replace errno in libixp. Note that these functions
  * are not internationalized.
  *
- * F<ixp_errbuf> returns the errstr buffer for the current
- * thread. F<ixp_rerrstr> fills P<buf> with the data from
- * the current thread's error buffer, while F<ixp_errstr>
+ * F<errbuf> returns the errstr buffer for the current
+ * thread. F<rerrstr> fills P<buf> with the data from
+ * the current thread's error buffer, while F<errstr>
  * exchanges P<buf>'s contents with those of the current
- * thread's error buffer. F<ixp_werrstr> formats the given
- * format string, P<fmt>, via V<ixp_vsnprint> and writes it to
+ * thread's error buffer. F<werrstr> formats the given
+ * format string, P<fmt>, via V<vsnprint> and writes it to
  * the error buffer.
  *
- * V<ixp_vsnprint> may be set to a function which will format
+ * V<vsnprint> may be set to a function which will format
  * its arguments write the result to the P<nbuf> length buffer
  * V<buf>. The default value is F<vsnprintf>. The function must
  * format '%s' as a nul-terminated string and may not consume
@@ -71,12 +70,12 @@ namespace ixp
  * but may otherwise behave in any manner chosen by the user.
  *
  * See also:
- *	V<ixp_vsmprint>
+ *	V<vsmprint>
  */
 char*
-ixp_errbuf() {
+errbuf() {
 
-	auto errbuf = thread->errbuf();
+	auto errbuf = concurrency::threadModel->errbuf();
 	if(errno == EINTR) {
 		strncpy(errbuf, "interrupted", IXP_ERRMAX);
     } else if(errno != EPLAN9) {
@@ -91,24 +90,25 @@ errstr(char *buf, int nbuf) {
 
 	strncpy(tmp, buf, sizeof tmp);
 	rerrstr(buf, nbuf);
-	strncpy(thread->errbuf(), tmp, IXP_ERRMAX);
+	strncpy(concurrency::threadModel->errbuf(), tmp, IXP_ERRMAX);
 	errno = EPLAN9;
 }
 
 void
 rerrstr(char *buf, int nbuf) {
-	strncpy(buf, ixp_errbuf(), nbuf);
+	strncpy(buf, errbuf(), nbuf);
 }
 
 void
-ixp_werrstr(const char *fmt, ...) {
+werrstr(const char *fmt, ...) {
 	char tmp[IXP_ERRMAX];
 	va_list ap;
 
 	va_start(ap, fmt);
-	ixp_vsnprint(tmp, sizeof tmp, fmt, ap);
+	vsnprint(tmp, sizeof tmp, fmt, ap);
 	va_end(ap);
-	strncpy(thread->errbuf(), tmp, IXP_ERRMAX);
+	strncpy(concurrency::threadModel->errbuf(), tmp, IXP_ERRMAX);
 	errno = EPLAN9;
 }
 
+} // end namespace ixp
