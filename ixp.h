@@ -699,20 +699,25 @@ namespace ixp {
     long	pwrite(CFid*, const void*, long, int64_t);
     long	read(CFid*, void*, long);
     bool close(CFid*);
-    inline bool remove(Client* client, const std::string& str) noexcept { return remove(client, str.c_str()); }
     bool remove(Client*, const char*);
+    inline bool remove(Client* client, const std::string& str) noexcept { return remove(client, str.c_str()); }
 
 
     void	unmount(Client*);
     int	vprint(CFid*, const char*, va_list);
     long	write(CFid*, const void*, long);
     CFid*	create(Client*, const char*, uint perm, uint8_t mode);
+    inline CFid*   create(Client* c, const std::string& str, uint perm, uint8_t mode) { return create(c, str.c_str(), perm, mode); }
     Stat*	fstat(CFid*);
     Client*	mount(const char*);
+    inline Client* mount(const std::string& str) { return mount(str.c_str()); }
     Client*	mountfd(int);
     Client*	nsmount(const char*);
+    inline Client* nsmount(const std::string& str) { return nsmount(str.c_str()); }
     CFid*	open(Client*, const char*, uint8_t);
+    inline CFid*   open(Client* c, const std::string& str, uint8_t val) { return open(c, str.c_str(), val); }
     Stat*	stat(Client*, const char*);
+    inline Stat*   stat(Client* c, const std::string& str) { return stat(c, str.c_str()); }
 
     /* convert.c */
     void pu8(Msg*, uint8_t*);
@@ -735,6 +740,7 @@ namespace ixp {
 
     /* request.c */
     void respond(Req9*, const char *err);
+    inline void respond(Req9* s, const std::string& err) { respond(s, err.c_str()); }
     void serve9conn(Conn*);
 
     /* message.c */
