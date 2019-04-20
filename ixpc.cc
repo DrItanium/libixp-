@@ -60,7 +60,7 @@ str_of_mode(uint mode) {
 		"rw-", "rwx",
 	};
     std::stringstream buf;
-    ixp::print(buf, (mode & ixp::P9_DMDIR ? 'd' : '-'),
+    ixp::print(buf, (mode & ixp::DMode::DIR ? 'd' : '-'),
             '-', 
             modes[(mode >> 6) & 0b111],
             modes[(mode >> 3) & 0b111],
@@ -84,7 +84,7 @@ print_stat(ixp::Stat *s, int details) {
                 s->uid, " ", s->gid, " ", s->length, " ", 
                 str_of_time(s->mtime), " ", s->name, "\n");
     } else {
-		if((s->mode&ixp::P9_DMDIR) && strcmp(s->name, "/")) {
+		if((s->mode&ixp::DMode::DIR) && strcmp(s->name, "/")) {
             ixp::print(std::cout, s->name, "/\n");
         } else {
             ixp::print(std::cout, s->name, "\n");
@@ -102,7 +102,7 @@ xappend(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-    auto fid = client->open(file, ixp::P9_OWRITE);
+    auto fid = client->open(file, ixp::OMode::WRITE);
     if (!fid) {
         ixp::fatalPrint("Can't open file '", file, "': ", ixp::errbuf(), "\n");
     }
@@ -123,7 +123,7 @@ xwrite(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-    auto fid = client->open(file, ixp::P9_OWRITE);
+    auto fid = client->open(file, ixp::OMode::WRITE);
     if (!fid) {
         ixp::fatalPrint("Can't open file '", file, "': ", ixp::errbuf(), "\n");
     }
@@ -140,7 +140,7 @@ xawrite(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-    auto fid = client->open(file, ixp::P9_OWRITE);
+    auto fid = client->open(file, ixp::OMode::WRITE);
     if (!fid) {
         ixp::fatalPrint("Can't open file '", file, "': ", ixp::errbuf(), "\n");
     }
@@ -175,12 +175,12 @@ xcreate(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-    auto fid = client->create(file, 0777, ixp::P9_OWRITE);
+    auto fid = client->create(file, 0777, ixp::OMode::WRITE);
     if (!fid) {
         ixp::fatalPrint("Can't create file '", file, "': ", ixp::errbuf(), "\n");
     }
 
-	if((fid->qid.type&ixp::P9_DMDIR) == 0)
+	if((fid->qid.type&ixp::DMode::DIR) == 0)
 		write_data(fid, file);
 
 	return 0;
@@ -207,7 +207,7 @@ xread(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-    auto fid = client->open(file, ixp::P9_OREAD);
+    auto fid = client->open(file, ixp::OMode::READ);
     if (!fid) {
         ixp::fatalPrint("Can't open file '", file, "': ", ixp::errbuf(), "\n");
     }
@@ -253,14 +253,14 @@ xls(int argc, char *argv[]) {
         ixp::fatalPrint("Can't stat file '", file, "': ", ixp::errbuf(), "\n");
     }
 
-	if(dflag || (stat->mode&ixp::P9_DMDIR) == 0) {
+	if(dflag || (stat->mode&static_cast<uint32_t>(ixp::DMode::DIR)) == 0) {
 		print_stat(stat, lflag);
         ixp::Stat::free(stat);
 		return 0;
 	}
     ixp::Stat::free(stat);
 
-    fid = client->open(file, ixp::P9_OREAD);
+    fid = client->open(file, ixp::OMode::READ);
 	if(!fid) {
         ixp::fatalPrint("Can't open file '", file, "': ", ixp::errbuf(), "\n");
     }

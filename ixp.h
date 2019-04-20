@@ -55,152 +55,87 @@ namespace ixp {
     } // end namespace maximum
 
     /* 9P message types */
-    enum FType {
-        P9_TVersion = 100,
-        P9_RVersion,
-        P9_TAuth = 102,
-        P9_RAuth,
-        P9_TAttach = 104,
-        P9_RAttach,
-        P9_TError = 106, /* illegal */
-        P9_RError,
-        P9_TFlush = 108,
-        P9_RFlush,
-        P9_TWalk = 110,
-        P9_RWalk,
-        P9_TOpen = 112,
-        P9_ROpen,
-        P9_TCreate = 114,
-        P9_RCreate,
-        P9_TRead = 116,
-        P9_RRead,
-        P9_TWrite = 118,
-        P9_RWrite,
-        P9_TClunk = 120,
-        P9_RClunk,
-        P9_TRemove = 122,
-        P9_RRemove,
-        P9_TStat = 124,
-        P9_RStat,
-        P9_TWStat = 126,
-        P9_RWStat,
+    enum class FType : uint8_t {
+        TVersion = 100,
+        RVersion,
+        TAuth = 102,
+        RAuth,
+        TAttach = 104,
+        RAttach,
+        TError = 106, /* illegal */
+        RError,
+        TFlush = 108,
+        RFlush,
+        TWalk = 110,
+        RWalk,
+        TOpen = 112,
+        ROpen,
+        TCreate = 114,
+        RCreate,
+        TRead = 116,
+        RRead,
+        TWrite = 118,
+        RWrite,
+        TClunk = 120,
+        RClunk,
+        TRemove = 122,
+        RRemove,
+        TStat = 124,
+        RStat,
+        TWStat = 126,
+        RWStat,
     };
 
     /* from libc.h in p9p */
-    enum OMode {
-        P9_OREAD	= 0,	/* open for read */
-        P9_OWRITE	= 1,	/* write */
-        P9_ORDWR	= 2,	/* read and write */
-        P9_OEXEC	= 3,	/* execute, == read but check execute permission */
-        P9_OTRUNC	= 16,	/* or'ed in (except for exec), truncate file first */
-        P9_OCEXEC	= 32,	/* or'ed in, close on exec */
-        P9_ORCLOSE	= 64,	/* or'ed in, remove on close */
-        P9_ODIRECT	= 128,	/* or'ed in, direct access */
-        P9_ONONBLOCK	= 256,	/* or'ed in, non-blocking call */
-        P9_OEXCL	= 0x1000,	/* or'ed in, exclusive use (create only) */
-        P9_OLOCK	= 0x2000,	/* or'ed in, lock after opening */
-        P9_OAPPEND	= 0x4000	/* or'ed in, append only */
+    enum class OMode : uint16_t {
+        READ	= 0,	/* open for read */
+        WRITE	= 1,	/* write */
+        RDWR	= 2,	/* read and write */
+        EXEC	= 3,	/* execute, == read but check execute permission */
+        TRUNC	= 16,	/* or'ed in (except for exec), truncate file first */
+        CEXEC	= 32,	/* or'ed in, close on exec */
+        RCLOSE	= 64,	/* or'ed in, remove on close */
+        DIRECT	= 128,	/* or'ed in, direct access */
+        NONBLOCK	= 256,	/* or'ed in, non-blocking call */
+        EXCL	= 0x1000,	/* or'ed in, exclusive use (create only) */
+        LOCK	= 0x2000,	/* or'ed in, lock after opening */
+        APPEND	= 0x4000	/* or'ed in, append only */
     };
 
     /* bits in Qid.type */
-    enum QType {
-        P9_QTDIR	= 0x80,	/* type bit for directories */
-        P9_QTAPPEND	= 0x40,	/* type bit for append only files */
-        P9_QTEXCL	= 0x20,	/* type bit for exclusive use files */
-        P9_QTMOUNT	= 0x10,	/* type bit for mounted channel */
-        P9_QTAUTH	= 0x08,	/* type bit for authentication file */
-        P9_QTTMP	= 0x04,	/* type bit for non-backed-up file */
-        P9_QTSYMLINK	= 0x02,	/* type bit for symbolic link */
-        P9_QTFILE	= 0x00	/* type bits for plain file */
+    enum class QType : uint8_t {
+        DIR	= 0x80,	/* type bit for directories */
+        APPEND	= 0x40,	/* type bit for append only files */
+        EXCL	= 0x20,	/* type bit for exclusive use files */
+        MOUNT	= 0x10,	/* type bit for mounted channel */
+        AUTH	= 0x08,	/* type bit for authentication file */
+        TMP	= 0x04,	/* type bit for non-backed-up file */
+        SYMLINK	= 0x02,	/* type bit for symbolic link */
+        FILE	= 0x00	/* type bits for plain file */
     };
 
     /* bits in Stat.mode */
-    enum DMode {
-        P9_DMEXEC	= 0x1,		/* mode bit for execute permission */
-        P9_DMWRITE	= 0x2,		/* mode bit for write permission */
-        P9_DMREAD	= 0x4,		/* mode bit for read permission */
+    enum class DMode : uint32_t {
+        EXEC	= 0x1,		/* mode bit for execute permission */
+        WRITE	= 0x2,		/* mode bit for write permission */
+        READ	= 0x4,		/* mode bit for read permission */
 
         // these were originally macros in this exact location... no clue
         // why...
-        P9_DMDIR = 0x8000'0000, /* mode bit for directories */
-        P9_DMAPPEND = 0x4000'0000, /* mode bit for append only files */
-        P9_DMEXCL = 0x2000'0000, /* mode bit for exclusive use files */
-        P9_DMMOUNT = 0x1000'0000, /* mode bit for mounted channel */
-        P9_DMAUTH = 0x0800'0000, /* mode bit for authentication file */
-        P9_DMTMP = 0x0400'0000, /* mode bit for non-backed-up file */
-        P9_DMSYMLINK = 0x0200'0000, /* mode bit for symbolic link (Unix, 9P2000.u) */
-        P9_DMDEVICE = 0x0080'0000, /* mode bit for device file (Unix, 9P2000.u) */
-        P9_DMNAMEDPIPE = 0x0020'0000, /* mode bit for named pipe (Unix, 9P2000.u) */
-        P9_DMSOCKET = 0x0010'0000, /* mode bit for socket (Unix, 9P2000.u) */
-        P9_DMSETUID = 0x0008'0000, /* mode bit for setuid (Unix, 9P2000.u) */
-        P9_DMSETGID = 0x0004'0000, /* mode bit for setgid (Unix, 9P2000.u) */
+        DIR = 0x8000'0000, /* mode bit for directories */
+        APPEND = 0x4000'0000, /* mode bit for append only files */
+        EXCL = 0x2000'0000, /* mode bit for exclusive use files */
+        MOUNT = 0x1000'0000, /* mode bit for mounted channel */
+        AUTH = 0x0800'0000, /* mode bit for authentication file */
+        TMP = 0x0400'0000, /* mode bit for non-backed-up file */
+        SYMLINK = 0x0200'0000, /* mode bit for symbolic link (Unix, 9P2000.u) */
+        DEVICE = 0x0080'0000, /* mode bit for device file (Unix, 9P2000.u) */
+        NAMEDPIPE = 0x0020'0000, /* mode bit for named pipe (Unix, 9P2000.u) */
+        SOCKET = 0x0010'0000, /* mode bit for socket (Unix, 9P2000.u) */
+        SETUID = 0x0008'0000, /* mode bit for setuid (Unix, 9P2000.u) */
+        SETGID = 0x0004'0000, /* mode bit for setgid (Unix, 9P2000.u) */
     };
 
-#ifdef IXP_NO_P9_
-#  define TVersion P9_TVersion
-#  define RVersion P9_RVersion
-#  define TAuth P9_TAuth
-#  define RAuth P9_RAuth
-#  define TAttach P9_TAttach
-#  define RAttach P9_RAttach
-#  define TError P9_TError
-#  define RError P9_RError
-#  define TFlush P9_TFlush
-#  define RFlush P9_RFlush
-#  define TWalk P9_TWalk
-#  define RWalk P9_RWalk
-#  define TOpen P9_TOpen
-#  define ROpen P9_ROpen
-#  define TCreate P9_TCreate
-#  define RCreate P9_RCreate
-#  define TRead P9_TRead
-#  define RRead P9_RRead
-#  define TWrite P9_TWrite
-#  define RWrite P9_RWrite
-#  define TClunk P9_TClunk
-#  define RClunk P9_RClunk
-#  define TRemove P9_TRemove
-#  define RRemove P9_RRemove
-#  define TStat P9_TStat
-#  define RStat P9_RStat
-#  define TWStat P9_TWStat
-#  define RWStat P9_RWStat
-#
-#  define OREAD P9_OREAD
-#  define OWRITE P9_OWRITE
-#  define ORDWR P9_ORDWR
-#  define OEXEC P9_OEXEC
-#  define OTRUNC P9_OTRUNC
-#  define OCEXEC P9_OCEXEC
-#  define ORCLOSE P9_ORCLOSE
-#  define ODIRECT P9_ODIRECT
-#  define ONONBLOCK P9_ONONBLOCK
-#  define OEXCL P9_OEXCL
-#  define OLOCK P9_OLOCK
-#  define OAPPEND P9_OAPPEND
-#
-#  define QTDIR P9_QTDIR
-#  define QTAPPEND P9_QTAPPEND
-#  define QTEXCL P9_QTEXCL
-#  define QTMOUNT P9_QTMOUNT
-#  define QTAUTH P9_QTAUTH
-#  define QTTMP P9_QTTMP
-#  define QTSYMLINK P9_QTSYMLINK
-#  define QTFILE P9_QTFILE
-#  define DMDIR P9_DMDIR
-#  define DMAPPEND P9_DMAPPEND
-#  define DMEXCL P9_DMEXCL
-#  define DMMOUNT P9_DMMOUNT
-#  define DMAUTH P9_DMAUTH
-#  define DMTMP P9_DMTMP
-#
-#  define DMSYMLINK P9_DMSYMLINK
-#  define DMDEVICE P9_DMDEVICE
-#  define DMNAMEDPIPE P9_DMNAMEDPIPE
-#  define DMSOCKET P9_DMSOCKET
-#  define DMSETUID P9_DMSETUID
-#  define DMSETGID P9_DMSETGID
-#endif
 
     struct Map;
     struct Conn9;
