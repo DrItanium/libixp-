@@ -288,7 +288,7 @@ namespace ixp {
         void pqid(Qid*);
         void pstat(Stat*);
         void pfcall(Fcall*);
-        static Msg	message(char*, uint len, uint mode);
+        static Msg message(char*, uint len, uint mode);
         void packUnpack(uint8_t* v) { pu8(v); }
         void packUnpack(uint16_t* v) { pu16(v); }
         void packUnpack(uint32_t* v) { pu32(v); }
@@ -489,6 +489,7 @@ namespace ixp {
         FIO		rread;
         FIO		io;
         void packUnpack(Msg& msg) noexcept;
+        static void free(Fcall*);
     };
 
 #ifdef IXP_P9_STRUCTS
@@ -779,7 +780,6 @@ namespace ixp {
     void serve9conn(Conn*);
 
     /* message.c */
-    void	freefcall(Fcall*);
 
     /* server.c */
     Conn* listen(Server*, int, const std::any&,

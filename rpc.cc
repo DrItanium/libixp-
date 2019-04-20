@@ -182,7 +182,7 @@ dispatchandqlock(Client *mux, Fcall *f)
 	concurrency::threadModel->wake(&r2->r);
 	return;
 fail:
-	freefcall(f);
+	Fcall::free(f);
 	free(f);
 }
 } // end namespace

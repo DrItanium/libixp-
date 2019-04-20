@@ -73,7 +73,7 @@ dofcall(Client *c, Fcall *fcall) {
 	free(ret);
 	return true;
 fail:
-	freefcall(fcall);
+	Fcall::free(fcall);
 	free(ret);
 	return false;
 }
@@ -110,7 +110,7 @@ walk(Client *c, const char *path) {
 
 	f->qid = fcall.rwalk.wqid[n-1];
 
-	freefcall(&fcall);
+	Fcall::free(&fcall);
 	free(p);
 	return f;
 fail:
@@ -164,7 +164,7 @@ _stat(Client *c, ulong fid) {
 
 	stat = (Stat*)emalloc(sizeof *stat);
     msg.pstat(stat);
-	freefcall(&fcall);
+	Fcall::free(&fcall);
 	if(msg.pos > msg.end) {
 		free(stat);
 		stat = nullptr;
@@ -193,7 +193,7 @@ _pread(CFid *f, char *buf, long count, int64_t offset) {
 		offset += fcall.rread.count;
 		len += fcall.rread.count;
 
-		freefcall(&fcall);
+		Fcall::free(&fcall);
 		if(fcall.rread.count < n)
 			break;
 	}
@@ -219,7 +219,7 @@ _pwrite(CFid *f, const void *buf, long count, int64_t offset) {
 		offset += fcall.rwrite.count;
 		len += fcall.rwrite.count;
 
-		freefcall(&fcall);
+		Fcall::free(&fcall);
 		if(fcall.rwrite.count < n)
 			break;
 	} while(len < count);
@@ -251,7 +251,7 @@ Client::remove(const char *path) {
         fcall.hdr.type = TRemove;
         fcall.hdr.fid = f->fid;;
         auto ret = dofcall(this, &fcall);
-        freefcall(&fcall);
+        Fcall::free(&fcall);
         putfid(f);
 
         return ret;
@@ -351,7 +351,7 @@ Client::mountfd(int fd) {
 	c->msize = fcall.version.msize;
 
 	allocmsg(c, fcall.version.msize);
-	freefcall(&fcall);
+	Fcall::free(&fcall);
 
 	fcall.hdr.type = TAttach;
 	fcall.hdr.fid = RootFid;
@@ -447,7 +447,7 @@ Client::create(const char *path, uint perm, uint8_t mode) {
 	initfid(f, &fcall);
 	f->mode = mode;
 
-	freefcall(&fcall);
+	Fcall::free(&fcall);
 
 done:
 	free(tpath);
@@ -475,7 +475,7 @@ Client::open(const char *path, uint8_t mode) {
 	initfid(f, &fcall);
 	f->mode = mode;
 
-	freefcall(&fcall);
+	Fcall::free(&fcall);
 	return f;
 }
 
@@ -686,7 +686,7 @@ CFid::clunk() {
 	auto ret = dofcall(c, &fcall);
 	if(ret)
 		putfid(this);
-	freefcall(&fcall);
+	Fcall::free(&fcall);
 	return ret;
 }
 } // end namespace ixp

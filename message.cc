@@ -75,22 +75,22 @@ Stat::freestat(Stat *s) {
 }
 
 void
-freefcall(Fcall *fcall) {
+Fcall::free(Fcall *fcall) {
 	switch(fcall->hdr.type) {
 	case RStat:
-		free(fcall->rstat.stat);
+		::free(fcall->rstat.stat);
 		fcall->rstat.stat = nullptr;
 		break;
 	case RRead:
-		free(fcall->rread.data);
+		::free(fcall->rread.data);
 		fcall->rread.data = nullptr;
 		break;
 	case RVersion:
-		free(fcall->version.version);
+		::free(fcall->version.version);
 		fcall->version.version = nullptr;
 		break;
 	case RError:
-		free(fcall->error.ename);
+		::free(fcall->error.ename);
 		fcall->error.ename = nullptr;
 		break;
 	}
