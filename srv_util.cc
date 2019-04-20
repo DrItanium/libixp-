@@ -233,7 +233,7 @@ srv_writectl(Req9 *req, char* (*fn)(void*, Msg*)) {
 		c = *p;
 		*p = '\0';
 
-		msg = message(s, p-s, 0);
+		msg = Msg::message(s, p-s, 0);
 		s = fn(file->p, &msg);
 		if(s)
 			err = s;
@@ -530,7 +530,7 @@ srv_readdir(Req9 *req, LookupFn lookup, void (*dostat)(Stat*, FileId*)) {
 	if(size > req->fid->iounit)
 		size = req->fid->iounit;
 	buf = (decltype(buf))ixp::emallocz(size);
-	msg = message(buf, size, MsgPack);
+	msg = Msg::message(buf, size, MsgPack);
 
 	file = lookup(file, nullptr);
 	tfile = file;
@@ -542,7 +542,7 @@ srv_readdir(Req9 *req, LookupFn lookup, void (*dostat)(Stat*, FileId*)) {
 		if(offset >= req->ifcall.io.offset) {
 			if(size < n)
 				break;
-			pstat(&msg, &stat);
+            msg.pstat(&stat);
 			size -= n;
 		}
 		offset += n;

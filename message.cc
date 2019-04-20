@@ -225,7 +225,7 @@ fcall2msg(Msg *msg, Fcall *fcall) {
 	msg->end = msg->data + msg->size;
 	msg->pos = msg->data + SDWord;
 	msg->mode = MsgPack;
-	pfcall(msg, fcall);
+    msg->pfcall(fcall);
 
 	if(msg->pos > msg->end)
 		return 0;
@@ -234,7 +234,7 @@ fcall2msg(Msg *msg, Fcall *fcall) {
 	size = msg->end - msg->data;
 
 	msg->pos = msg->data;
-	pu32(msg, &size);
+    msg->pu32(&size);
 
 	msg->pos = msg->data;
 	return size;
@@ -244,7 +244,7 @@ uint
 msg2fcall(Msg *msg, Fcall *fcall) {
 	msg->pos = msg->data + SDWord;
 	msg->mode = MsgUnpack;
-	pfcall(msg, fcall);
+    msg->pfcall(fcall);
 
 	if(msg->pos > msg->end)
 		return 0;

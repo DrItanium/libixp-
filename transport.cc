@@ -99,7 +99,7 @@ recvmsg(int fd, Msg *msg) {
 		return 0;
 
 	msg->pos = msg->data;
-	pu32(msg, &msize);
+    msg->pu32(&msize);
 
 	uint32_t size = msize - SSize;
 	if(size >= msg->end - msg->pos) {
