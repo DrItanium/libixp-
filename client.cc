@@ -60,11 +60,11 @@ dofcall(Client *c, Fcall *fcall) {
     if (!ret) {
 		return false;
     }
-	if(ret->hdr.type == RError) {
+	if(ret->hdr.type == FType::RError) {
 		werrstr("%s", ret->error.ename);
 		goto fail;
 	}
-	if(ret->hdr.type != (fcall->hdr.type^1)) {
+    if (auto hdrVal = uint8_t(ret->hdr.type); hdrVal != (hdrVal^1)) {
 		werrstr("received mismatched fcall");
 		goto fail;
 	}
@@ -87,15 +87,14 @@ CFid*
 walk(Client *c, const char *path) {
 	CFid *f;
 	char *p;
-	Fcall fcall;
+	Fcall fcall(FType::TWalk);
 	int n;
 
 	p = estrdup(path);
 	n = tokenize(fcall.twalk.wname, nelem(fcall.twalk.wname), p, '/');
 	f = getfid(c);
+    fcall.setFid(RootFid);
 
-	fcall.hdr.type = TWalk;
-	fcall.hdr.fid = RootFid;
 	fcall.twalk.nwname = n;
 	fcall.twalk.newfid = f->fid;
 	if(!dofcall(c, &fcall))
@@ -151,11 +150,8 @@ initfid(CFid *f, Fcall *fcall) {
 Stat*
 _stat(Client *c, ulong fid) {
 	Msg msg;
-	Fcall fcall;
+	Fcall fcall(FType::TStat, fid);
 	Stat *stat;
-
-	fcall.hdr.type = TStat;
-	fcall.hdr.fid = fid;
 	if(!dofcall(c, &fcall))
 		return nullptr;
 
@@ -178,9 +174,7 @@ _pread(CFid *f, char *buf, long count, int64_t offset) {
 	auto len = 0l;
 	while(len < count) {
         auto n = min<int>(count-len, f->iounit);
-
-		fcall.hdr.type = TRead;
-		fcall.hdr.fid = f->fid;
+        fcall.setTypeAndFid(FType::TRead, f->fid);
 		fcall.tread.offset = offset;
 		fcall.tread.count = n;
 		if(!dofcall(f->client, &fcall))
@@ -207,8 +201,7 @@ _pwrite(CFid *f, const void *buf, long count, int64_t offset) {
 	len = 0;
 	do {
 		n = min<int>(count-len, f->iounit);
-		fcall.hdr.type = TWrite;
-		fcall.hdr.fid = f->fid;
+        fcall.setTypeAndFid(FType::TWrite, f->fid);
 		fcall.twrite.offset = offset;
 		fcall.twrite.data = (char*)buf + len;
 		fcall.twrite.count = n;
@@ -247,8 +240,7 @@ Client::remove(const char *path) {
     if (auto f = walk(this, path); !f) {
         return false;
     } else {
-        fcall.hdr.type = TRemove;
-        fcall.hdr.fid = f->fid;;
+        fcall.setTypeAndFid(FType::TRemove, f->fid);
         auto ret = dofcall(this, &fcall);
         Fcall::free(&fcall);
         putfid(f);
@@ -329,7 +321,7 @@ Client::mountfd(int fd) {
 	c->mintag = NoTag;
 	c->maxtag = NoTag+1;
 
-	fcall.hdr.type = TVersion;
+	fcall.hdr.type = FType::TVersion;
 	fcall.version.msize = maximum::Msg;
 	fcall.version.version = (char*)Version;
 
@@ -352,7 +344,7 @@ Client::mountfd(int fd) {
 	allocmsg(c, fcall.version.msize);
 	Fcall::free(&fcall);
 
-	fcall.hdr.type = TAttach;
+	fcall.hdr.type = FType::TAttach;
 	fcall.hdr.fid = RootFid;
 	fcall.tattach.afid = NoFid;
 	fcall.tattach.uname = getenv("USER");
@@ -431,8 +423,7 @@ Client::create(const char *path, uint perm, uint8_t mode) {
     if (!f) 
 		goto done;
 
-	fcall.hdr.type = TCreate;
-	fcall.hdr.fid = f->fid;
+    fcall.setTypeAndFid(FType::TCreate, f->fid);
 	fcall.tcreate.name = (char*)(uintptr_t)path;
 	fcall.tcreate.perm = perm;
 	fcall.tcreate.mode = mode;
@@ -462,8 +453,7 @@ Client::open(const char *path, uint8_t mode) {
     if (!f) 
 		return nullptr;
 
-	fcall.hdr.type = TOpen;
-	fcall.hdr.fid = f->fid;
+    fcall.setTypeAndFid(FType::TOpen, f->fid);
 	fcall.topen.mode = mode;
 
 	if(!dofcall(this, &fcall)) {
@@ -680,7 +670,7 @@ CFid::clunk() {
 
 	auto c = client;
 
-	fcall.hdr.type = TClunk;
+	fcall.hdr.type = FType::TClunk;
 	fcall.hdr.fid = fid;
 	auto ret = dofcall(c, &fcall);
 	if(ret)

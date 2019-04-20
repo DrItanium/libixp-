@@ -278,7 +278,7 @@ namespace ixp {
     struct FVersion;
 
     struct FHdr {
-        uint8_t		type;
+        FType type;
         uint16_t	tag;
         uint32_t	fid;
     };
@@ -403,6 +403,21 @@ namespace ixp {
         FIO		io;
         void packUnpack(Msg& msg) noexcept;
         static void free(Fcall*);
+        FHdr& getHeader() noexcept { return hdr; }
+        const FHdr& getHeader() const noexcept { return hdr; }
+        void setType(FType type) noexcept { hdr.type = type; }
+        void setFid(decltype(FHdr::fid) value) noexcept { hdr.fid = value; }
+        void setTypeAndFid(FType type, decltype(FHdr::fid) value) noexcept {
+            setType(type);
+            setFid(value);
+        }
+        Fcall() = default;
+        Fcall(FType type) {
+            setType(type);
+        }
+        Fcall(FType type, decltype(FHdr::fid) value) : Fcall(type) {
+            setFid(value);
+        }
     };
 
     struct Conn {
