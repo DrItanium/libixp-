@@ -15,31 +15,31 @@
 namespace ixp {
 namespace {
 auto 
-mread(int fd, IxpMsg *msg, uint count) {
+mread(int fd, Msg *msg, uint count) {
 	auto n = msg->end - msg->pos;
 	if (n <= 0) {
-		ixp_werrstr("buffer full");
+		werrstr("buffer full");
 		return -1;
 	}
 	if(n > count) {
 		n = count;
     }
 
-	int r = thread->read(fd, msg->pos, n);
+	int r = concurrency::threadModel->read(fd, msg->pos, n);
 	if(r > 0)
 		msg->pos += r;
 	return r;
 }
 
 int
-readn(int fd, IxpMsg *msg, uint count) {
+readn(int fd, Msg *msg, uint count) {
 	auto num = count;
 	while(num > 0) {
 		auto r = mread(fd, msg, num);
 		if(r == -1 && errno == EINTR)
 			continue;
 		if(r == 0) {
-			ixp_werrstr("broken pipe: %s", ixp_errbuf());
+			werrstr("broken pipe: %s", errbuf());
 			return count - num;
 		}
 		num -= r;
@@ -50,17 +50,17 @@ readn(int fd, IxpMsg *msg, uint count) {
 
 
 /**
- * Function: ixp_sendmsg
- * Function: ixp_recvmsg
+ * Function: sendmsg
+ * Function: recvmsg
  *
  * These functions read and write messages to and from the given
  * file descriptors.
  *
- * ixp_sendmsg writes the data at P<msg>->pos upto P<msg>->end.
+ * sendmsg writes the data at P<msg>->pos upto P<msg>->end.
  * If the call returns non-zero, all data is assured to have
  * been written.
  *
- * ixp_recvmsg first reads a 32 bit, little-endian length from
+ * recvmsg first reads a 32 bit, little-endian length from
  * P<fd> and then reads a message of that length (including the
  * 4 byte size specifier) into the buffer at P<msg>->data, so
  * long as the size is less than P<msg>->size.
@@ -68,17 +68,17 @@ readn(int fd, IxpMsg *msg, uint count) {
  * Returns:
  *	These functions return the number of bytes read or
  *	written, or 0 on error. Errors are stored in
- *	F<ixp_errbuf>.
+ *	F<errbuf>.
  */
 uint
-sendmsg(int fd, IxpMsg *msg) {
+sendmsg(int fd, Msg *msg) {
 	msg->pos = msg->data;
 	while(msg->pos < msg->end) {
-		if (auto r = thread->write(fd, msg->pos, msg->end - msg->pos); r < 1) {
+		if (auto r = concurrency::threadModel->write(fd, msg->pos, msg->end - msg->pos); r < 1) {
 			if(errno == EINTR) {
 				continue;
             }
-			ixp_werrstr("broken pipe: %s", ixp_errbuf());
+			werrstr("broken pipe: %s", errbuf());
 			return 0;
 		} else {
 		    msg->pos += r;
@@ -88,7 +88,7 @@ sendmsg(int fd, IxpMsg *msg) {
 }
 
 uint
-recvmsg(int fd, IxpMsg *msg) {
+recvmsg(int fd, Msg *msg) {
     static constexpr auto SSize = 4;
 	uint32_t msize;
 
@@ -99,15 +99,15 @@ recvmsg(int fd, IxpMsg *msg) {
 		return 0;
 
 	msg->pos = msg->data;
-	ixp_pu32(msg, &msize);
+	pu32(msg, &msize);
 
 	uint32_t size = msize - SSize;
 	if(size >= msg->end - msg->pos) {
-		ixp_werrstr("message too large");
+		werrstr("message too large");
 		return 0;
 	}
 	if(ixp::readn(fd, msg, size) != size) {
-		ixp_werrstr("message incomplete");
+		werrstr("message incomplete");
 		return 0;
 	}
 
