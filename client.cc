@@ -256,7 +256,6 @@ _pwrite(CFid *f, const void *buf, long count, int64_t offset) {
  *	F<mount>
  */
 
-namespace ixp {
 bool
 remove(Client *c, const char *path) {
 	Fcall fcall;
@@ -272,7 +271,6 @@ remove(Client *c, const char *path) {
 
         return ret;
     }
-}
 }
 
 

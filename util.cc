@@ -13,7 +13,7 @@
 
 namespace ixp {
 /**
- * Function: ixp_smprint
+ * Function: smprint
  *
  * This function formats its arguments as F<printf> and returns
  * a F<malloc> allocated string containing the result.
@@ -24,10 +24,10 @@ smprint(const char *fmt, ...) {
 	char *s;
 
 	va_start(ap, fmt);
-	s = ixp_vsmprint(fmt, ap);
+	s = vsmprint(fmt, ap);
 	va_end(ap);
 	if(!s)
-		ixp_werrstr("no memory");
+		werrstr("no memory");
 	return s;
 }
 
@@ -58,7 +58,7 @@ rmkdir(char *path, int mode) {
 			*p = '\0';
 			ret = mkdir(path, mode);
 			if((ret == -1) && (errno != EEXIST)) {
-				ixp_werrstr("Can't create path '%s': %s", path, ixp_errbuf());
+				werrstr("Can't create path '%s': %s", path, errbuf());
 				return 0;
 			}
 			*p = c;
@@ -76,7 +76,7 @@ ns_display(void) {
 
 	disp = getenv("DISPLAY");
 	if(!disp || disp[0] == '\0') {
-		ixp_werrstr("$DISPLAY is unset");
+		werrstr("$DISPLAY is unset");
 		return nullptr;
 	}
 
@@ -91,11 +91,11 @@ ns_display(void) {
 	if(!rmkdir(path, 0700))
 		;
 	else if(stat(path, &st))
-		ixp_werrstr("Can't stat Namespace path '%s': %s", path, ixp_errbuf());
+		werrstr("Can't stat Namespace path '%s': %s", path, errbuf());
 	else if(getuid() != st.st_uid)
-		ixp_werrstr("Namespace path '%s' exists but is not owned by you", path);
+		werrstr("Namespace path '%s' exists but is not owned by you", path);
 	else if((st.st_mode & 077) && chmod(path, st.st_mode & ~077))
-		ixp_werrstr("Namespace path '%s' exists, but has wrong permissions: %s", path, ixp_errbuf());
+		werrstr("Namespace path '%s' exists, but has wrong permissions: %s", path, errbuf());
 	else
 		return path;
 	free(path);
@@ -103,7 +103,7 @@ ns_display(void) {
 }
 
 /**
- * Function: ixp_namespace
+ * Function: namespace
  *
  * Returns the path of the canonical 9p namespace directory.
  * Either the value of $NAMESPACE, if it's set, or, roughly,
@@ -135,13 +135,13 @@ getNamespace(void) {
 }
 
 /**
- * Function: ixp_eprint
+ * Function: eprint
  *
  * libixp calls this function on error. It formats its arguments
  * as F<printf> and exits the program.
  */
 void
-ixp_eprint(const char *fmt, ...) {
+eprint(const char *fmt, ...) {
 	va_list ap;
 
 	int err = errno;
@@ -174,24 +174,24 @@ mfatal(char *name, uint size) {
 		size /= 10;
 	} while(size > 0);
 
-	write(1, couldnot, sizeof(couldnot)-1);
-	write(1, name, strlen(name));
-	write(1, paren, sizeof(paren)-1);
-	write(1, sizestr+i, sizeof(sizestr)-i);
-	write(1, bytes, sizeof(bytes)-1);
+	::write(1, couldnot, sizeof(couldnot)-1);
+	::write(1, name, strlen(name));
+	::write(1, paren, sizeof(paren)-1);
+	::write(1, sizestr+i, sizeof(sizestr)-i);
+	::write(1, bytes, sizeof(bytes)-1);
 
 	exit(1);
 }
 
 /**
- * Function: ixp_emalloc
- * Function: ixp_emallocz
- * Function: ixp_erealloc
- * Function: ixp_estrdup
+ * Function: emalloc
+ * Function: emallocz
+ * Function: erealloc
+ * Function: estrdup
  *
  * These functions act like their stdlib counterparts, but print
  * an error message and exit the program if allocation fails.
- * ixp_emallocz acts like ixp_emalloc but additionally zeros the
+ * emallocz acts like emalloc but additionally zeros the
  * result of the allocation.
  */
 void*
