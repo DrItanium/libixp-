@@ -60,7 +60,7 @@ str_of_mode(uint mode) {
 		"rw-", "rwx",
 	};
     std::stringstream buf;
-    ixp::print(buf, (mode & ixp::DMode::DIR ? 'd' : '-'),
+    ixp::print(buf, (mode & (uint32_t)ixp::DMode::DIR ? 'd' : '-'),
             '-', 
             modes[(mode >> 6) & 0b111],
             modes[(mode >> 3) & 0b111],
@@ -84,7 +84,7 @@ print_stat(ixp::Stat *s, int details) {
                 s->uid, " ", s->gid, " ", s->length, " ", 
                 str_of_time(s->mtime), " ", s->name, "\n");
     } else {
-		if((s->mode&ixp::DMode::DIR) && strcmp(s->name, "/")) {
+		if((s->mode&(uint32_t)ixp::DMode::DIR) && strcmp(s->name, "/")) {
             ixp::print(std::cout, s->name, "/\n");
         } else {
             ixp::print(std::cout, s->name, "\n");
@@ -180,7 +180,7 @@ xcreate(int argc, char *argv[]) {
         ixp::fatalPrint("Can't create file '", file, "': ", ixp::errbuf(), "\n");
     }
 
-	if((fid->qid.type&ixp::DMode::DIR) == 0)
+	if((fid->qid.type&(uint32_t)ixp::DMode::DIR) == 0)
 		write_data(fid, file);
 
 	return 0;
