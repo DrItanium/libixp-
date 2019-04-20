@@ -102,12 +102,12 @@ xappend(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-	auto fid = ixp::open(client, file, ixp::P9_OWRITE);
+    auto fid = client->open(file, ixp::P9_OWRITE);
     if (!fid) {
         ixp::fatalPrint("Can't open file '", file, "': ", ixp::errbuf(), "\n");
     }
 	
-	auto stat = ixp::stat(client, file);
+	auto stat = client->stat(file);
 	fid->offset = stat->length;
 	ixp::freestat(stat);
 	free(stat);
@@ -123,7 +123,7 @@ xwrite(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-	auto fid = ixp::open(client, file, ixp::P9_OWRITE);
+    auto fid = client->open(file, ixp::P9_OWRITE);
     if (!fid) {
         ixp::fatalPrint("Can't open file '", file, "': ", ixp::errbuf(), "\n");
     }
@@ -140,7 +140,7 @@ xawrite(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-	auto fid = ixp::open(client, file, ixp::P9_OWRITE);
+    auto fid = client->open(file, ixp::P9_OWRITE);
     if (!fid) {
         ixp::fatalPrint("Can't open file '", file, "': ", ixp::errbuf(), "\n");
     }
@@ -175,7 +175,7 @@ xcreate(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-	auto fid = ixp::create(client, file, 0777, ixp::P9_OWRITE);
+    auto fid = client->create(file, 0777, ixp::P9_OWRITE);
     if (!fid) {
         ixp::fatalPrint("Can't create file '", file, "': ", ixp::errbuf(), "\n");
     }
@@ -207,7 +207,7 @@ xread(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-	auto fid = ixp::open(client, file, ixp::P9_OREAD);
+    auto fid = client->open(file, ixp::P9_OREAD);
     if (!fid) {
         ixp::fatalPrint("Can't open file '", file, "': ", ixp::errbuf(), "\n");
     }
@@ -248,7 +248,7 @@ xls(int argc, char *argv[]) {
 
 	file = EARGF(usage());
 
-	auto stat = ixp::stat(client, file);
+    auto stat = client->stat(file);
     if (!stat) {
         ixp::fatalPrint("Can't stat file '", file, "': ", ixp::errbuf(), "\n");
     }
@@ -260,7 +260,7 @@ xls(int argc, char *argv[]) {
 	}
 	ixp::freestat(stat);
 
-	fid = ixp::open(client, file, ixp::P9_OREAD);
+    fid = client->open(file, ixp::P9_OREAD);
 	if(!fid) {
         ixp::fatalPrint("Can't open file '", file, "': ", ixp::errbuf(), "\n");
     }

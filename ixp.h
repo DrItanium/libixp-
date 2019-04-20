@@ -513,7 +513,13 @@ namespace ixp {
         int		mintag;
         int		maxtag;
         bool remove(const char*);
-        inline bool remove(const std::string& str) noexcept { return remove(str.c_str()); }
+        CFid*	create(const char*, uint perm, uint8_t mode);
+        CFid*	open(const char*, uint8_t);
+        Stat*	stat(const char*);
+        inline bool  remove(const std::string& str) noexcept { return remove(str.c_str()); }
+        inline CFid* create(const std::string& str, uint perm, uint8_t mode) { return create(str.c_str(), perm, mode); }
+        inline CFid* open(const std::string& str, uint8_t val) { return open(str.c_str(), val); }
+        inline Stat* stat(const std::string& str) { return stat(str.c_str()); }
     };
 
     struct CFid {
@@ -537,6 +543,7 @@ namespace ixp {
         int vprint(const char*, va_list);
         inline int vprint(const std::string& str, va_list l) { return vprint(str.c_str(), l); }
         long write(const void*, long);
+        Stat*	fstat();
     };
 
     /**
@@ -708,18 +715,11 @@ namespace ixp {
 
 
     void	unmount(Client*);
-    CFid*	create(Client*, const char*, uint perm, uint8_t mode);
-    inline CFid*   create(Client* c, const std::string& str, uint perm, uint8_t mode) { return create(c, str.c_str(), perm, mode); }
-    Stat*	fstat(CFid*);
     Client*	mount(const char*);
     inline Client* mount(const std::string& str) { return mount(str.c_str()); }
     Client*	mountfd(int);
     Client*	nsmount(const char*);
     inline Client* nsmount(const std::string& str) { return nsmount(str.c_str()); }
-    CFid*	open(Client*, const char*, uint8_t);
-    inline CFid*   open(Client* c, const std::string& str, uint8_t val) { return open(c, str.c_str(), val); }
-    Stat*	stat(Client*, const char*);
-    inline Stat*   stat(Client* c, const std::string& str) { return stat(c, str.c_str()); }
 
     /* convert.c */
     void pu8(Msg*, uint8_t*);

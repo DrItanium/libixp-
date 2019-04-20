@@ -417,14 +417,14 @@ nsmount(const char *name) {
  */
 
 CFid*
-create(Client *c, const char *path, uint perm, uint8_t mode) {
+Client::create(const char *path, uint perm, uint8_t mode) {
 	Fcall fcall;
 	CFid *f;
 	char *tpath;;
 
 	tpath = estrdup(path);
 
-	f = walkdir(c, tpath, &path);
+	f = walkdir(this, tpath, &path);
     if (!f) 
 		goto done;
 
@@ -434,7 +434,7 @@ create(Client *c, const char *path, uint perm, uint8_t mode) {
 	fcall.tcreate.perm = perm;
 	fcall.tcreate.mode = mode;
 
-	if(!dofcall(c, &fcall)) {
+	if(!dofcall(this, &fcall)) {
         f->clunk();
 		f = nullptr;
 		goto done;
@@ -451,11 +451,11 @@ done:
 }
 
 CFid*
-open(Client *c, const char *path, uint8_t mode) {
+Client::open(const char *path, uint8_t mode) {
 	Fcall fcall;
 	CFid *f;
 
-	f = walk(c, path);
+	f = walk(this, path);
     if (!f) 
 		return nullptr;
 
@@ -463,7 +463,7 @@ open(Client *c, const char *path, uint8_t mode) {
 	fcall.hdr.fid = f->fid;
 	fcall.topen.mode = mode;
 
-	if(!dofcall(c, &fcall)) {
+	if(!dofcall(this, &fcall)) {
 		f->clunk();
 		return nullptr;
 	}
@@ -515,22 +515,22 @@ CFid::close() {
  */
 
 Stat*
-stat(Client *c, const char *path) {
+Client::stat(const char *path) {
 	Stat *stat;
 	CFid *f;
 
-	f = walk(c, path);
+	f = walk(this, path);
     if (!f) 
 		return nullptr;
 
-	stat = _stat(c, f->fid);
+	stat = _stat(this, f->fid);
     f->clunk();
 	return stat;
 }
 
 Stat*
-fstat(CFid *fid) {
-	return _stat(fid->client, fid->fid);
+CFid::fstat() {
+	return _stat(client, fid);
 }
 
 
