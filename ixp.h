@@ -474,13 +474,6 @@ namespace ixp {
         static void free(Fcall*);
     };
 
-#ifdef IXP_P9_STRUCTS
-    using Fcall = Fcall;
-    using Fid = Fid;
-    using Qid = Qid;
-    using Stat = Stat;
-#endif
-
     struct Conn {
         Server*	srv;
         std::any	aux;	/* Arbitrary pointer, to be used by handlers. */
