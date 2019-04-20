@@ -120,18 +120,20 @@ namespace ixp {
         P9_DMWRITE	= 0x2,		/* mode bit for write permission */
         P9_DMREAD	= 0x4,		/* mode bit for read permission */
 
-#define P9_DMDIR	0x8000'0000	/* mode bit for directories */
-#define P9_DMAPPEND	0x4000'0000	/* mode bit for append only files */
-#define P9_DMEXCL	0x2000'0000	/* mode bit for exclusive use files */
-#define P9_DMMOUNT	0x1000'0000	/* mode bit for mounted channel */
-#define P9_DMAUTH	0x0800'0000	/* mode bit for authentication file */
-#define P9_DMTMP	0x0400'0000	/* mode bit for non-backed-up file */
-#define P9_DMSYMLINK	0x0200'0000	/* mode bit for symbolic link (Unix, 9P2000.u) */
-#define P9_DMDEVICE	0x0080'0000	/* mode bit for device file (Unix, 9P2000.u) */
-#define P9_DMNAMEDPIPE	0x0020'0000	/* mode bit for named pipe (Unix, 9P2000.u) */
-#define P9_DMSOCKET	0x0010'0000	/* mode bit for socket (Unix, 9P2000.u) */
-#define P9_DMSETUID	0x0008'0000	/* mode bit for setuid (Unix, 9P2000.u) */
-#define P9_DMSETGID	0x0004'0000	/* mode bit for setgid (Unix, 9P2000.u) */
+        // these were originally macros in this exact location... no clue
+        // why...
+        P9_DMDIR = 0x8000'0000, /* mode bit for directories */
+        P9_DMAPPEND = 0x4000'0000, /* mode bit for append only files */
+        P9_DMEXCL = 0x2000'0000, /* mode bit for exclusive use files */
+        P9_DMMOUNT = 0x1000'0000, /* mode bit for mounted channel */
+        P9_DMAUTH = 0x0800'0000, /* mode bit for authentication file */
+        P9_DMTMP = 0x0400'0000, /* mode bit for non-backed-up file */
+        P9_DMSYMLINK = 0x0200'0000, /* mode bit for symbolic link (Unix, 9P2000.u) */
+        P9_DMDEVICE = 0x0080'0000, /* mode bit for device file (Unix, 9P2000.u) */
+        P9_DMNAMEDPIPE = 0x0020'0000, /* mode bit for named pipe (Unix, 9P2000.u) */
+        P9_DMSOCKET = 0x0010'0000, /* mode bit for socket (Unix, 9P2000.u) */
+        P9_DMSETUID = 0x0008'0000, /* mode bit for setuid (Unix, 9P2000.u) */
+        P9_DMSETGID = 0x0004'0000, /* mode bit for setgid (Unix, 9P2000.u) */
     };
 
 #ifdef IXP_NO_P9_

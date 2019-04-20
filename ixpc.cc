@@ -60,7 +60,7 @@ str_of_mode(uint mode) {
 		"rw-", "rwx",
 	};
     std::stringstream buf;
-    ixp::print(buf, (mode & P9_DMDIR ? 'd' : '-'),
+    ixp::print(buf, (mode & ixp::P9_DMDIR ? 'd' : '-'),
             '-', 
             modes[(mode >> 6) & 0b111],
             modes[(mode >> 3) & 0b111],
@@ -84,7 +84,7 @@ print_stat(ixp::Stat *s, int details) {
                 s->uid, " ", s->gid, " ", s->length, " ", 
                 str_of_time(s->mtime), " ", s->name, "\n");
     } else {
-		if((s->mode&P9_DMDIR) && strcmp(s->name, "/")) {
+		if((s->mode&ixp::P9_DMDIR) && strcmp(s->name, "/")) {
             ixp::print(std::cout, s->name, "/\n");
         } else {
             ixp::print(std::cout, s->name, "\n");
@@ -180,7 +180,7 @@ xcreate(int argc, char *argv[]) {
         ixp::fatalPrint("Can't create file '", file, "': ", ixp::errbuf(), "\n");
     }
 
-	if((fid->qid.type&P9_DMDIR) == 0)
+	if((fid->qid.type&ixp::P9_DMDIR) == 0)
 		write_data(fid, file);
 
 	return 0;
@@ -253,7 +253,7 @@ xls(int argc, char *argv[]) {
         ixp::fatalPrint("Can't stat file '", file, "': ", ixp::errbuf(), "\n");
     }
 
-	if(dflag || (stat->mode&P9_DMDIR) == 0) {
+	if(dflag || (stat->mode&ixp::P9_DMDIR) == 0) {
 		print_stat(stat, lflag);
         ixp::Stat::free(stat);
 		return 0;
