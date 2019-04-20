@@ -632,6 +632,8 @@ namespace ixp {
 
         /* Private members */
         Conn9 *conn;
+        void respond(const char *err);
+        inline void respond(const std::string& err) { respond(err.c_str()); }
     };
 
     struct Srv9 {
@@ -775,8 +777,6 @@ namespace ixp {
     void	werrstr(const char*, ...);
 
     /* request.c */
-    void respond(Req9*, const char *err);
-    inline void respond(Req9* s, const std::string& err) { respond(s, err.c_str()); }
     void serve9conn(Conn*);
 
     /* message.c */

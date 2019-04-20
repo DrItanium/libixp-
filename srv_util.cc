@@ -302,7 +302,7 @@ pending_respond(Req9 *req) {
 			req_link->prev->next = req_link->next;
 			free(req_link);
 		}
-		respond(req, nullptr);
+		req->respond(nullptr);
 		free(queue);
 	}else {
 		req_link = (decltype(req_link))ixp::emallocz(sizeof *req_link);
@@ -442,7 +442,7 @@ pending_clunk(Req9 *req) {
 		req_link = req_link->next;
 		if(r->fid == pend_link->fid) {
 			_pending_flush(r);
-			respond(r, "interrupted");
+			r->respond("interrupted");
 		}
 	}
 
@@ -456,7 +456,7 @@ pending_clunk(Req9 *req) {
 	}
 	more = (pend_link->pending->fids.next == &pend_link->pending->fids);
 	free(pend_link);
-	respond(req, nullptr);
+    r->respond(nullptr);
 	return more;
 }
 
@@ -553,7 +553,7 @@ srv_readdir(Req9 *req, LookupFn lookup, void (*dostat)(Stat*, FileId*)) {
 	}
 	req->ofcall.io.count = msg.pos - msg.data;
 	req->ofcall.io.data = msg.data;
-	respond(req, nullptr);
+    req->respond(nullptr);
 }
 
 void
@@ -588,7 +588,7 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
 			file=file->next;
 			srv_freefile(tfile);
 		}
-		respond(req, Enofile);
+        req->respond(Enofile);
 		return;
 	}
 	/* Remove refs for req->fid if no new fid */
@@ -602,7 +602,7 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
 	}else
 		req->newfid->aux = file;
 	req->ofcall.rwalk.nwqid = i;
-	respond(req, nullptr);
+    req->respond(nullptr);
 }
 
 } // end namespace ixp
