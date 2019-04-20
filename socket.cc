@@ -93,7 +93,7 @@ announce_unix(const std::string& file) {
 		goto fail;
 
 	chmod(file.c_str(), S_IRWXU);
-	if(::listen(fd, IXP_MAX_CACHE) < 0)
+	if(::listen(fd, maximum::Cache) < 0)
 		goto fail;
 
 	return fd;
@@ -184,7 +184,7 @@ announce_tcp(const std::string& host) {
 		if(bind(fd, ai->ai_addr, ai->ai_addrlen) < 0)
 			goto fail;
 
-		if(::listen(fd, IXP_MAX_CACHE) < 0)
+		if(::listen(fd, maximum::Cache) < 0)
 			goto fail;
 		break;
 	fail:

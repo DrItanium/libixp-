@@ -37,28 +37,22 @@ namespace ixp {
     template<typename ... Args>
         void fatalPrint(Args&& ... args) {
             errorPrint(args...);
-            exit(1);
+            throw 1;
         }
 
     template<typename T>
-        constexpr T min(T a, T b) noexcept {
-            if (a < b) {
-                return a;
-            } else {
-                return b;
-            }
-        }
-
-
-    enum {
-        IXP_MAX_VERSION = 32,
-        IXP_MAX_MSG = 8192,
-        IXP_MAX_ERROR = 128,
-        IXP_MAX_CACHE = 32,
-        IXP_MAX_FLEN = 128,
-        IXP_MAX_ULEN = 32,
-        IXP_MAX_WELEM = 16,
-    };
+    constexpr T min(T a, T b) noexcept {
+        return a < b ? a : b;
+    }
+    namespace maximum {
+        constexpr auto Version = 32;
+        constexpr auto Msg = 8192;
+        constexpr auto Error = 128;
+        constexpr auto Cache = 32;
+        constexpr auto Flen = 128;
+        constexpr auto Ulen = 32;
+        constexpr auto Welem = 16;
+    } // end namespace maximum
 
     /* 9P message types */
     enum FType {
@@ -228,7 +222,7 @@ namespace ixp {
 
     /* Threading */
     enum {
-        IXP_ERRMAX = IXP_MAX_ERROR,
+        IXP_ERRMAX = maximum::Error,
     };
 
     struct Mutex {
@@ -389,12 +383,12 @@ namespace ixp {
         FHdr	hdr;
         uint32_t	newfid;
         uint16_t	nwname;
-        char*		wname[IXP_MAX_WELEM];
+        char*		wname[maximum::Welem];
     };
     struct FRWalk {
         FHdr		hdr;
         uint16_t	nwqid;
-        Qid		wqid[IXP_MAX_WELEM];
+        Qid		wqid[maximum::Welem];
     };
     struct FIO {
         FHdr		hdr;

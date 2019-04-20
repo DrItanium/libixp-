@@ -330,7 +330,7 @@ Client::mountfd(int fd) {
 	c->maxtag = NoTag+1;
 
 	fcall.hdr.type = TVersion;
-	fcall.version.msize = IXP_MAX_MSG;
+	fcall.version.msize = maximum::Msg;
 	fcall.version.version = (char*)Version;
 
 	if(!dofcall(c, &fcall)) {
@@ -339,7 +339,7 @@ Client::mountfd(int fd) {
 	}
 
 	if(strcmp(fcall.version.version, Version)
-	|| fcall.version.msize > IXP_MAX_MSG) {
+	|| fcall.version.msize > maximum::Msg) {
 		werrstr("bad 9P version response");
 		unmount(c);
 		return nullptr;

@@ -380,7 +380,7 @@ Req9::respond(const char *error) {
 
 		concurrency::threadModel->lock(&p9conn->rlock);
 		concurrency::threadModel->lock(&p9conn->wlock);
-		msize = ixp::min<int>(ofcall.version.msize, IXP_MAX_MSG);
+		msize = ixp::min<int>(ofcall.version.msize, maximum::Msg);
 		p9conn->rmsg.data = (decltype(p9conn->rmsg.data))ixp::erealloc(p9conn->rmsg.data, msize);
 		p9conn->wmsg.data = (decltype(p9conn->wmsg.data))ixp::erealloc(p9conn->wmsg.data, msize);
 		p9conn->rmsg.size = msize;
