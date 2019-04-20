@@ -35,18 +35,18 @@ namespace ixp {
  *	F<serverloop>, F<serve9conn>, F<hangup>
  */
 Conn*
-listen(Server *srv, int fd, const std::any& aux,
+Server::listen(int fd, const std::any& aux,
         std::function<void(Conn*)> read,
         std::function<void(Conn*)> close) {
     auto c = new Conn;
 	c->fd = fd;
 	c->aux = aux;
-	c->srv = srv;
+	c->srv = this;
 	c->read = read;
 	c->close = close;
-	c->next = srv->conn;
+	c->next = conn;
     c->closed = false;
-	srv->conn = c;
+	conn = c;
 	return c;
 }
 
@@ -85,10 +85,10 @@ hangup(Conn *c) {
 }
 
 void
-server_close(Server *s) {
+Server::server_close() {
 	Conn *next = nullptr;
 
-	for(auto c = s->conn; c; c = next) {
+	for(auto c = conn; c; c = next) {
 		next = c->next;
 		hangup(c);
 	}
@@ -132,34 +132,34 @@ handle_conns(Server *s) {
  */
 
 int
-serverloop(Server *srv) {
+Server::serverloop() {
 	timeval tv;
 
-	srv->running = true;
-	concurrency::threadModel->initmutex(&srv->lk);
-	while(srv->running) {
+	running = true;
+	concurrency::threadModel->initmutex(&lk);
+	while(running) {
 		timeval* tvp = nullptr;
-		if (long timeout = nexttimer(srv); timeout > 0) {
+		if (long timeout = nexttimer(); timeout > 0) {
 			tv.tv_sec = timeout/1000;
 			tv.tv_usec = timeout%1000 * 1000;
 			tvp = &tv;
 		}
 
-		if(srv->preselect) {
-			srv->preselect(srv);
+		if(preselect) {
+			preselect(this);
         }
 
-		if(!srv->running) {
+		if(!running) {
 			break;
         }
 
-		prepare_select(srv);
-		if (int r = concurrency::threadModel->select(srv->maxfd + 1, &srv->rd, 0, 0, tvp); r < 0) {
+		prepare_select(this);
+		if (int r = concurrency::threadModel->select(maxfd + 1, &rd, 0, 0, tvp); r < 0) {
 			if(errno == EINTR)
 				continue;
 			return true;
 		}
-		handle_conns(srv);
+		handle_conns(this);
 	}
 	return false;
 }

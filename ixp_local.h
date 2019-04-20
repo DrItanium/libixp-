@@ -73,7 +73,6 @@ namespace ixp {
     void	muxfree(Client*);
     void	muxinit(Client*);
     Fcall*	muxrpc(Client*, Fcall*);
-    long nexttimer(Server*);
 } // end namespace ixp
 
 #endif

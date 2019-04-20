@@ -584,7 +584,7 @@ serve9conn(Conn *c) {
         concurrency::threadModel->initmutex(&p9conn->rlock);
         concurrency::threadModel->initmutex(&p9conn->wlock);
 
-        listen(c->srv, fd, p9conn, handlefcall, cleanupconn);
+        c->srv->listen(fd, p9conn, handlefcall, cleanupconn);
     }
 }
 } // end namespace ixp

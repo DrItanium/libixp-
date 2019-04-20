@@ -519,6 +519,14 @@ namespace ixp {
         bool	running;
         int		maxfd;
         fd_set		rd;
+        Conn* listen(int, const std::any&,
+                std::function<void(Conn*)> read,
+                std::function<void(Conn*)> close);
+        int	    serverloop();
+        void	server_close();
+        bool unsettimer(long);
+        long settimer(long, std::function<void(long, const std::any&)>, const std::any& aux);
+        long nexttimer();
     };
 
     struct Rpc {
@@ -762,32 +770,17 @@ namespace ixp {
     extern std::function<char*(const char*, va_list)> vsmprint;
     extern std::function<void(Fcall*)> printfcall;
 
-    /* client.c */
-
-
-
-    /* convert.c */
     uint	msg2fcall(Msg*, Fcall*);
     uint	fcall2msg(Msg*, Fcall*);
-
-    /* error.h */
     char*	errbuf(void);
     void	errstr(char*, int);
     void	rerrstr(char*, int);
     void	werrstr(const char*, ...);
-
-    /* request.c */
     void serve9conn(Conn*);
+    void	hangup(Conn*);
 
-    /* message.c */
 
     /* server.c */
-    Conn* listen(Server*, int, const std::any&,
-            std::function<void(Conn*)> read,
-            std::function<void(Conn*)> close);
-    void	hangup(Conn*);
-    int	    serverloop(Server*);
-    void	server_close(Server*);
 
     /* socket.c */
     int dial(const std::string&);
@@ -795,8 +788,6 @@ namespace ixp {
     uint sendmsg(int, Msg*);
     uint recvmsg(int, Msg*);
     uint64_t msec();
-    bool unsettimer(Server*, long);
-    long settimer(Server*, long, std::function<void(long, const std::any&)>, const std::any& aux);
 
     /* util.c */
     void	cleanname(char*);

@@ -41,7 +41,7 @@ msec() {
  *	F<unsettimer>, F<serverloop>
  */
 long
-settimer(Server *srv, long msecs, std::function<void(long, const std::any&)> fn, const std::any& aux) {
+Server::settimer(long msecs, std::function<void(long, const std::any&)> fn, const std::any& aux) {
     /* 
      * This really needn't be threadsafe, as it has little use in
      * threaded programs, but it nonetheless is.
@@ -55,18 +55,18 @@ settimer(Server *srv, long msecs, std::function<void(long, const std::any&)> fn,
 	time = msec() + msecs;
 
 	t = (decltype(t))emallocz(sizeof *t);
-	concurrency::threadModel->lock(&srv->lk);
+	concurrency::threadModel->lock(&lk);
 	t->id = lastid++;
 	t->msec = time;
 	t->fn = fn;
 	t->aux = aux; // make a copy of the contents of the passed in std::aux
 
-	for(tp=&srv->timer; *tp; tp=&tp[0]->link)
+	for(tp=&timer; *tp; tp=&tp[0]->link)
 		if(tp[0]->msec < time)
 			break;
 	t->link = *tp;
 	*tp = t;
-	concurrency::threadModel->unlock(&srv->lk);
+	concurrency::threadModel->unlock(&lk);
 	return t->id;
 }
 
@@ -85,19 +85,19 @@ settimer(Server *srv, long msecs, std::function<void(long, const std::any&)> fn,
  *	F<settimer>, F<serverloop>
  */
 bool
-unsettimer(Server *srv, long id) {
+Server::unsettimer(long id) {
 	Timer **tp;
 	Timer *t;
 
-	concurrency::threadModel->lock(&srv->lk);
-	for(tp=&srv->timer; (t=*tp); tp=&t->link)
+	concurrency::threadModel->lock(&lk);
+	for(tp=&timer; (t=*tp); tp=&t->link)
 		if(t->id == id)
 			break;
 	if(t) {
 		*tp = t->link;
 		free(t);
 	}
-	concurrency::threadModel->unlock(&srv->lk);
+	concurrency::threadModel->unlock(&lk);
 	return t != nullptr;
 }
 
@@ -115,28 +115,28 @@ unsettimer(Server *srv, long id) {
  *	F<settimer>, F<serverloop>
  */
 long
-nexttimer(Server *srv) {
+Server::nexttimer() {
 	Timer *t;
 	uint64_t time;
 	long ret;
 
 	SET(time);
-	concurrency::threadModel->lock(&srv->lk);
-	while((t = srv->timer)) {
+	concurrency::threadModel->lock(&lk);
+	while((t = timer)) {
 		time = msec();
 		if(t->msec > time)
 			break;
-		srv->timer = t->link;
+		timer = t->link;
 
-		concurrency::threadModel->unlock(&srv->lk);
+		concurrency::threadModel->unlock(&lk);
 		t->fn(t->id, t->aux);
 		free(t);
-		concurrency::threadModel->lock(&srv->lk);
+		concurrency::threadModel->lock(&lk);
 	}
 	ret = 0;
 	if(t)
 		ret = t->msec - time;
-	concurrency::threadModel->unlock(&srv->lk);
+	concurrency::threadModel->unlock(&lk);
 	return ret;
 }
 } // end namespace ixp
