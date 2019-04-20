@@ -411,6 +411,8 @@ namespace ixp {
             setType(type);
             setFid(value);
         }
+        void setTag(decltype(FHdr::tag) value) noexcept { hdr.tag = value; }
+        void setNoTag() noexcept { setTag(NoTag); }
         Fcall() = default;
         Fcall(FType type) {
             setType(type);

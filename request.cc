@@ -112,7 +112,7 @@ destroyfid(Conn9 *p9conn, ulong fid) {
 
 static void
 handlefcall(Conn *c) {
-	Fcall fcall = {0};
+	Fcall fcall;
 	Conn9 *p9conn;
 	Req9 *req;
 
@@ -157,11 +157,11 @@ handlereq(Req9 *r) {
 	if(printfcall)
 		printfcall(&r->ifcall);
 
-	switch(r->ifcall.hdr.type) {
+	switch(r->ifcall.getType()) {
 	default:
 		r->respond(Enofunc);
 		break;
-	case TVersion:
+	case FType::TVersion:
 		if(!strcmp(r->ifcall.version.version, "9P"))
 			r->ofcall.version.version = "9P";
 		else if(!strcmp(r->ifcall.version.version, "9P2000"))
@@ -171,7 +171,7 @@ handlereq(Req9 *r) {
 		r->ofcall.version.msize = r->ifcall.version.msize;
 		r->respond(nullptr);
 		break;
-	case TAttach:
+	case FType::TAttach:
 		if(!(r->fid = (decltype(r->fid))(createfid(&p9conn->fidmap, r->ifcall.hdr.fid, p9conn)))) {
 			r->respond(Edupfid);
 			return;
@@ -179,7 +179,7 @@ handlereq(Req9 *r) {
 		/* attach is a required function */
 		srv->attach(r);
 		break;
-	case TClunk:
+	case FType::TClunk:
 		if(r->fid = (decltype(r->fid))p9conn->fidmap.get(r->ifcall.hdr.fid); !r->fid) {
 			r->respond(Enofid);
 			return;
@@ -190,7 +190,7 @@ handlereq(Req9 *r) {
 		}
 		srv->clunk(r);
 		break;
-	case TFlush:
+	case FType::TFlush:
         if (r->oldreq = decltype(r->oldreq)(p9conn->tagmap.get(r->ifcall.tflush.oldtag)); !r->oldreq) {
 			r->respond(Enotag);
 			return;
@@ -201,7 +201,7 @@ handlereq(Req9 *r) {
 		}
 		srv->flush(r);
 		break;
-	case TCreate:
+	case FType::TCreate:
         if (r->fid = decltype(r->fid)(p9conn->fidmap.get(r->ifcall.hdr.fid)); !r->fid) {
 			r->respond(Enofid);
 			return;
@@ -210,7 +210,7 @@ handlereq(Req9 *r) {
 			r->respond(Eopen);
 			return;
 		}
-		if(!(r->fid->qid.type&QTDIR)) {
+		if(!(r->fid->qid.type&uint8_t(QType::DIR))) {
 			r->respond(Enotdir);
 			return;
 		}
@@ -220,12 +220,12 @@ handlereq(Req9 *r) {
 		}
 		p9conn->srv->create(r);
 		break;
-	case TOpen:
+	case FType::TOpen:
         if (r->fid = decltype(r->fid)(p9conn->fidmap.get(r->ifcall.hdr.fid)); !r->fid) {
 			r->respond(Enofid);
 			return;
 		}
-		if((r->fid->qid.type&QTDIR) && (r->ifcall.topen.mode|P9_ORCLOSE) != (P9_OREAD|P9_ORCLOSE)) {
+		if((r->fid->qid.type&uint8_t(QType::DIR)) && (r->ifcall.topen.mode|uint8_t(OMode::RCLOSE)) != (uint8_t(OMode::READ)|uint8_t(OMode::RCLOSE))) {
 			r->respond(Eisdir);
 			return;
 		}
@@ -236,12 +236,12 @@ handlereq(Req9 *r) {
 		}
 		p9conn->srv->open(r);
 		break;
-	case TRead:
+	case FType::TRead:
         if (r->fid = decltype(r->fid)(p9conn->fidmap.get(r->ifcall.hdr.fid)); !r->fid) {
 			r->respond(Enofid);
 			return;
 		}
-		if(r->fid->omode == -1 || r->fid->omode == P9_OWRITE) {
+		if(r->fid->omode == -1 || r->fid->omode == uint8_t(OMode::WRITE)) {
 			r->respond(Enoread);
 			return;
 		}
@@ -251,7 +251,7 @@ handlereq(Req9 *r) {
 		}
 		p9conn->srv->read(r);
 		break;
-	case TRemove:
+	case FType::TRemove:
 		if(r->fid = decltype(r->fid)(p9conn->fidmap.get(r->ifcall.hdr.fid)); !r->fid) {
 			r->respond(Enofid);
 			return;
@@ -262,7 +262,7 @@ handlereq(Req9 *r) {
 		}
 		p9conn->srv->remove(r);
 		break;
-	case TStat:
+	case FType::TStat:
 		if(r->fid = decltype(r->fid)(p9conn->fidmap.get(r->ifcall.hdr.fid)); !r->fid) {
 			r->respond(Enofid);
 			return;
@@ -273,7 +273,7 @@ handlereq(Req9 *r) {
 		}
 		p9conn->srv->stat(r);
 		break;
-	case TWalk:
+	case FType::TWalk:
 		if(r->fid = decltype(r->fid)(p9conn->fidmap.get(r->ifcall.hdr.fid)); !r->fid) {
 			r->respond(Enofid);
 			return;
@@ -282,7 +282,7 @@ handlereq(Req9 *r) {
 			r->respond("cannot walk from an open fid");
 			return;
 		}
-		if(r->ifcall.twalk.nwname && !(r->fid->qid.type&QTDIR)) {
+		if(r->ifcall.twalk.nwname && !(r->fid->qid.type&uint8_t(QType::DIR))) {
 			r->respond(Enotdir);
 			return;
 		}
@@ -299,12 +299,12 @@ handlereq(Req9 *r) {
 		}
 		p9conn->srv->walk(r);
 		break;
-	case TWrite:
+	case FType::TWrite:
 		if(r->fid = decltype(r->fid)(p9conn->fidmap.get(r->ifcall.hdr.fid)); !r->fid) {
 			r->respond(Enofid);
 			return;
 		}
-		if((r->fid->omode&3) != P9_OWRITE && (r->fid->omode&3) != P9_ORDWR) {
+		if((r->fid->omode&3) != (uint8_t(OMode::WRITE)) && (r->fid->omode&3) != (uint8_t(OMode::RDWR))) {
 			r->respond("write on fid not opened for writing");
 			return;
 		}
@@ -314,7 +314,7 @@ handlereq(Req9 *r) {
 		}
 		p9conn->srv->write(r);
 		break;
-	case TWStat:
+	case FType::TWStat:
 		if(r->fid = decltype(r->fid)(p9conn->fidmap.get( r->ifcall.hdr.fid)); !r->fid) {
 			r->respond(Enofid);
 			return;
@@ -335,7 +335,7 @@ handlereq(Req9 *r) {
 			r->respond("wstat of muid");
 			return;
 		}
-		if(~r->ifcall.twstat.stat.mode && ((r->ifcall.twstat.stat.mode&DMDIR)>>24) != r->fid->qid.type&QTDIR) {
+		if(~r->ifcall.twstat.stat.mode && ((r->ifcall.twstat.stat.mode&(uint32_t)(DMode::DIR))>>24) != (r->fid->qid.type&uint8_t(QType::DIR))) {
 			r->respond("wstat on DMDIR bit");
 			return;
 		}
@@ -370,11 +370,7 @@ Req9::respond(const char *error) {
 	p9conn = conn;
 
 	switch(ifcall.hdr.type) {
-	default:
-		if(!error)
-			assert(!"Respond called on unsupported fcall type");
-		break;
-	case TVersion:
+	case FType::TVersion:
 		assert(error == nullptr);
 		free(ifcall.version.version);
 
@@ -389,14 +385,14 @@ Req9::respond(const char *error) {
 		concurrency::threadModel->unlock(&p9conn->rlock);
 		ofcall.version.msize = msize;
 		break;
-	case TAttach:
+	case FType::TAttach:
 		if(error)
 			destroyfid(p9conn, fid->fid);
 		free(ifcall.tattach.uname);
 		free(ifcall.tattach.aname);
 		break;
-	case TOpen:
-	case TCreate:
+	case FType::TOpen:
+	case FType::TCreate:
 		if(!error) {
 			ofcall.ropen.iounit = p9conn->rmsg.size - 24;
 			fid->iounit = ofcall.ropen.iounit;
@@ -405,7 +401,7 @@ Req9::respond(const char *error) {
 		}
 		free(ifcall.tcreate.name);
 		break;
-	case TWalk:
+	case FType::TWalk:
 		if(error || ofcall.rwalk.nwqid < ifcall.twalk.nwname) {
 			if(ifcall.hdr.fid != ifcall.twalk.newfid && newfid)
 				destroyfid(p9conn, newfid->fid);
@@ -419,36 +415,40 @@ Req9::respond(const char *error) {
 		}
 		free(*ifcall.twalk.wname);
 		break;
-	case TWrite:
+	case FType::TWrite:
 		free(ifcall.twrite.data);
 		break;
-	case TRemove:
+	case FType::TRemove:
 		if(fid)
 			destroyfid(p9conn, fid->fid);
 		break;
-	case TClunk:
+	case FType::TClunk:
 		if(fid)
 			destroyfid(p9conn, fid->fid);
 		break;
-	case TFlush:
+	case FType::TFlush:
 		if (oldreq = decltype(oldreq)( p9conn->tagmap.get(ifcall.tflush.oldtag)); oldreq) 
             oldreq->respond(Eintr);
 		break;
-	case TWStat:
+	case FType::TWStat:
 		Stat::free(&ifcall.twstat.stat);
 		break;
-	case TRead:
-	case TStat:
+	case FType::TRead:
+	case FType::TStat:
 		break;		
 	/* Still to be implemented: auth */
+	default:
+		if(!error)
+			assert(!"Respond called on unsupported fcall type");
+		break;
 	}
 
 	ofcall.hdr.tag = ifcall.hdr.tag;
 
-    if (!error)
-		ofcall.hdr.type = ifcall.hdr.type + 1;
-	else {
-		ofcall.hdr.type = RError;
+    if (!error) {
+        ofcall.setType(FType(((uint8_t)ifcall.getType()) + 1));
+    } else {
+        ofcall.setType(FType::RError);
 		ofcall.error.ename = (char*)error;
 	}
 
@@ -466,12 +466,14 @@ Req9::respond(const char *error) {
 	}
 
 	switch(ofcall.hdr.type) {
-	case RStat:
+	case FType::RStat:
 		free(ofcall.rstat.stat);
 		break;
-	case RRead:
+	case FType::RRead:
 		free(ofcall.rread.data);
 		break;
+    default:
+        break;
 	}
 	//free(req);
 	decref_p9conn(p9conn);
@@ -488,8 +490,8 @@ voidrequest(void *context, void *arg) {
 	conn->ref++;
 
 	flush_req = (Req9*)ixp::emallocz(sizeof *orig_req);
-	flush_req->ifcall.hdr.type = TFlush;
-	flush_req->ifcall.hdr.tag = NoTag;
+	flush_req->ifcall.setType(FType::TFlush);
+	flush_req->ifcall.setNoTag();
 	flush_req->ifcall.tflush.oldtag = orig_req->ifcall.hdr.tag;
 	flush_req->conn = conn;
 
@@ -509,9 +511,9 @@ voidfid(void *context, void *arg) {
 	p9conn->ref++;
 
 	clunk_req = (Req9*)ixp::emallocz(sizeof *clunk_req);
-	clunk_req->ifcall.hdr.type = TClunk;
-	clunk_req->ifcall.hdr.tag = NoTag;
-	clunk_req->ifcall.hdr.fid = fid->fid;
+	clunk_req->ifcall.setType(FType::TClunk);
+	clunk_req->ifcall.setNoTag();
+	clunk_req->ifcall.setFid(fid->fid);
 	clunk_req->fid = fid;
 	clunk_req->conn = p9conn;
 
