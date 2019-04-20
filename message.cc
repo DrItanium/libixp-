@@ -97,7 +97,7 @@ freefcall(Fcall *fcall) {
 }
 
 uint16_t
-Stat::getSize() noexcept {
+Stat::size() noexcept {
 	return SWord /* size */
 		+ SWord /* type */
 		+ SDWord /* dev */

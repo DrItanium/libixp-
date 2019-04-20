@@ -288,7 +288,7 @@ pstat(Msg *msg, Stat *stat) {
 	uint16_t size;
 
 	if(msg->mode == MsgPack) {
-        size = stat->getSize() - 2;
+        size = stat->size() - 2;
     }
 
 	pu16(msg, &size);
