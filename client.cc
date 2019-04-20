@@ -557,24 +557,24 @@ fstat(CFid *fid) {
  */
 
 long
-read(CFid *fid, void *buf, long count) {
+CFid::read(void *buf, long count) {
 	int n;
 
-	concurrency::threadModel->lock(&fid->iolock);
-	n = _pread(fid, (char*)buf, count, fid->offset);
+	concurrency::threadModel->lock(&iolock);
+	n = _pread(this, (char*)buf, count, offset);
 	if(n > 0)
-		fid->offset += n;
-	concurrency::threadModel->unlock(&fid->iolock);
+		offset += n;
+	concurrency::threadModel->unlock(&iolock);
 	return n;
 }
 
 long
-pread(CFid *fid, void *buf, long count, int64_t offset) {
+CFid::pread(void *buf, long count, int64_t offset) {
 	int n;
 
-	concurrency::threadModel->lock(&fid->iolock);
-	n = _pread(fid, (char*)buf, count, offset);
-	concurrency::threadModel->unlock(&fid->iolock);
+	concurrency::threadModel->lock(&iolock);
+	n = _pread(this, (char*)buf, count, offset);
+	concurrency::threadModel->unlock(&iolock);
 	return n;
 }
 

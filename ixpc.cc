@@ -215,7 +215,7 @@ xread(int argc, char *argv[]) {
 
     int count = 0;
 	auto buf = (char*)ixp::emalloc(fid->iounit);
-	while((count = ixp::read(fid, buf, fid->iounit)) > 0) {
+	while((count = fid->read(buf, fid->iounit)) > 0) {
 		write(1, buf, count);
     }
 
@@ -270,7 +270,7 @@ xls(int argc, char *argv[]) {
 	mstat = 16;
 	stat = (decltype(stat))ixp::emalloc(sizeof(*stat) * mstat);
 	buf = (decltype(buf))ixp::emalloc(fid->iounit);
-	while((count = ixp::read(fid, buf, fid->iounit)) > 0) {
+	while((count = fid->read(buf, fid->iounit)) > 0) {
 		m = ixp::message(buf, count, ixp::MsgUnpack);
 		while(m.pos < m.end) {
 			if(nstat == mstat) {

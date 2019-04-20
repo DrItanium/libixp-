@@ -528,6 +528,8 @@ namespace ixp {
         Mutex	iolock;
         bool close();
         bool clunk(); 
+        long read(void*, long);
+        long pread(void*, long, int64_t);
     };
 
     /**
@@ -696,10 +698,8 @@ namespace ixp {
     extern std::function<void(Fcall*)> printfcall;
 
     /* client.c */
-    long	pread(CFid*, void*, long, int64_t);
     int	print(CFid*, const char*, ...);
     long	pwrite(CFid*, const void*, long, int64_t);
-    long	read(CFid*, void*, long);
     bool remove(Client*, const char*);
     inline bool remove(Client* client, const std::string& str) noexcept { return remove(client, str.c_str()); }
 
