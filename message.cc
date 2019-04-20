@@ -112,93 +112,97 @@ Stat::size() noexcept {
 
 void
 Msg::pfcall(Fcall *fcall) {
-	pu8(&fcall->hdr.type);
-	pu16(&fcall->hdr.tag);
+    fcall->packUnpack(*this);
+}
+void
+Fcall::packUnpack(Msg& msg) noexcept {
+	msg.pu8(&hdr.type);
+	msg.pu16(&hdr.tag);
 
-	switch (fcall->hdr.type) {
+	switch (hdr.type) {
 	case TVersion:
 	case RVersion:
-		pu32(&fcall->version.msize);
-		pstring(&fcall->version.version);
+		msg.pu32(&version.msize);
+		msg.pstring(&version.version);
 		break;
 	case TAuth:
-		pu32(&fcall->tauth.afid);
-		pstring(&fcall->tauth.uname);
-		pstring(&fcall->tauth.aname);
+		msg.pu32(&tauth.afid);
+		msg.pstring(&tauth.uname);
+		msg.pstring(&tauth.aname);
 		break;
 	case RAuth:
-		pqid(&fcall->rauth.aqid);
+		msg.pqid(&rauth.aqid);
 		break;
 	case RAttach:
-		pqid(&fcall->rattach.qid);
+		msg.pqid(&rattach.qid);
 		break;
 	case TAttach:
-		pu32(&fcall->hdr.fid);
-		pu32(&fcall->tattach.afid);
-		pstring(&fcall->tattach.uname);
-		pstring(&fcall->tattach.aname);
+		msg.pu32(&hdr.fid);
+		msg.pu32(&tattach.afid);
+		msg.pstring(&tattach.uname);
+		msg.pstring(&tattach.aname);
 		break;
 	case RError:
-		pstring(&fcall->error.ename);
+		msg.pstring(&error.ename);
 		break;
 	case TFlush:
-		pu16(&fcall->tflush.oldtag);
+		msg.pu16(&tflush.oldtag);
 		break;
 	case TWalk:
-		pu32(&fcall->hdr.fid);
-		pu32(&fcall->twalk.newfid);
-		pstrings(&fcall->twalk.nwname, fcall->twalk.wname, nelem(fcall->twalk.wname));
+		msg.pu32(&hdr.fid);
+		msg.pu32(&twalk.newfid);
+		msg.pstrings(&twalk.nwname, twalk.wname, nelem(twalk.wname));
 		break;
 	case RWalk:
-		pqids(&fcall->rwalk.nwqid, fcall->rwalk.wqid, nelem(fcall->rwalk.wqid));
+		msg.pqids(&rwalk.nwqid, rwalk.wqid, nelem(rwalk.wqid));
 		break;
 	case TOpen:
-		pu32(&fcall->hdr.fid);
-		pu8(&fcall->topen.mode);
+		msg.pu32(&hdr.fid);
+		msg.pu8(&topen.mode);
 		break;
 	case ROpen:
 	case RCreate:
-		pqid(&fcall->ropen.qid);
-		pu32(&fcall->ropen.iounit);
+		msg.pqid(&ropen.qid);
+		msg.pu32(&ropen.iounit);
 		break;
 	case TCreate:
-		pu32(&fcall->hdr.fid);
-		pstring(&fcall->tcreate.name);
-		pu32(&fcall->tcreate.perm);
-		pu8(&fcall->tcreate.mode);
+		msg.pu32(&hdr.fid);
+		msg.pstring(&tcreate.name);
+		msg.pu32(&tcreate.perm);
+		msg.pu8(&tcreate.mode);
 		break;
 	case TRead:
-		pu32(&fcall->hdr.fid);
-		pu64(&fcall->tread.offset);
-		pu32(&fcall->tread.count);
+		msg.pu32(&hdr.fid);
+		msg.pu64(&tread.offset);
+		msg.pu32(&tread.count);
 		break;
 	case RRead:
-		pu32(&fcall->rread.count);
-		pdata(&fcall->rread.data, fcall->rread.count);
+		msg.pu32(&rread.count);
+		msg.pdata(&rread.data, rread.count);
 		break;
 	case TWrite:
-		pu32(&fcall->hdr.fid);
-		pu64(&fcall->twrite.offset);
-		pu32(&fcall->twrite.count);
-		pdata(&fcall->twrite.data, fcall->twrite.count);
+		msg.pu32(&hdr.fid);
+		msg.pu64(&twrite.offset);
+		msg.pu32(&twrite.count);
+		msg.pdata(&twrite.data, twrite.count);
 		break;
 	case RWrite:
-		pu32(&fcall->rwrite.count);
+		msg.pu32(&rwrite.count);
 		break;
 	case TClunk:
 	case TRemove:
 	case TStat:
-		pu32(&fcall->hdr.fid);
+		msg.pu32(&hdr.fid);
 		break;
 	case RStat:
-		pu16(&fcall->rstat.nstat);
-		pdata((char**)&fcall->rstat.stat, fcall->rstat.nstat);
+		msg.pu16(&rstat.nstat);
+		msg.pdata((char**)&rstat.stat, rstat.nstat);
 		break;
 	case TWStat: {
 		uint16_t size;
-		pu32(&fcall->hdr.fid);
-		pu16(&size);
-		pstat(&fcall->twstat.stat);
+		msg.pu32(&hdr.fid);
+		msg.pu16(&size);
+        msg.packUnpack(&twstat.stat);
 		break;
 		}
 	}

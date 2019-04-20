@@ -284,18 +284,28 @@ namespace ixp {
         void pdata(char**, uint);
         void pstring(char**);
         void pstrings(uint16_t*, char**, uint);
-        void pqid(Qid*);
         void pqids(uint16_t*, Qid*, uint);
+        void pqid(Qid*);
         void pstat(Stat*);
         void pfcall(Fcall*);
         static Msg	message(char*, uint len, uint mode);
+        void packUnpack(uint8_t* v) { pu8(v); }
+        void packUnpack(uint16_t* v) { pu16(v); }
+        void packUnpack(uint32_t* v) { pu32(v); }
+        void packUnpack(uint64_t* v) { pu64(v); }
         template<typename T>
-        void pu(T value) noexcept {
+        void packUnpack(T value) noexcept {
+            static_assert(!std::is_same_v<std::decay_t<T>, Msg>, "This would cause an infinite loop!");
             value.packUnpack(*this);
         }
         template<typename T>
-        void pu(T* value) noexcept {
+        void packUnpack(T* value) noexcept {
+            static_assert(!std::is_same_v<std::decay_t<T>, Msg>, "This would cause an infinite loop!");
             value->packUnpack(*this);
+        }
+        template<typename ... Args>
+        void packUnpackMany(Args&& ... fields) noexcept {
+            (packUnpack(std::forward<Args>(fields)), ...);
         }
         private:
            void puint(uint, uint32_t*);
@@ -478,6 +488,7 @@ namespace ixp {
         FIO		tread;
         FIO		rread;
         FIO		io;
+        void packUnpack(Msg& msg) noexcept;
     };
 
 #ifdef IXP_P9_STRUCTS
