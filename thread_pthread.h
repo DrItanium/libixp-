@@ -11,26 +11,26 @@ class PThreadImpl final : public ThreadImpl
     public:
         using Parent::Parent;
         /* Read/write lock */
-         bool init(IxpRWLock*) override;
-         void rlock(IxpRWLock*) override;
-         bool canrlock(IxpRWLock*) override;
-         void runlock(IxpRWLock*) override;
-         void wlock(IxpRWLock*) override;
-         bool canwlock(IxpRWLock*) override;
-         void wunlock(IxpRWLock*) override;
-         void destroy(IxpRWLock*) override;
+         bool init(ixp::RWLock*) override;
+         void rlock(ixp::RWLock*) override;
+         bool canrlock(ixp::RWLock*) override;
+         void runlock(ixp::RWLock*) override;
+         void wlock(ixp::RWLock*) override;
+         bool canwlock(ixp::RWLock*) override;
+         void wunlock(ixp::RWLock*) override;
+         void destroy(ixp::RWLock*) override;
         /* Mutex */
-         bool init(IxpMutex*) override;
-         bool canlock(IxpMutex*) override;
-         void lock(IxpMutex*) override;
-         void unlock(IxpMutex*) override;
-         void destroy(IxpMutex*) override;
+         bool init(ixp::Mutex*) override;
+         bool canlock(ixp::Mutex*) override;
+         void lock(ixp::Mutex*) override;
+         void unlock(ixp::Mutex*) override;
+         void destroy(ixp::Mutex*) override;
         /* Rendezvous point */
-         bool init(IxpRendez*) override;
-         bool wake(IxpRendez*) override;
-         bool wakeall(IxpRendez*) override;
-         void sleep(IxpRendez*) override;
-         void destroy(IxpRendez*) override;
+         bool init(ixp::Rendez*) override;
+         bool wake(ixp::Rendez*) override;
+         bool wakeall(ixp::Rendez*) override;
+         void sleep(ixp::Rendez*) override;
+         void destroy(ixp::Rendez*) override;
         /* Other */
          char* errbuf() override;
 };
