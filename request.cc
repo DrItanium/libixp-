@@ -26,18 +26,18 @@ static void handlereq(Req9 *r);
 std::function<void(Fcall*)> printfcall;
 
 
-static char
-	Eduptag[] = "tag in use",
-	Edupfid[] = "fid in use",
-	Enofunc[] = "function not implemented",
-	Eopen[] = "fid is already open",
-	Enofile[] = "file does not exist",
-	Enoread[] = "file not open for reading",
-	Enofid[] = "fid does not exist",
-	Enotag[] = "tag does not exist",
-	Enotdir[] = "not a directory",
-	Eintr[] = "interrupted",
-	Eisdir[] = "cannot perform operation on a directory";
+static std::string
+	Eduptag = "tag in use",
+	Edupfid = "fid in use",
+	Enofunc = "function not implemented",
+	Eopen = "fid is already open",
+	Enofile = "file does not exist",
+	Enoread = "file not open for reading",
+	Enofid = "fid does not exist",
+	Enotag = "tag does not exist",
+	Enotdir = "not a directory",
+	Eintr = "interrupted",
+	Eisdir = "cannot perform operation on a directory";
 
 constexpr auto TAG_BUCKETS = 61;
 constexpr auto FID_BUCKETS = 61;
@@ -406,7 +406,7 @@ Req9::respond(const char *error) {
 			if(ifcall.hdr.fid != ifcall.twalk.newfid && newfid)
 				destroyfid(p9conn, newfid->fid);
 			if(!error && ofcall.rwalk.nwqid == 0)
-				error = Enofile;
+				error = Enofile.c_str();
 		}else{
 			if(ofcall.rwalk.nwqid == 0)
 				newfid->qid = fid->qid;
