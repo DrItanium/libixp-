@@ -55,7 +55,7 @@ Server::settimer(long msecs, std::function<void(long, const std::any&)> fn, cons
 	time = msec() + msecs;
 
 	t = (decltype(t))emallocz(sizeof *t);
-	concurrency::threadModel->lock(&lk);
+    lock();
 	t->id = lastid++;
 	t->msec = time;
 	t->fn = fn;
@@ -66,7 +66,7 @@ Server::settimer(long msecs, std::function<void(long, const std::any&)> fn, cons
 			break;
 	t->link = *tp;
 	*tp = t;
-	concurrency::threadModel->unlock(&lk);
+    unlock();
 	return t->id;
 }
 
@@ -88,7 +88,7 @@ bool
 Server::unsettimer(long id) {
 	Timer **tp;
 	Timer *t;
-    concurrency::threadModel->lock(&lk);
+    lock();
     for(tp=&timer; (t=*tp); tp=&t->link) {
         if(t->id == id) {
             break;
@@ -98,7 +98,7 @@ Server::unsettimer(long id) {
         *tp = t->link;
         free(t);
     }
-    concurrency::threadModel->unlock(&lk);
+    unlock();
 	return t != nullptr;
 }
 
@@ -121,7 +121,7 @@ Server::nexttimer() {
 	uint64_t time;
 
 	SET(time);
-	concurrency::threadModel->lock(&lk);
+    lock();
 	while((t = timer)) {
 		time = msec();
 		if(t->msec > time) {
@@ -129,16 +129,16 @@ Server::nexttimer() {
         }
 		timer = t->link;
 
-		concurrency::threadModel->unlock(&lk);
+        unlock();
 		t->fn(t->id, t->aux);
 		free(t);
-		concurrency::threadModel->lock(&lk);
+        lock();
 	}
 	long ret = 0;
 	if(t) {
 		ret = t->msec - time;
     }
-	concurrency::threadModel->unlock(&lk);
+    unlock();
 	return ret;
 }
 } // end namespace ixp

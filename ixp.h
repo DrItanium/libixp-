@@ -528,6 +528,9 @@ namespace ixp {
         bool unsettimer(long);
         long settimer(long, std::function<void(long, const std::any&)>, const std::any& aux);
         long nexttimer();
+        void lock();
+        void unlock();
+        bool canlock();
     };
 
     struct Rpc {

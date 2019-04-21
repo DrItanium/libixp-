@@ -50,6 +50,21 @@ Server::listen(int fd, const std::any& aux,
 	return c;
 }
 
+void 
+Server::lock() {
+    concurrency::threadModel->lock(&lk);
+}
+
+void
+Server::unlock() {
+    concurrency::threadModel->unlock(&lk);
+}
+
+bool
+Server::canlock() {
+    return concurrency::threadModel->canlock(&lk);
+}
+
 /**
  * Function: hangup
  * Function: close
