@@ -32,7 +32,7 @@ smprint(const char *fmt, ...) {
 }
 
 static char*
-_user(void) {
+_user() {
 	static char *user;
 	struct passwd *pw;
 
@@ -66,7 +66,7 @@ rmkdir(char *path, int mode) {
 }
 
 static char*
-ns_display(void) {
+ns_display() {
 	char *path, *disp;
 	struct stat st;
 
