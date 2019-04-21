@@ -197,9 +197,9 @@ namespace ixp {
         void pstring(char**);
         void pstrings(uint16_t*, char**, uint);
         void pqids(uint16_t*, Qid*, uint);
-        void pqid(Qid*);
-        void pstat(Stat*);
-        void pfcall(Fcall*);
+        inline void pqid(Qid* value) { packUnpack(value); }
+        inline void pstat(Stat* value) { packUnpack(value); }
+        inline void pfcall(Fcall* value) { packUnpack(value); }
         static Msg message(char*, uint len, Mode mode);
         void packUnpack(uint8_t* v) { pu8(v); }
         void packUnpack(uint16_t* v) { pu16(v); }

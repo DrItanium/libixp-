@@ -113,10 +113,6 @@ Stat::size() noexcept {
 }
 
 void
-Msg::pfcall(Fcall *fcall) {
-    fcall->packUnpack(*this);
-}
-void
 Fcall::packUnpack(Msg& msg) noexcept {
 	msg.pu8((uint8_t*)&hdr.type);
 	msg.pu16(&hdr.tag);

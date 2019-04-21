@@ -266,11 +266,6 @@ Msg::pdata(char **data, uint len) {
  *	F<pu64>, F<pstring>, F<pstrings>
  */
 void
-Msg::pqid(Qid *qid) {
-    qid->packUnpack(*this);
-}
-
-void
 Qid::packUnpack(Msg& msg) {
 	msg.pu8(&type);
 	msg.pu32(&version);
@@ -289,11 +284,6 @@ Msg::pqids(uint16_t *num, Qid qid[], uint max) {
 	for(auto i = 0; i < *num; i++) {
         pqid(&qid[i]);
     }
-}
-
-void
-Msg::pstat(Stat *stat) {
-    stat->packUnpack(*this);
 }
 
 void
