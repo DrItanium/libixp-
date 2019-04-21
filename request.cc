@@ -58,12 +58,12 @@ struct Conn9 {
 
 static void
 decref_p9conn(Conn9 *p9conn) {
-	concurrency::threadModel->lock(&p9conn->wlock);
+    p9conn->wlock.lock();
 	if(--p9conn->ref > 0) {
-		concurrency::threadModel->unlock(&p9conn->wlock);
+        p9conn->wlock.unlock();
 		return;
 	}
-	concurrency::threadModel->unlock(&p9conn->wlock);
+    p9conn->wlock.unlock();
 
 	assert(p9conn->conn == nullptr);
 
@@ -118,12 +118,12 @@ handlefcall(Conn *c) {
 
 	p9conn = std::any_cast<decltype(p9conn)>(c->aux);
 
-	concurrency::threadModel->lock(&p9conn->rlock);
+    p9conn->rlock.lock();
 	if(recvmsg(c->fd, &p9conn->rmsg) == 0)
 		goto Fail;
 	if(msg2fcall(&p9conn->rmsg, &fcall) == 0)
 		goto Fail;
-	concurrency::threadModel->unlock(&p9conn->rlock);
+    p9conn->rlock.unlock();
 
 	req = (Req9*)ixp::emallocz(sizeof *req);
 	p9conn->ref++;
@@ -141,7 +141,7 @@ handlefcall(Conn *c) {
 	return;
 
 Fail:
-	concurrency::threadModel->unlock(&p9conn->rlock);
+    p9conn->rlock.unlock();
 	hangup(c);
 	return;
 }
@@ -373,21 +373,21 @@ Req9::respond(const char *error) {
 	case FType::TVersion:
 		assert(error == nullptr);
 		free(ifcall.version.version);
-
-		concurrency::threadModel->lock(&p9conn->rlock);
-		concurrency::threadModel->lock(&p9conn->wlock);
-		msize = ixp::min<int>(ofcall.version.size(), maximum::Msg);
-		p9conn->rmsg.data = (decltype(p9conn->rmsg.data))ixp::erealloc(p9conn->rmsg.data, msize);
-		p9conn->wmsg.data = (decltype(p9conn->wmsg.data))ixp::erealloc(p9conn->wmsg.data, msize);
-		p9conn->rmsg.setSize(msize);
-		p9conn->wmsg.setSize(msize);
-		concurrency::threadModel->unlock(&p9conn->wlock);
-		concurrency::threadModel->unlock(&p9conn->rlock);
+        {
+            concurrency::Locker<Mutex> theRlock(p9conn->rlock);
+            concurrency::Locker<Mutex> theWlock(p9conn->wlock);
+		    msize = ixp::min<int>(ofcall.version.size(), maximum::Msg);
+		    p9conn->rmsg.data = (decltype(p9conn->rmsg.data))ixp::erealloc(p9conn->rmsg.data, msize);
+		    p9conn->wmsg.data = (decltype(p9conn->wmsg.data))ixp::erealloc(p9conn->wmsg.data, msize);
+		    p9conn->rmsg.setSize(msize);
+		    p9conn->wmsg.setSize(msize);
+        }
         ofcall.version.setSize(msize);
 		break;
 	case FType::TAttach:
-		if(error)
+		if(error) {
 			destroyfid(p9conn, fid->fid);
+        }
 		free(ifcall.tattach.uname);
 		free(ifcall.tattach.aname);
 		break;
@@ -460,11 +460,11 @@ Req9::respond(const char *error) {
     p9conn->tagmap.rm(ifcall.hdr.tag);;
 
 	if(p9conn->conn) {
-		concurrency::threadModel->lock(&p9conn->wlock);
+        concurrency::Locker<Mutex> theLock(p9conn->wlock);
 		msize = fcall2msg(&p9conn->wmsg, &ofcall);
-		if(sendmsg(p9conn->conn->fd, &p9conn->wmsg) != msize)
+		if(sendmsg(p9conn->conn->fd, &p9conn->wmsg) != msize) {
 			hangup(p9conn->conn);
-		concurrency::threadModel->unlock(&p9conn->wlock);
+        }
 	}
 
 	switch(ofcall.hdr.type) {
