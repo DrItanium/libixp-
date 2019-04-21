@@ -790,13 +790,12 @@ namespace ixp {
         template<typename T>
         class Locker final {
             public:
-                Locker(T& lock) : _lock(lock) { threadModel->lock(&_lock); }
-                ~Locker() { threadModel->unlock(&_lock); }
+                Locker(T& lock) : _lock(lock) { _lock.lock(); }
+                ~Locker() { _lock.unlock(); }
                 Locker(const Locker<T>&) = delete;
                 Locker(Locker<T>&&) = delete;
                 Locker<T>& operator=(const Locker<T>&) = delete;
                 Locker<T>& operator=(Locker<T>&&) = delete;
-                bool canLock() { return threadModel->canlock(&_lock); }
             private:
                 T& _lock;
         };
@@ -805,29 +804,22 @@ namespace ixp {
             public:
                 Locker(RWLock& lock, bool readLock = false) : _lock(lock), _readLock(readLock) { 
                     if (_readLock) {
-                        threadModel->rlock(&_lock);
+                        _lock.readLock();
                     } else {
-                        threadModel->wlock(&_lock);
+                        _lock.writeLock();
                     }
                 }
                 ~Locker() { 
                     if (_readLock) {
-                        threadModel->runlock(&_lock);
+                        _lock.readUnlock();
                     } else {
-                        threadModel->wunlock(&_lock); 
+                        _lock.writeUnlock();
                     }
                 }
                 Locker(const Locker<RWLock>&) = delete;
                 Locker(Locker<RWLock>&&) = delete;
                 Locker<RWLock>& operator=(const Locker<RWLock>&) = delete;
                 Locker<RWLock>& operator=(Locker<RWLock>&&) = delete;
-                bool canLock() { 
-                    if (_readLock) {
-                        return threadModel->canrlock(&_lock);
-                    } else {
-                        return threadModel->canwlock(&_lock);
-                    }
-                }
             private:
                 RWLock& _lock;
                 bool _readLock;
