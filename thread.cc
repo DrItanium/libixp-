@@ -35,7 +35,21 @@ NoThreadImpl::sleep(Rendez*) {
     throw "unimplemented";
 }
 std::unique_ptr<ThreadImpl> threadModel = std::make_unique<NoThreadImpl>();
+
 } // end namespace concurrency
+
+void Mutex::lock() { concurrency::threadModel->lock(this); }
+void Mutex::unlock() { concurrency::threadModel->unlock(this); }
+bool Mutex::canlock() { return concurrency::threadModel->canlock(this); }
+void RWLock::readLock() { concurrency::threadModel->rlock(this); }
+void RWLock::readUnlock() { concurrency::threadModel->runlock(this); }
+bool RWLock::canReadLock() { return concurrency::threadModel->canrlock(this); }
+void RWLock::writeLock() { concurrency::threadModel->wlock(this); }
+void RWLock::writeUnlock() { concurrency::threadModel->wunlock(this); }
+bool RWLock::canWriteLock() { concurrency::threadModel->canwlock(this); }
+bool Rendez::wake() { return concurrency::threadModel->wake(this); }
+bool Rendez::wakeall() { return concurrency::threadModel->wakeall(this); }
+void Rendez::sleep() { concurrency::threadModel->sleep(this); }
 
 
 }

@@ -164,6 +164,9 @@ namespace ixp {
         Mutex();
         ~Mutex();
         std::any aux;
+        void lock();
+        void unlock();
+        bool canlock();
     };
 
     struct Rendez {
@@ -171,12 +174,21 @@ namespace ixp {
         ~Rendez();
         Mutex* mutex;
         std::any aux;
+        bool wake();
+        bool wakeall();
+        void sleep();
     };
 
     struct RWLock {
         RWLock();
         ~RWLock();
         std::any aux;
+        void readLock();
+        void readUnlock();
+        bool canReadLock();
+        void writeLock();
+        void writeUnlock();
+        bool canWriteLock();
     };
     template<typename T>
     struct ContainsSizeParameter {
