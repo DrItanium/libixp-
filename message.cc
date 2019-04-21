@@ -228,7 +228,7 @@ fcall2msg(Msg *msg, Fcall *fcall) {
 
 	msg->end = msg->data + msg->size;
 	msg->pos = msg->data + SDWord;
-	msg->mode = Msg::Pack;
+	msg->mode = Msg::Mode::Pack;
     msg->pfcall(fcall);
 
 	if(msg->pos > msg->end)
@@ -247,7 +247,7 @@ fcall2msg(Msg *msg, Fcall *fcall) {
 uint
 msg2fcall(Msg *msg, Fcall *fcall) {
 	msg->pos = msg->data + SDWord;
-	msg->mode = Msg::Unpack;
+	msg->mode = Msg::Mode::Unpack;
     msg->pfcall(fcall);
 
 	if(msg->pos > msg->end)

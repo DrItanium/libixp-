@@ -48,10 +48,10 @@ Msg::puint(uint size, uint32_t *val) {
             return v;
         };
         switch(mode) {
-            case Msg::Pack: 
+            case Msg::Mode::Pack: 
                 performPack(); 
                 break;
-            case Msg::Unpack: {
+            case Msg::Mode::Unpack: {
                 *val = performUnpack();
                 break;
             }
@@ -129,17 +129,19 @@ void
 Msg::pstring(char **s) {
 	uint16_t len;
 
-	if(mode == Msg::Pack)
+    if (packRequested()) {
 		len = strlen(*s);
+    }
 	pu16(&len);
 
 	if((pos + len) <= end) {
-		if(mode == Msg::Unpack) {
+        if (unpackRequested()) {
 			*s = (char*)ixp::emalloc(len + 1);
 			memcpy(*s, pos, len);
 			(*s)[len] = '\0';
-		}else
+		} else {
 			memcpy(pos, *s, len);
+        }
 	}
 	pos += len;
 }
@@ -181,7 +183,7 @@ Msg::pstrings(uint16_t *num, char *strings[], uint max) {
 	}
 
 	SET(s);
-	if(mode == Msg::Unpack) {
+    if (unpackRequested()) {
 		s = pos;
 		size = 0;
         for (auto i = 0; i < *num; ++i) {
@@ -197,12 +199,12 @@ Msg::pstrings(uint16_t *num, char *strings[], uint max) {
 	}
 
 	for(auto i = 0; i < *num; ++i) {
-		if(mode == Msg::Pack) {
+        if (packRequested()) {
 			len = strlen(strings[i]);
         }
 		pu16(&len);
 
-		if (mode == Msg::Unpack) {
+        if (unpackRequested()) {
 			memcpy(s, pos, len);
 			strings[i] = (char*)s;
 			s += len;
@@ -234,7 +236,7 @@ Msg::pstrings(uint16_t *num, char *strings[], uint max) {
 void
 Msg::pdata(char **data, uint len) {
     if(pos + len <= end) {
-        if(mode == Msg::Unpack) {
+        if (unpackRequested()) {
             *data = (char*)ixp::emalloc(len);
             memcpy(*data, pos, len);
         } else {
@@ -290,7 +292,7 @@ Msg::pqids(uint16_t *num, Qid qid[], uint max) {
 void
 Stat::packUnpack(Msg& msg) noexcept {
     uint16_t totalSize = 0;
-    if (msg.mode == Msg::Pack) {
+    if (msg.packRequested()) {
         totalSize = (size() - 2);
     }
     msg.pu16(&totalSize);

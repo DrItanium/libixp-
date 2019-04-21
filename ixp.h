@@ -180,7 +180,7 @@ namespace ixp {
     };
 
     struct Msg {
-        enum Mode {
+        enum class Mode {
             Pack,
             Unpack,
         };
@@ -274,10 +274,10 @@ namespace ixp {
             unpack(value);
             return value;
         }
-        constexpr bool performUnpack() const noexcept {
+        constexpr bool unpackRequested() const noexcept {
             return mode == Mode::Unpack;
         }
-        constexpr bool performPack() const noexcept {
+        constexpr bool packRequested() const noexcept {
             return mode == Mode::Pack;
         }
 
