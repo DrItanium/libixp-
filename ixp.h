@@ -195,6 +195,30 @@ namespace ixp {
             Pack,
             Unpack,
         };
+        /**
+         * Exploit RAII to save and restore the mode that was in the Msg prior.
+         */
+        class ModePreserver final {
+            public:
+                ModePreserver(Msg& target, Mode newMode) : _target(target), _oldMode(target.getMode()), _writePerformed(target.getMode() != newMode) {
+                    if (_writePerformed) {
+                        _target.setMode(newMode);
+                    }
+                }
+                ~ModePreserver() {
+                    if (_writePerformed) {
+                        _target.setMode(_oldMode);
+                    }
+                }
+                ModePreserver(const ModePreserver&) = delete;
+                ModePreserver(ModePreserver&&) = delete;
+                ModePreserver& operator=(const ModePreserver&) = delete;
+                ModePreserver& operator=(ModePreserver&&) = delete;
+            private:
+                Msg& _target;
+                Mode _oldMode;
+                bool _writePerformed;
+        };
         char*	data; /* Begining of buffer. */
         char*	pos;  /* Current position in buffer. */
         char*	end;  /* End of message. */ 
@@ -251,31 +275,23 @@ namespace ixp {
         }
         template<typename T>
         void pack(T* value) noexcept {
-            auto oldMode = getMode();
-            setMode(Mode::Pack);
+            ModePreserver(*this, Mode::Pack);
             packUnpack(value);
-            setMode(oldMode);
         }
         template<typename T>
         void pack(T& value) noexcept {
-            auto oldMode = getMode();
-            setMode(Mode::Pack);
+            ModePreserver(*this, Mode::Pack);
             packUnpack(value);
-            setMode(oldMode);
         }
         template<typename T>
         void unpack(T* value) noexcept {
-            auto oldMode = getMode();
-            setMode(Mode::Unpack);
+            ModePreserver(*this, Mode::Unpack);
             packUnpack(value);
-            setMode(oldMode);
         }
         template<typename T>
         void unpack(T& value) noexcept {
-            auto oldMode = getMode();
-            setMode(Mode::Unpack);
+            ModePreserver(*this, Mode::Unpack);
             packUnpack(value);
-            setMode(oldMode);
         }
         template<typename T>
         T unpack() noexcept {
