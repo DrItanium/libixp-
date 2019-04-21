@@ -409,8 +409,13 @@ namespace ixp {
         char*		data; /* Twrite, Rread */
     };
     struct FRStat : public QueryHeader {
-        uint16_t	nstat;
+        constexpr uint16_t size() const noexcept { return _nstat; }
+        uint16_t& getSizeReference() noexcept { return _nstat; }
+        void setSize(uint16_t value) noexcept { _nstat = value; }
+        constexpr bool empty() const noexcept { return size() == 0; }
         uint8_t*	stat;
+        private:
+            uint16_t _nstat;
     };
     struct FTWStat : public QueryHeader {
         Stat		stat;

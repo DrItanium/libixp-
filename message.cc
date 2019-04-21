@@ -193,8 +193,8 @@ Fcall::packUnpack(Msg& msg) noexcept {
 		msg.pu32(&hdr.fid);
 		break;
     case FType::RStat:
-		msg.pu16(&rstat.nstat);
-		msg.pdata((char**)&rstat.stat, rstat.nstat);
+		msg.pu16(&rstat.getSizeReference());
+		msg.pdata((char**)&rstat.stat, rstat.size());
 		break;
     case FType::TWStat: {
 		uint16_t size;
