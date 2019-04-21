@@ -134,11 +134,11 @@ srv_readbuf(Req9 *req, char *buf, uint len) {
 		return;
 
 	len -= req->ifcall.io.offset;
-	if(len > req->ifcall.io.count)
-		len = req->ifcall.io.count;
+	if(len > req->ifcall.io.size())
+		len = req->ifcall.io.size();
 	req->ofcall.io.data = (decltype(req->ofcall.io.data))ixp::emalloc(len);
 	memcpy(req->ofcall.io.data, buf + req->ifcall.io.offset, len);
-	req->ofcall.io.count = len;
+	req->ofcall.io.setSize(len);
 }
 
 void
@@ -153,12 +153,12 @@ srv_writebuf(Req9 *req, char **buf, uint *len, uint max) {
 	if(file->tab.perm & uint32_t(DMode::APPEND))
 		offset = *len;
 
-	if(offset > *len || req->ifcall.io.count == 0) {
-		req->ofcall.io.count = 0;
+	if(offset > *len || req->ifcall.io.empty()) {
+        req->ofcall.io.setSize(0);
 		return;
 	}
 
-	count = req->ifcall.io.count;
+	count = req->ifcall.io.size();
 	if(max && (offset + count > max))
 		count = max - offset;
 
@@ -168,7 +168,7 @@ srv_writebuf(Req9 *req, char **buf, uint *len, uint max) {
 	p = *buf;
 
 	memcpy(p+offset, req->ifcall.io.data, count);
-	req->ofcall.io.count = count;
+	req->ofcall.io.setSize(count);
 	p[offset+count] = '\0';
 }
 
@@ -186,7 +186,7 @@ srv_data2cstring(Req9 *req) {
 	char *p, *q;
 	uint i;
 
-	i = req->ifcall.io.count;
+    i = req->ifcall.io.size();
 	p = req->ifcall.io.data;
 	if(i && p[i - 1] == '\n')
 		i--;
@@ -295,7 +295,7 @@ pending_respond(Req9 *req) {
 		queue = p->queue;
 		p->queue = queue->link;
 		req->ofcall.io.data = queue->dat;
-		req->ofcall.io.count = queue->len;
+		req->ofcall.io.setSize(queue->len);
 		if(req->aux.has_value()) {
             req_link = std::any_cast<decltype(req_link)>(req->aux);
 			req_link->next->prev = req_link->prev;
@@ -522,7 +522,7 @@ srv_readdir(Req9 *req, LookupFn lookup, std::function<void(Stat*, FileId*)> dost
 
 	auto file = std::any_cast<FileId*>(req->fid->aux);
 
-	ulong size = req->ifcall.io.count;
+	ulong size = req->ifcall.io.size();
 	if(size > req->fid->iounit)
 		size = req->fid->iounit;
 	auto buf = (char*)ixp::emallocz(size);
@@ -547,7 +547,7 @@ srv_readdir(Req9 *req, LookupFn lookup, std::function<void(Stat*, FileId*)> dost
 		tfile=tfile->next;
 		srv_freefile(file);
 	}
-	req->ofcall.io.count = msg.pos - msg.data;
+	req->ofcall.io.setSize(msg.pos - msg.data);
 	req->ofcall.io.data = msg.data;
     req->respond(nullptr);
 }

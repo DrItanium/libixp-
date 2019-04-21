@@ -172,20 +172,20 @@ Fcall::packUnpack(Msg& msg) noexcept {
 	case FType::TRead:
 		msg.pu32(&hdr.fid);
 		msg.pu64(&tread.offset);
-		msg.pu32(&tread.count);
+		msg.pu32(&tread.getSizeReference());
 		break;
 	case FType::RRead:
-		msg.pu32(&rread.count);
-		msg.pdata(&rread.data, rread.count);
+		msg.pu32(&rread.getSizeReference());
+		msg.pdata(&rread.data, rread.size());
 		break;
 	case FType::TWrite:
 		msg.pu32(&hdr.fid);
 		msg.pu64(&twrite.offset);
-		msg.pu32(&twrite.count);
-		msg.pdata(&twrite.data, twrite.count);
+		msg.pu32(&twrite.getSizeReference());
+		msg.pdata(&twrite.data, twrite.size());
 		break;
 	case FType::RWrite:
-		msg.pu32(&rwrite.count);
+		msg.pu32(&rwrite.getSizeReference());
 		break;
 	case FType::TClunk:
 	case FType::TRemove:

@@ -177,18 +177,18 @@ _pread(CFid *f, char *buf, long count, int64_t offset) {
         auto n = min<int>(count-len, f->iounit);
         fcall.setTypeAndFid(FType::TRead, f->fid);
 		fcall.tread.offset = offset;
-		fcall.tread.count = n;
+        fcall.tread.setSize(n);
 		if(!dofcall(f->client, &fcall))
 			return -1;
-		if(fcall.rread.count > n)
+		if(fcall.rread.size()> n)
 			return -1;
 
-		memcpy(buf+len, fcall.rread.data, fcall.rread.count);
-		offset += fcall.rread.count;
-		len += fcall.rread.count;
+		memcpy(buf+len, fcall.rread.data, fcall.rread.size());
+		offset += fcall.rread.size();
+		len += fcall.rread.size();
 
 		Fcall::free(&fcall);
-		if(fcall.rread.count < n)
+		if(fcall.rread.size() < n)
 			break;
 	}
 	return len;
@@ -205,15 +205,15 @@ _pwrite(CFid *f, const void *buf, long count, int64_t offset) {
         fcall.setTypeAndFid(FType::TWrite, f->fid);
 		fcall.twrite.offset = offset;
 		fcall.twrite.data = (char*)buf + len;
-		fcall.twrite.count = n;
+        fcall.twrite.setSize(n);
 		if(!dofcall(f->client, &fcall))
 			return -1;
 
-		offset += fcall.rwrite.count;
-		len += fcall.rwrite.count;
+		offset += fcall.rwrite.size();
+		len += fcall.rwrite.size();
 
 		Fcall::free(&fcall);
-		if(fcall.rwrite.count < n)
+		if(fcall.rwrite.size() < n)
 			break;
 	} while(len < count);
 	return len;

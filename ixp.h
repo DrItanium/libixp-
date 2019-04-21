@@ -405,8 +405,13 @@ namespace ixp {
     };
     struct FIO : public QueryHeader {
         uint64_t	offset; /* Tread, Twrite */
-        uint32_t	count; /* Tread, Twrite, Rread */
         char*		data; /* Twrite, Rread */
+        constexpr uint32_t size() const noexcept { return _count; }
+        uint32_t& getSizeReference() noexcept { return _count; }
+        void setSize(uint32_t value) noexcept { _count = value; }
+        constexpr bool empty() const noexcept { return size() == 0; }
+        private:
+            uint32_t _count; /* Tread, Twrite, Rread */
     };
     struct FRStat : public QueryHeader {
         constexpr uint16_t size() const noexcept { return _nstat; }
