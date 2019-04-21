@@ -230,7 +230,7 @@ xls(int argc, char *argv[]) {
 	ixp::Msg m;
 	ixp::CFid *fid;
 	char *file, *buf;
-	int count, nstat, mstat, i;
+	int count;
 
 	auto lflag = 0;
     auto dflag = 0;
@@ -265,27 +265,23 @@ xls(int argc, char *argv[]) {
         ixp::fatalPrint("Can't open file '", file, "': ", ixp::errbuf(), "\n");
     }
 
-	nstat = 0;
-	mstat = 16;
-	stat = (decltype(stat))ixp::emalloc(sizeof(*stat) * mstat);
+    std::vector<ixp::Stat> stats;
 	buf = (decltype(buf))ixp::emalloc(fid->iounit);
 	while((count = fid->read(buf, fid->iounit)) > 0) {
         m = ixp::Msg::message(buf, count, ixp::Msg::Mode::Unpack);
 		while(m.pos < m.end) {
-			if(nstat == mstat) {
-				mstat <<= 1;
-				stat = (decltype(stat))ixp::erealloc(stat, sizeof(*stat) * mstat);
-			}
-            m.pstat(&stat[nstat++]);
+            stats.emplace_back();
+            m.pstat(stats.back());
 		}
 	}
 
-	qsort(stat, nstat, sizeof(*stat), comp_stat);
-	for(i = 0; i < nstat; i++) {
-		print_stat(&stat[i], lflag);
-        ixp::Stat::free(&stat[i]);
-	}
-	free(stat);
+    // TODO implement sorting in the future
+	//qsort(stats, nstat, sizeof(*stat), comp_stat);
+    for (auto& stat : stats) {
+        print_stat(&stat, lflag);
+        ixp::Stat::free(&stat);
+    }
+	//free(stat);
 
 	if(count == -1)
         ixp::fatalPrint("Can't read directory '", file, "': ", ixp::errbuf(), "\n");
