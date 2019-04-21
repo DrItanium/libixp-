@@ -558,7 +558,7 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
 	int i;
 
 	auto file = (FileId*)srv_clonefiles(std::any_cast<FileId*>(req->fid->aux));
-	for(i=0; i < req->ifcall.twalk.nwname; i++) {
+	for(i=0; i < req->ifcall.twalk.size(); i++) {
 		if(!strcmp(req->ifcall.twalk.wname[i], "..")) {
 			if(file->next) {
 				tfile = file;
@@ -579,7 +579,7 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
 		req->ofcall.rwalk.wqid[i].path = QID(file->tab.type, file->id);
 	}
 	/* There should be a way to do this on freefid() */
-	if(i < req->ifcall.twalk.nwname) {
+	if(i < req->ifcall.twalk.size()) {
 		while((tfile = file)) {
 			file=file->next;
 			srv_freefile(tfile);

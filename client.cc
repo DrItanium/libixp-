@@ -96,7 +96,7 @@ walk(Client *c, const char *path) {
 	f = getfid(c);
     fcall.setFid(RootFid);
 
-	fcall.twalk.nwname = n;
+    fcall.twalk.setSize(n);
 	fcall.twalk.newfid = f->fid;
 	if(!dofcall(c, &fcall))
 		goto fail;

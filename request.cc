@@ -282,7 +282,7 @@ handlereq(Req9 *r) {
 			r->respond("cannot walk from an open fid");
 			return;
 		}
-		if(r->ifcall.twalk.nwname && !(r->fid->qid.type&uint8_t(QType::DIR))) {
+		if(r->ifcall.twalk.size() && !(r->fid->qid.type&uint8_t(QType::DIR))) {
 			r->respond(Enotdir);
 			return;
 		}
@@ -402,7 +402,7 @@ Req9::respond(const char *error) {
 		free(ifcall.tcreate.name);
 		break;
 	case FType::TWalk:
-		if(error || ofcall.rwalk.size() < ifcall.twalk.nwname) {
+		if(error || ofcall.rwalk.size() < ifcall.twalk.size()) {
 			if(ifcall.hdr.fid != ifcall.twalk.newfid && newfid)
 				destroyfid(p9conn, newfid->fid);
 			if(!error && ofcall.rwalk.empty()) {
