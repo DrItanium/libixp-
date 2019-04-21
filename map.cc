@@ -85,16 +85,16 @@ Map::init(MapEnt **buckets, int nbuckets) {
 
 bool
 Map::insert(ulong key, void *val, bool overwrite) {
-	MapEnt *e;
-	bool existed, res;
+	bool existed;
 	
-	res = true;
+	auto res = true;
 	concurrency::threadModel->wlock(&lock);
-	e = *map_getp(this, key, true, &existed);
-	if(existed && !overwrite)
+	MapEnt* e = *map_getp(this, key, true, &existed);
+	if(existed && !overwrite) {
 		res = false;
-	else
+    } else {
 		e->val = val;
+    }
 	concurrency::threadModel->wunlock(&lock);
 	return res;
 }

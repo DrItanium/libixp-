@@ -732,8 +732,8 @@ namespace ixp {
                 void rwdestroy(RWLock* a) { destroy(a); }
                 auto initrendez(Rendez* r) { return init(r); }
                 void rdestroy(Rendez* r) { destroy(r); }
-
         };
+
 
         extern std::unique_ptr<ThreadImpl> threadModel;
 
@@ -771,6 +771,49 @@ namespace ixp {
                 void sleep(Rendez*) override;
                 /* Other */
                 char* errbuf() override;
+        };
+        template<typename T>
+        class Locker final {
+            public:
+                Locker(T* lock) : _lock(lock) { threadModel->lock(_lock); }
+                ~Locker() { threadModel->unlock(_lock); }
+                Locker(const Locker<T>&) = delete;
+                Locker(Locker<T>&&) = delete;
+                Locker<T>& operator=(const Locker<T>&) = delete;
+                Locker<T>& operator=(Locker<T>&&) = delete;
+                bool canLock() { return threadModel->canlock(_lock); }
+            private:
+                T* _lock;
+        };
+        class WLocker final {
+            public:
+                WLocker(ixp::RWLock* lock) : _lock(lock) {
+                    threadModel->wlock(_lock);
+                }
+                ~WLocker() {
+                    threadModel->wunlock(_lock);
+                }
+                WLocker(const WLocker&) = delete;
+                WLocker(WLocker&&) = delete;
+                WLocker& operator=(const WLocker&) = delete;
+                WLocker& operator=(WLocker&&) = delete;
+            private:
+                ixp::RWLock* _lock;
+        };
+        class RLocker final {
+            public:
+                RLocker(ixp::RWLock* lock) : _lock(lock) {
+                    threadModel->rlock(_lock);
+                }
+                ~RLocker() {
+                    threadModel->runlock(_lock);
+                }
+                RLocker(const RLocker&) = delete;
+                RLocker(RLocker&&) = delete;
+                RLocker& operator=(const RLocker&) = delete;
+                RLocker& operator=(RLocker&&) = delete;
+            private:
+                ixp::RWLock* _lock;
         };
     } // end namespace concurrency
 

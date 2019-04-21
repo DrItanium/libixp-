@@ -89,15 +89,18 @@ Server::unsettimer(long id) {
 	Timer **tp;
 	Timer *t;
 
-	concurrency::threadModel->lock(&lk);
-	for(tp=&timer; (t=*tp); tp=&t->link)
-		if(t->id == id)
-			break;
-	if(t) {
-		*tp = t->link;
-		free(t);
-	}
-	concurrency::threadModel->unlock(&lk);
+    {
+        concurrency::Locker<decltype(lk)> locker(&lk); 
+        //concurrency::threadModel->lock(&lk);
+        for(tp=&timer; (t=*tp); tp=&t->link)
+            if(t->id == id)
+                break;
+        if(t) {
+            *tp = t->link;
+            free(t);
+        }
+        //concurrency::threadModel->unlock(&lk);
+    }
 	return t != nullptr;
 }
 

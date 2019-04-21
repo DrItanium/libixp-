@@ -74,7 +74,6 @@ constexpr auto EPLAN9 = 0x19283745;
  */
 char*
 errbuf() {
-
 	auto errbuf = concurrency::threadModel->errbuf();
 	if(errno == EINTR) {
 		strncpy(errbuf, "interrupted", ErrorMax);
