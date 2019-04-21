@@ -68,11 +68,11 @@ FileId*	srv_clonefiles(FileId*);
 void	srv_data2cstring(Req9*);
 void	srv_freefile(FileId*);
 void	srv_readbuf(Req9*, char*, uint);
-void	srv_readdir(Req9*, LookupFn, void (*)(Stat*, FileId*));
+void	srv_readdir(Req9*, LookupFn, std::function<void(Stat*, FileId*)>);
 bool	srv_verifyfile(FileId*, LookupFn);
 void	srv_walkandclone(Req9*, LookupFn);
 void	srv_writebuf(Req9*, char**, uint*, uint);
-char*	srv_writectl(Req9*, char* (*)(void*, Msg*));
+char*	srv_writectl(Req9*, std::function<char*(void*, Msg*)>);
 FileId* srv_getfile(void);
 
 } // end namespace ixp

@@ -516,29 +516,25 @@ srv_verifyfile(FileId *file, LookupFn lookup) {
 }
 
 void
-srv_readdir(Req9 *req, LookupFn lookup, void (*dostat)(Stat*, FileId*)) {
-	Msg msg;
+srv_readdir(Req9 *req, LookupFn lookup, std::function<void(Stat*, FileId*)> dostat) {
 	FileId *tfile;
 	Stat stat;
-	char *buf;
-	ulong size, n;
-	uint64_t offset;
 
 	auto file = std::any_cast<FileId*>(req->fid->aux);
 
-	size = req->ifcall.io.count;
+	ulong size = req->ifcall.io.count;
 	if(size > req->fid->iounit)
 		size = req->fid->iounit;
-	buf = (decltype(buf))ixp::emallocz(size);
-	msg = Msg::message(buf, size, Msg::Mode::Pack);
+	auto buf = (char*)ixp::emallocz(size);
+	auto msg = Msg::message(buf, size, Msg::Mode::Pack);
 
 	file = lookup(file, nullptr);
 	tfile = file;
 	/* Note: The first file is ".", so we skip it. */
-	offset = 0;
+	uint64_t offset = 0;
 	for(file=file->next; file; file=file->next) {
 		dostat(&stat, file);
-        n = stat.size();
+        ulong n = stat.size();
 		if(offset >= req->ifcall.io.offset) {
 			if(size < n)
 				break;
