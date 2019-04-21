@@ -118,14 +118,14 @@ long
 Server::nexttimer() {
 	Timer *t;
 	uint64_t time;
-	long ret;
 
 	SET(time);
 	concurrency::threadModel->lock(&lk);
 	while((t = timer)) {
 		time = msec();
-		if(t->msec > time)
+		if(t->msec > time) {
 			break;
+        }
 		timer = t->link;
 
 		concurrency::threadModel->unlock(&lk);
@@ -133,9 +133,10 @@ Server::nexttimer() {
 		free(t);
 		concurrency::threadModel->lock(&lk);
 	}
-	ret = 0;
-	if(t)
+	long ret = 0;
+	if(t) {
 		ret = t->msec - time;
+    }
 	concurrency::threadModel->unlock(&lk);
 	return ret;
 }
