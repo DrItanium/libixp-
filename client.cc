@@ -20,8 +20,7 @@ namespace {
 CFid*
 getfid(Client *c) {
 	CFid *f;
-
-	concurrency::threadModel->lock(&c->lk);
+    concurrency::Locker<Mutex> theLock(c->lk);
 	f = c->freefid;
     if (f) {
 		c->freefid = f->next;
@@ -33,7 +32,6 @@ getfid(Client *c) {
 	}
 	f->next = nullptr;
 	f->open = 0;
-	concurrency::threadModel->unlock(&c->lk);
 	return f;
 }
 
@@ -41,7 +39,7 @@ void
 putfid(CFid *f) {
 
 	auto c = f->client;
-	concurrency::threadModel->lock(&c->lk);
+    concurrency::Locker<Mutex> theLock(c->lk);
 	if(f->fid == c->lastfid) {
 		c->lastfid--;
 		concurrency::threadModel->mdestroy(&f->iolock);
@@ -50,7 +48,6 @@ putfid(CFid *f) {
 		f->next = c->freefid;
 		c->freefid = f;
 	}
-	concurrency::threadModel->unlock(&c->lk);
 }
 
 bool 
@@ -550,24 +547,17 @@ CFid::fstat() {
 
 long
 CFid::read(void *buf, long count) {
-	int n;
-
-	concurrency::threadModel->lock(&iolock);
-	n = _pread(this, (char*)buf, count, offset);
+    concurrency::Locker<Mutex> theLock(iolock);
+	int n = _pread(this, (char*)buf, count, offset);
 	if(n > 0)
 		offset += n;
-	concurrency::threadModel->unlock(&iolock);
 	return n;
 }
 
 long
 CFid::pread(void *buf, long count, int64_t offset) {
-	int n;
-
-	concurrency::threadModel->lock(&iolock);
-	n = _pread(this, (char*)buf, count, offset);
-	concurrency::threadModel->unlock(&iolock);
-	return n;
+    concurrency::Locker<Mutex> theLock(iolock);
+	return _pread(this, (char*)buf, count, offset);
 }
 
 
@@ -596,22 +586,17 @@ CFid::pread(void *buf, long count, int64_t offset) {
 
 long
 CFid::write(const void *buf, long count) {
-	concurrency::threadModel->lock(&iolock);
+    concurrency::Locker<Mutex> theLock(iolock);
 	auto n = _pwrite(this, buf, count, offset);
 	if(n > 0)
 		offset += n;
-	concurrency::threadModel->unlock(&iolock);
 	return n;
 }
 
 long
 CFid::pwrite(const void *buf, long count, int64_t offset) {
-	int n;
-
-	concurrency::threadModel->lock(&iolock);
-	n = _pwrite(this, buf, count, offset);
-	concurrency::threadModel->unlock(&iolock);
-	return n;
+    concurrency::Locker<Mutex> theLock(iolock);
+	return _pwrite(this, buf, count, offset);
 }
 
 /**
