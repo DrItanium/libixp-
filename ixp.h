@@ -462,29 +462,23 @@ namespace ixp {
      *	T<Srv9>, T<Req9>
      */
     union Fcall {
-        FHdr		hdr;
-        FVersion	version;
-        FVersion	tversion;
-        FVersion	rversion;
-        FTFlush	tflush;
-        FROpen	ropen;
-        FROpen	rcreate;
-        FROpen	rattach;
-        FError	error;
-        FRAuth	rauth;
-        FAttach	tattach;
-        FAttach	tauth;
-        FTCreate	tcreate;
-        FTCreate	topen;
-        FTWalk	twalk;
-        FRWalk	rwalk;
-        FTWStat	twstat;
-        FRStat	rstat;
-        FIO		twrite;
-        FIO		rwrite;
-        FIO		tread;
-        FIO		rread;
-        FIO		io;
+        FHdr     hdr;
+        FVersion version, tversion,
+                 rversion;
+        FTFlush  tflush;
+        FROpen   ropen, rcreate,
+                 rattach;
+        FError   error;
+        FRAuth   rauth;
+        FAttach  tattach, tauth;
+        FTCreate tcreate, topen;
+        FTWalk   twalk;
+        FRWalk   rwalk;
+        FTWStat  twstat;
+        FRStat   rstat;
+        FIO      twrite, rwrite, 
+                 tread, rread,
+                 io;
         void packUnpack(Msg& msg) noexcept;
         static void free(Fcall*);
         FType getType() const noexcept { return hdr.type; }
@@ -530,7 +524,7 @@ namespace ixp {
                 std::function<void(Conn*)> read,
                 std::function<void(Conn*)> close);
         int	    serverloop();
-        void	server_close();
+        void	close();
         bool unsettimer(long);
         long settimer(long, std::function<void(long, const std::any&)>, const std::any& aux);
         long nexttimer();

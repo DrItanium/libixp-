@@ -52,11 +52,11 @@ Server::listen(int fd, const std::any& aux,
 
 /**
  * Function: hangup
- * Function: server_close
+ * Function: close
  *
  * hangup closes a connection, and stops the server
  * listening on it. It calls the connection's close
- * function, if it exists. server_close calls hangup
+ * function, if it exists. close calls hangup
  * on all of the connections on which the server is
  * listening.
  *
@@ -85,7 +85,7 @@ hangup(Conn *c) {
 }
 
 void
-Server::server_close() {
+Server::close() {
 	Conn *next = nullptr;
 
 	for(auto c = conn; c; c = next) {

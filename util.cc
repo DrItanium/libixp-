@@ -46,27 +46,23 @@ _user(void) {
 	return user;
 }
 
-static int
+static bool 
 rmkdir(char *path, int mode) {
-	char *p;
-	int ret;
-	char c;
-
-	for(p = path+1; ; p++) {
-		c = *p;
+	for(char* p = path+1; ; p++) {
+		char c = *p;
 		if((c == '/') || (c == '\0')) {
 			*p = '\0';
-			ret = mkdir(path, mode);
+			int ret = mkdir(path, mode);
 			if((ret == -1) && (errno != EEXIST)) {
 				werrstr("Can't create path '%s': %s", path, errbuf());
-				return 0;
+				return false;
 			}
 			*p = c;
 		}
 		if(c == '\0')
 			break;
 	}
-	return 1;
+	return true;
 }
 
 static char*
@@ -161,11 +157,12 @@ eprint(const char *fmt, ...) {
 
 /* Can't malloc */
 static void
-mfatal(char *name, uint size) {
-	const char
-		couldnot[] = "libixp: fatal: Could not ",
-		paren[] = "() ",
-		bytes[] = " bytes\n";
+mfatal(const char *name, uint size) {
+    static std::string 
+        couldnot = "libixp: fatal: Could not ",
+        paren = "() ",
+        bytes = " bytes\n";
+        
 	char sizestr[8];
 	
 	int i = sizeof sizestr;
@@ -174,11 +171,11 @@ mfatal(char *name, uint size) {
 		size /= 10;
 	} while(size > 0);
 
-	::write(1, couldnot, sizeof(couldnot)-1);
+	::write(1, couldnot.c_str(), couldnot.size());
 	::write(1, name, strlen(name));
-	::write(1, paren, sizeof(paren)-1);
+	::write(1, paren.c_str(), paren.size());
 	::write(1, sizestr+i, sizeof(sizestr)-i);
-	::write(1, bytes, sizeof(bytes)-1);
+	::write(1, bytes.c_str(), bytes.size());
 
 	exit(1);
 }
