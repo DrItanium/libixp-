@@ -348,64 +348,60 @@ namespace ixp {
         uint16_t	tag;
         uint32_t	fid;
     };
-    struct FVersion {
-        FHdr		hdr;
+    struct QueryHeader {
+        QueryHeader() = default;
+        ~QueryHeader() = default;
+        FHdr hdr;
+        constexpr auto getType() const noexcept { return hdr.type; }
+        constexpr auto getFid() const noexcept { return hdr.fid; }
+        constexpr auto getTag() const noexcept { return hdr.tag; }
+    };
+    struct FVersion : public QueryHeader {
         uint32_t	msize;
         char*		version;
     };
-    struct FTFlush {
-        FHdr		hdr;
+    struct FTFlush : public QueryHeader {
         uint16_t	oldtag;
     };
-    struct FError {
-        FHdr		hdr;
+    struct FError : public QueryHeader {
         char*		ename;
     };
-    struct FROpen {
-        FHdr		hdr;
+    struct FROpen : public QueryHeader {
         Qid		qid; /* +Rattach */
         uint32_t	iounit;
     };
-    struct FRAuth {
-        FHdr		hdr;
+    struct FRAuth : public QueryHeader {
         Qid		aqid;
     };
-    struct FAttach {
-        FHdr		hdr;
+    struct FAttach : public QueryHeader {
         uint32_t	afid;
         char*		uname;
         char*		aname;
     };
-    struct FTCreate {
-        FHdr		hdr;
+    struct FTCreate : public QueryHeader {
         uint32_t	perm;
         char*		name;
         uint8_t		mode; /* +Topen */
     };
-    struct FTWalk {
-        FHdr	hdr;
+    struct FTWalk : public QueryHeader {
         uint32_t	newfid;
         uint16_t	nwname;
         char*		wname[maximum::Welem];
     };
-    struct FRWalk {
-        FHdr		hdr;
+    struct FRWalk : public QueryHeader {
         uint16_t	nwqid;
         Qid		wqid[maximum::Welem];
     };
-    struct FIO {
-        FHdr		hdr;
+    struct FIO : public QueryHeader {
         uint64_t	offset; /* Tread, Twrite */
         uint32_t	count; /* Tread, Twrite, Rread */
         char*		data; /* Twrite, Rread */
     };
-    struct FRStat {
-        FHdr		hdr;
+    struct FRStat : public QueryHeader {
         uint16_t	nstat;
         uint8_t*	stat;
     };
-    struct FTWStat {
-        FHdr		hdr;
+    struct FTWStat : public QueryHeader {
         Stat		stat;
     };
 
