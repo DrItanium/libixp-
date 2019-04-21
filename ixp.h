@@ -240,6 +240,41 @@ namespace ixp {
         void packUnpackMany(Args&& ... fields) noexcept {
             (packUnpack(std::forward<Args>(fields)), ...);
         }
+        template<typename T>
+        void pack(T* value) noexcept {
+            auto oldMode = mode;
+            mode = Mode::Pack;
+            packUnpack(value);
+            mode = oldMode;
+        }
+        template<typename T>
+        void pack(T& value) noexcept {
+            auto oldMode = mode;
+            mode = Mode::Pack;
+            packUnpack(value);
+            mode = oldMode;
+        }
+        template<typename T>
+        void unpack(T* value) noexcept {
+            auto oldMode = mode;
+            mode = Mode::Unpack;
+            packUnpack(value);
+            mode = oldMode;
+        }
+        template<typename T>
+        void unpack(T& value) noexcept {
+            auto oldMode = mode;
+            mode = Mode::Unpack;
+            packUnpack(value);
+            mode = oldMode;
+        }
+        template<typename T>
+        T unpack() noexcept {
+            T value;
+            unpack(value);
+            return value;
+        }
+
         private:
            void puint(uint, uint32_t*);
     };
