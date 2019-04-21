@@ -50,7 +50,7 @@ Msg::message(char *data, uint length, Mode mode) {
 	m.pos = data;
 	m.end = data + length;
 	m.size = length;
-	m.mode = mode;
+    m.setMode(mode);
 	return m;
 }
 

@@ -188,7 +188,6 @@ namespace ixp {
         char*	pos;  /* Current position in buffer. */
         char*	end;  /* End of message. */ 
         uint	size; /* Size of buffer. */
-        Mode mode; /* MsgPack or MsgUnpack. */
         void pu8(uint8_t*);
         void pu16(uint16_t*);
         void pu32(uint32_t*);
@@ -242,31 +241,31 @@ namespace ixp {
         }
         template<typename T>
         void pack(T* value) noexcept {
-            auto oldMode = mode;
-            mode = Mode::Pack;
+            auto oldMode = getMode();
+            setMode(Mode::Pack);
             packUnpack(value);
-            mode = oldMode;
+            setMode(oldMode);
         }
         template<typename T>
         void pack(T& value) noexcept {
-            auto oldMode = mode;
-            mode = Mode::Pack;
+            auto oldMode = getMode();
+            setMode(Mode::Pack);
             packUnpack(value);
-            mode = oldMode;
+            setMode(oldMode);
         }
         template<typename T>
         void unpack(T* value) noexcept {
-            auto oldMode = mode;
-            mode = Mode::Unpack;
+            auto oldMode = getMode();
+            setMode(Mode::Unpack);
             packUnpack(value);
-            mode = oldMode;
+            setMode(oldMode);
         }
         template<typename T>
         void unpack(T& value) noexcept {
-            auto oldMode = mode;
-            mode = Mode::Unpack;
+            auto oldMode = getMode();
+            setMode(Mode::Unpack);
             packUnpack(value);
-            mode = oldMode;
+            setMode(oldMode);
         }
         template<typename T>
         T unpack() noexcept {
@@ -275,20 +274,21 @@ namespace ixp {
             return value;
         }
         constexpr bool unpackRequested() const noexcept {
-            return mode == Mode::Unpack;
+            return _mode == Mode::Unpack;
         }
         constexpr bool packRequested() const noexcept {
-            return mode == Mode::Pack;
+            return _mode == Mode::Pack;
         }
-        constexpr auto getMode() const noexcept { 
-            return mode;
+        constexpr Mode getMode() const noexcept { 
+            return _mode;
         }
         void setMode(Mode mode) noexcept {
-            this->mode = mode;
+            this->_mode = mode;
         }
 
         private:
            void puint(uint, uint32_t*);
+            Mode _mode; /* MsgPack or MsgUnpack. */
     };
 
     struct Qid {
