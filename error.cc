@@ -77,20 +77,20 @@ errbuf() {
 
 	auto errbuf = concurrency::threadModel->errbuf();
 	if(errno == EINTR) {
-		strncpy(errbuf, "interrupted", IXP_ERRMAX);
+		strncpy(errbuf, "interrupted", ErrorMax);
     } else if(errno != EPLAN9) {
-		strncpy(errbuf, strerror(errno), IXP_ERRMAX);
+		strncpy(errbuf, strerror(errno), ErrorMax);
     }
 	return errbuf;
 }
 
 void
 errstr(char *buf, int nbuf) {
-	char tmp[IXP_ERRMAX];
+	char tmp[ErrorMax];
 
 	strncpy(tmp, buf, sizeof tmp);
 	rerrstr(buf, nbuf);
-	strncpy(concurrency::threadModel->errbuf(), tmp, IXP_ERRMAX);
+	strncpy(concurrency::threadModel->errbuf(), tmp, ErrorMax);
 	errno = EPLAN9;
 }
 
@@ -101,13 +101,13 @@ rerrstr(char *buf, int nbuf) {
 
 void
 werrstr(const char *fmt, ...) {
-	char tmp[IXP_ERRMAX];
+	char tmp[ErrorMax];
 	va_list ap;
 
 	va_start(ap, fmt);
 	vsnprint(tmp, sizeof tmp, fmt, ap);
 	va_end(ap);
-	strncpy(concurrency::threadModel->errbuf(), tmp, IXP_ERRMAX);
+	strncpy(concurrency::threadModel->errbuf(), tmp, ErrorMax);
 	errno = EPLAN9;
 }
 

@@ -68,7 +68,7 @@ namespace ixp::concurrency {
         static pthread_key_t errstr_k;
         auto ret = (char*)pthread_getspecific(errstr_k);
         if (!ret) {
-            ret = (char*)ixp::emallocz(IXP_ERRMAX);
+            ret = (char*)ixp::emallocz(ErrorMax);
             pthread_setspecific(errstr_k, (void*)ret);
         }
         return ret;

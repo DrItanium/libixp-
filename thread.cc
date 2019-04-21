@@ -27,7 +27,7 @@ ThreadImpl::select(int fd, fd_set* readfds, fd_set* writefds, fd_set* exceptfds,
 }
 char*
 NoThreadImpl::errbuf() {
-    static char errbuf[IXP_ERRMAX];
+    static char errbuf[ErrorMax];
     return errbuf;
 }
 void

@@ -158,9 +158,7 @@ namespace ixp {
     union Fcall;
 
     /* Threading */
-    enum {
-        IXP_ERRMAX = maximum::Error,
-    };
+    constexpr auto ErrorMax = maximum::Error;
 
     struct Mutex {
         Mutex();
