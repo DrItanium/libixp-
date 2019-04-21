@@ -274,6 +274,12 @@ namespace ixp {
             unpack(value);
             return value;
         }
+        constexpr bool performUnpack() const noexcept {
+            return mode == Mode::Unpack;
+        }
+        constexpr bool performPack() const noexcept {
+            return mode == Mode::Pack;
+        }
 
         private:
            void puint(uint, uint32_t*);
