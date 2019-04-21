@@ -79,8 +79,8 @@ fail:
 }
 void
 allocmsg(Client *c, int n) {
-	c->rmsg.size = n;
-	c->wmsg.size = n;
+    c->rmsg.setSize(n);
+    c->wmsg.setSize(n);
 	c->rmsg.data = (char*)erealloc(c->rmsg.data, n);
 	c->wmsg.data = (char*)erealloc(c->wmsg.data, n);
 }

@@ -49,7 +49,7 @@ Msg::message(char *data, uint length, Mode mode) {
 	m.data = data;
 	m.pos = data;
 	m.end = data + length;
-	m.size = length;
+    m.setSize(length);
     m.setMode(mode);
 	return m;
 }
@@ -226,7 +226,7 @@ uint
 fcall2msg(Msg *msg, Fcall *fcall) {
 	uint32_t size;
 
-	msg->end = msg->data + msg->size;
+	msg->end = msg->data + msg->size();
 	msg->pos = msg->data + SDWord;
     msg->setMode(Msg::Mode::Pack);
     msg->pfcall(fcall);

@@ -178,8 +178,19 @@ namespace ixp {
         ~RWLock();
         std::any aux;
     };
+    template<typename T>
+    struct ContainsSizeParameter {
+        ContainsSizeParameter() = default;
+        ~ContainsSizeParameter() = default;
+        constexpr T size() const noexcept { return _value; }
+        constexpr bool empty() const noexcept { return size() == 0; }
+        T& getSizeReference() noexcept { return _value; }
+        void setSize(T value) noexcept { _value = value; }
+        private:
+            T _value;
+    };
 
-    struct Msg {
+    struct Msg : public ContainsSizeParameter<uint> {
         enum class Mode {
             Pack,
             Unpack,
@@ -187,7 +198,6 @@ namespace ixp {
         char*	data; /* Begining of buffer. */
         char*	pos;  /* Current position in buffer. */
         char*	end;  /* End of message. */ 
-        uint	size; /* Size of buffer. */
         void pu8(uint8_t*);
         void pu16(uint16_t*);
         void pu32(uint32_t*);
@@ -356,19 +366,7 @@ namespace ixp {
         constexpr auto getFid() const noexcept { return hdr.fid; }
         constexpr auto getTag() const noexcept { return hdr.tag; }
     };
-    template<typename T>
-    struct ContainsSizeParameter {
-        ContainsSizeParameter() = default;
-        ~ContainsSizeParameter() = default;
-        constexpr T size() const noexcept { return _value; }
-        constexpr bool empty() const noexcept { return size() == 0; }
-        T& getSizeReference() noexcept { return _value; }
-        void setSize(T value) noexcept { _value = value; }
-        private:
-            T _value;
-    };
     struct FVersion : public QueryHeader, public ContainsSizeParameter<uint32_t> {
-        //uint32_t	msize;
         char*		version;
     };
     struct FTFlush : public QueryHeader {

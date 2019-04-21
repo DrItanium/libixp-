@@ -94,7 +94,7 @@ recvmsg(int fd, Msg *msg) {
 
     msg->setMode(Msg::Mode::Unpack);
 	msg->pos = msg->data;
-	msg->end = msg->data + msg->size;
+	msg->end = msg->data + msg->size();
 	if(ixp::readn(fd, msg, SSize) != SSize)
 		return 0;
 

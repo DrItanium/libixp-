@@ -379,8 +379,8 @@ Req9::respond(const char *error) {
 		msize = ixp::min<int>(ofcall.version.size(), maximum::Msg);
 		p9conn->rmsg.data = (decltype(p9conn->rmsg.data))ixp::erealloc(p9conn->rmsg.data, msize);
 		p9conn->wmsg.data = (decltype(p9conn->wmsg.data))ixp::erealloc(p9conn->wmsg.data, msize);
-		p9conn->rmsg.size = msize;
-		p9conn->wmsg.size = msize;
+		p9conn->rmsg.setSize(msize);
+		p9conn->wmsg.setSize(msize);
 		concurrency::threadModel->unlock(&p9conn->wlock);
 		concurrency::threadModel->unlock(&p9conn->rlock);
         ofcall.version.setSize(msize);
@@ -394,7 +394,7 @@ Req9::respond(const char *error) {
 	case FType::TOpen:
 	case FType::TCreate:
 		if(!error) {
-			ofcall.ropen.iounit = p9conn->rmsg.size - 24;
+			ofcall.ropen.iounit = p9conn->rmsg.size() - 24;
 			fid->iounit = ofcall.ropen.iounit;
 			fid->omode = ifcall.topen.mode;
 			fid->qid = ofcall.ropen.qid;
@@ -578,10 +578,10 @@ serve9conn(Conn *c) {
         auto p9conn = (Conn9*)ixp::emallocz(sizeof(Conn9));
         p9conn->ref++;
         p9conn->srv = std::any_cast<decltype(p9conn->srv)>(c->aux);
-        p9conn->rmsg.size = 1024;
-        p9conn->wmsg.size = 1024;
-        p9conn->rmsg.data = (decltype(p9conn->rmsg.data))ixp::emalloc(p9conn->rmsg.size);
-        p9conn->wmsg.data = (decltype(p9conn->wmsg.data))ixp::emalloc(p9conn->wmsg.size);
+        p9conn->rmsg.setSize(1024);
+        p9conn->wmsg.setSize(1024);
+        p9conn->rmsg.data = (decltype(p9conn->rmsg.data))ixp::emalloc(p9conn->rmsg.size());
+        p9conn->wmsg.data = (decltype(p9conn->wmsg.data))ixp::emalloc(p9conn->wmsg.size());
 
         p9conn->tagmap.init(p9conn->taghash, nelem(p9conn->taghash));
         p9conn->fidmap.init(p9conn->fidhash, nelem(p9conn->fidhash));
