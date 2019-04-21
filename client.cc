@@ -322,7 +322,7 @@ Client::mountfd(int fd) {
 	c->mintag = NoTag;
 	c->maxtag = NoTag+1;
 
-	fcall.version.msize = maximum::Msg;
+    fcall.version.setSize(maximum::Msg);
 	fcall.version.version = (char*)Version;
 
 	if(!dofcall(c, &fcall)) {
@@ -331,7 +331,7 @@ Client::mountfd(int fd) {
 	}
 
 	if(strcmp(fcall.version.version, Version)
-	|| fcall.version.msize > maximum::Msg) {
+	|| fcall.version.size() > maximum::Msg) {
 		werrstr("bad 9P version response");
 		unmount(c);
 		return nullptr;
@@ -339,9 +339,9 @@ Client::mountfd(int fd) {
 
 	c->mintag = 0;
 	c->maxtag = 255;
-	c->msize = fcall.version.msize;
+	c->msize = fcall.version.size();
 
-	allocmsg(c, fcall.version.msize);
+	allocmsg(c, fcall.version.size());
 	Fcall::free(&fcall);
 
     fcall.setTypeAndFid(FType::TAttach, RootFid);

@@ -288,7 +288,7 @@ namespace ixp {
 
         private:
            void puint(uint, uint32_t*);
-            Mode _mode; /* MsgPack or MsgUnpack. */
+           Mode _mode; /* MsgPack or MsgUnpack. */
     };
 
     struct Qid {
@@ -304,7 +304,7 @@ namespace ixp {
     struct Stat {
         uint16_t	type;
         uint32_t	dev;
-        Qid		qid;
+        Qid         qid;
         uint32_t	mode;
         uint32_t	atime;
         uint32_t	mtime;
@@ -356,8 +356,19 @@ namespace ixp {
         constexpr auto getFid() const noexcept { return hdr.fid; }
         constexpr auto getTag() const noexcept { return hdr.tag; }
     };
-    struct FVersion : public QueryHeader {
-        uint32_t	msize;
+    template<typename T>
+    struct ContainsSizeParameter {
+        ContainsSizeParameter() = default;
+        ~ContainsSizeParameter() = default;
+        constexpr T size() const noexcept { return _value; }
+        constexpr bool empty() const noexcept { return size() == 0; }
+        T& getSizeReference() noexcept { return _value; }
+        void setSize(T value) noexcept { _value = value; }
+        private:
+            T _value;
+    };
+    struct FVersion : public QueryHeader, public ContainsSizeParameter<uint32_t> {
+        //uint32_t	msize;
         char*		version;
     };
     struct FTFlush : public QueryHeader {
@@ -382,17 +393,6 @@ namespace ixp {
         uint32_t	perm;
         char*		name;
         uint8_t		mode; /* +Topen */
-    };
-    template<typename T>
-    struct ContainsSizeParameter {
-        ContainsSizeParameter() = default;
-        ~ContainsSizeParameter() = default;
-        constexpr T size() const noexcept { return _value; }
-        constexpr bool empty() const noexcept { return size() == 0; }
-        T& getSizeReference() noexcept { return _value; }
-        void setSize(T value) noexcept { _value = value; }
-        private:
-            T _value;
     };
     struct FTWalk : public QueryHeader, public ContainsSizeParameter<uint16_t>  {
         uint32_t	newfid;

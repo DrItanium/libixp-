@@ -120,7 +120,7 @@ Fcall::packUnpack(Msg& msg) noexcept {
 	switch (getType()) {
 	case FType::TVersion:
 	case FType::RVersion:
-		msg.pu32(&version.msize);
+		msg.pu32(&version.getSizeReference());
 		msg.pstring(&version.version);
 		break;
 	case FType::TAuth:

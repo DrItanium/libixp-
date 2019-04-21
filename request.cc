@@ -168,7 +168,7 @@ handlereq(Req9 *r) {
 			r->ofcall.version.version = "9P2000";
 		else
 			r->ofcall.version.version = "unknown";
-		r->ofcall.version.msize = r->ifcall.version.msize;
+		r->ofcall.version.setSize(r->ifcall.version.size());
 		r->respond(nullptr);
 		break;
 	case FType::TAttach:
@@ -376,14 +376,14 @@ Req9::respond(const char *error) {
 
 		concurrency::threadModel->lock(&p9conn->rlock);
 		concurrency::threadModel->lock(&p9conn->wlock);
-		msize = ixp::min<int>(ofcall.version.msize, maximum::Msg);
+		msize = ixp::min<int>(ofcall.version.size(), maximum::Msg);
 		p9conn->rmsg.data = (decltype(p9conn->rmsg.data))ixp::erealloc(p9conn->rmsg.data, msize);
 		p9conn->wmsg.data = (decltype(p9conn->wmsg.data))ixp::erealloc(p9conn->wmsg.data, msize);
 		p9conn->rmsg.size = msize;
 		p9conn->wmsg.size = msize;
 		concurrency::threadModel->unlock(&p9conn->wlock);
 		concurrency::threadModel->unlock(&p9conn->rlock);
-		ofcall.version.msize = msize;
+        ofcall.version.setSize(msize);
 		break;
 	case FType::TAttach:
 		if(error)
