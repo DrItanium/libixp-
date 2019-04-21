@@ -770,7 +770,7 @@ namespace ixp {
 
     uint	msg2fcall(Msg*, Fcall*);
     uint	fcall2msg(Msg*, Fcall*);
-    char*	errbuf(void);
+    char*	errbuf();
     void	errstr(char*, int);
     void	rerrstr(char*, int);
     void	werrstr(const char*, ...);
