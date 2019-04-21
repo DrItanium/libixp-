@@ -280,6 +280,12 @@ namespace ixp {
         constexpr bool packRequested() const noexcept {
             return mode == Mode::Pack;
         }
+        constexpr auto getMode() const noexcept { 
+            return mode;
+        }
+        void setMode(Mode mode) noexcept {
+            this->mode = mode;
+        }
 
         private:
            void puint(uint, uint32_t*);

@@ -47,7 +47,7 @@ Msg::puint(uint size, uint32_t *val) {
             }
             return v;
         };
-        switch(mode) {
+        switch(getMode()) {
             case Msg::Mode::Pack: 
                 performPack(); 
                 break;
