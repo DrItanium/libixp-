@@ -197,30 +197,44 @@ namespace ixp {
         void pstring(char**);
         void pstrings(uint16_t*, char**, uint);
         void pqids(uint16_t*, Qid*, uint);
-        inline void pqid(Qid* value) { packUnpack(value); }
-        inline void pqid(Qid& value) { packUnpack(value); }
-        inline void pstat(Stat* value) { packUnpack(value); }
-        inline void pstat(Stat& value) { packUnpack(value); }
-        inline void pfcall(Fcall* value) { packUnpack(value); }
-        inline void pfcall(Fcall& value) { packUnpack(value); }
+        void pqid(Qid* value) { packUnpack(value); }
+        void pqid(Qid& value) { packUnpack(value); }
+        void pstat(Stat* value) { packUnpack(value); }
+        void pstat(Stat& value) { packUnpack(value); }
+        void pfcall(Fcall* value) { packUnpack(value); }
+        void pfcall(Fcall& value) { packUnpack(value); }
         static Msg message(char*, uint len, Mode mode);
-        void packUnpack(uint8_t* v) { pu8(v); }
-        void packUnpack(uint16_t* v) { pu16(v); }
-        void packUnpack(uint32_t* v) { pu32(v); }
-        void packUnpack(uint64_t* v) { pu64(v); }
-        void packUnpack(uint8_t& v) { pu8(&v); }
-        void packUnpack(uint16_t& v) { pu16(&v); }
-        void packUnpack(uint32_t& v) { pu32(&v); }
-        void packUnpack(uint64_t& v) { pu64(&v); }
         template<typename T>
         void packUnpack(T& value) noexcept {
-            static_assert(!std::is_same_v<std::decay_t<T>, Msg>, "This would cause an infinite loop!");
-            value.packUnpack(*this);
+            using K = std::decay_t<T>;
+            static_assert(!std::is_same_v<K, Msg>, "This would cause an infinite loop!");
+            if constexpr (std::is_same_v<K, uint8_t>) {
+                pu8(&value);
+            } else if constexpr (std::is_same_v<K, uint16_t>) {
+                pu16(&value);
+            } else if constexpr (std::is_same_v<K, uint32_t>) {
+                pu32(&value);
+            } else if constexpr (std::is_same_v<K, uint64_t>) {
+                pu64(&value);
+            } else {
+                value.packUnpack(*this);
+            }
         }
         template<typename T>
         void packUnpack(T* value) noexcept {
-            static_assert(!std::is_same_v<std::decay_t<T>, Msg>, "This would cause an infinite loop!");
-            value->packUnpack(*this);
+            using K = std::decay_t<T>;
+            static_assert(!std::is_same_v<K, Msg>, "This would cause an infinite loop!");
+            if constexpr (std::is_same_v<K, uint8_t>) {
+                pu8(value);
+            } else if constexpr (std::is_same_v<K, uint16_t>) {
+                pu16(value);
+            } else if constexpr (std::is_same_v<K, uint32_t>) {
+                pu32(value);
+            } else if constexpr (std::is_same_v<K, uint64_t>) {
+                pu64(value);
+            } else {
+                value->packUnpack(*this);
+            }
         }
         template<typename ... Args>
         void packUnpackMany(Args&& ... fields) noexcept {
