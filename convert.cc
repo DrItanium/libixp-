@@ -82,17 +82,13 @@ Msg::puint(uint size, uint32_t *val) {
  */
 void
 Msg::pu8(uint8_t *val) {
-	uint32_t v;
-
-	v = *val;
+	uint32_t v = *val;
 	puint(SByte, &v);
 	*val = (uint8_t)v;
 }
 void
 Msg::pu16(uint16_t *val) {
-	uint32_t v;
-
-	v = *val;
+	uint32_t v = *val;
 	puint(SWord, &v);
 	*val = (uint16_t)v;
 }
@@ -102,10 +98,8 @@ Msg::pu32(uint32_t *val) {
 }
 void
 Msg::pu64(uint64_t *val) {
-	uint32_t vl, vb;
-
-	vl = (uint)*val;
-	vb = (uint)(*val>>32);
+	uint32_t vl = (uint)*val;
+	uint32_t vb = (uint)(*val>>32);
 	puint(SDWord, &vl);
 	puint(SDWord, &vb);
 	*val = vl | ((uint64_t)vb<<32);
@@ -177,7 +171,7 @@ Msg::pstring(char **s) {
 void
 Msg::pstrings(uint16_t *num, char *strings[], uint max) {
 	char *s = nullptr;
-	uint i = 0, size = 0;
+	uint size = 0;
 	uint16_t len = 0;
 
 	pu16(num);
@@ -190,7 +184,7 @@ Msg::pstrings(uint16_t *num, char *strings[], uint max) {
 	if(mode == Msg::Unpack) {
 		s = pos;
 		size = 0;
-		for(i=0; i < *num; i++) {
+        for (auto i = 0; i < *num; ++i) {
 			pu16(&len);
 			pos += len;
 			size += len;
@@ -202,19 +196,21 @@ Msg::pstrings(uint16_t *num, char *strings[], uint max) {
 		s = (char*)ixp::emalloc(size);
 	}
 
-	for(i=0; i < *num; i++) {
-		if(mode == Msg::Pack)
+	for(auto i = 0; i < *num; ++i) {
+		if(mode == Msg::Pack) {
 			len = strlen(strings[i]);
+        }
 		pu16(&len);
 
-		if(mode == Msg::Unpack) {
+		if (mode == Msg::Unpack) {
 			memcpy(s, pos, len);
 			strings[i] = (char*)s;
 			s += len;
 			pos += len;
 			*s++ = '\0';
-		}else
+		} else {
 			pdata(&strings[i], len);
+        }
 	}
 }
 
