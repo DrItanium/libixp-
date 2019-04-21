@@ -102,7 +102,7 @@ gettag(Client *mux, Rpc *r)
 				mux->mwait = mw;
 				break;
 			}
-			concurrency::threadModel->sleep(&mux->tagrend);
+            mux->tagrend.sleep();
 		}
 
 		i=mux->freetag;
@@ -133,7 +133,7 @@ puttag(Client *mux, Rpc *r)
 	mux->wait[i] = nullptr;
 	mux->nwait--;
 	mux->freetag = i;
-	concurrency::threadModel->wake(&mux->tagrend);
+    mux->tagrend.wake();
 	freemuxrpc(r);
 }
 int
@@ -222,21 +222,22 @@ Client::muxrpc(Fcall *tx)
 	if(sendrpc(&r, tx) < 0)
 		return nullptr;
 
-	concurrency::threadModel->lock(&lk);
+    lk.lock();
 	/* wait for our packet */
-	while(muxer && muxer != &r && !r.p)
-		concurrency::threadModel->sleep(&r.r);
+	while(muxer && muxer != &r && !r.p) {
+        r.r.sleep();
+    }
 
 	/* if not done, there's no muxer; start muxing */
 	if(!r.p){
 		assert(muxer == nullptr || muxer == &r);
 		muxer = &r;
 		while(!r.p){
-			concurrency::threadModel->unlock(&lk);
+            lk.unlock();
 			p = muxrecv(this);
             if (!p) {
 				/* eof -- just give up and pass the buck */
-				concurrency::threadModel->lock(&lk);
+                lk.lock();
 				dequeue(this, &r);
 				break;
 			}
@@ -246,9 +247,10 @@ Client::muxrpc(Fcall *tx)
 	}
 	p = r.p;
 	puttag(this, &r);
-	concurrency::threadModel->unlock(&lk);
-    if (!p)
+    lk.unlock();
+    if (!p) {
 		werrstr("unexpected eof");
+    }
 	return p;
 }
 } // end namespace ixp
