@@ -383,44 +383,31 @@ namespace ixp {
         char*		name;
         uint8_t		mode; /* +Topen */
     };
-    struct FTWalk : public QueryHeader {
+    template<typename T>
+    struct ContainsSizeParameter {
+        ContainsSizeParameter() = default;
+        ~ContainsSizeParameter() = default;
+        constexpr T size() const noexcept { return _value; }
+        constexpr bool empty() const noexcept { return size() == 0; }
+        T& getSizeReference() noexcept { return _value; }
+        void setSize(T value) noexcept { _value = value; }
+        private:
+            T _value;
+    };
+    struct FTWalk : public QueryHeader, public ContainsSizeParameter<uint16_t>  {
         uint32_t	newfid;
         char*		wname[maximum::Welem];
-        constexpr uint16_t size() const noexcept { return _nwname; }
-        uint16_t& getSizeReference() noexcept { return _nwname; }
-        void setSize(uint16_t value) noexcept { _nwname = value; }
-        constexpr bool empty() const noexcept { return size() == 0; }
-        private:
-            uint16_t _nwname;
     };
-    struct FRWalk : public QueryHeader {
+    struct FRWalk : public QueryHeader, public ContainsSizeParameter<uint16_t> {
         Qid		wqid[maximum::Welem];
-        constexpr uint16_t size() const noexcept { return _nwqid; }
-        uint16_t& getSizeReference() noexcept { return _nwqid; }
-        void setSize(uint16_t value) noexcept { _nwqid = value; }
-        constexpr bool empty() const noexcept { return size() == 0; }
-        private:
-            uint16_t	_nwqid;
 
     };
-    struct FIO : public QueryHeader {
+    struct FIO : public QueryHeader, public ContainsSizeParameter<uint32_t> {
         uint64_t	offset; /* Tread, Twrite */
         char*		data; /* Twrite, Rread */
-        constexpr uint32_t size() const noexcept { return _count; }
-        uint32_t& getSizeReference() noexcept { return _count; }
-        void setSize(uint32_t value) noexcept { _count = value; }
-        constexpr bool empty() const noexcept { return size() == 0; }
-        private:
-            uint32_t _count; /* Tread, Twrite, Rread */
     };
-    struct FRStat : public QueryHeader {
-        constexpr uint16_t size() const noexcept { return _nstat; }
-        uint16_t& getSizeReference() noexcept { return _nstat; }
-        void setSize(uint16_t value) noexcept { _nstat = value; }
-        constexpr bool empty() const noexcept { return size() == 0; }
+    struct FRStat : public QueryHeader, public ContainsSizeParameter<uint16_t> {
         uint8_t*	stat;
-        private:
-            uint16_t _nstat;
     };
     struct FTWStat : public QueryHeader {
         Stat		stat;
