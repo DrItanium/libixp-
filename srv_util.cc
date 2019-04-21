@@ -212,7 +212,7 @@ srv_data2cstring(Req9 *req) {
  * the the P<p> member of the FileId.
  */
 char*
-srv_writectl(Req9 *req, char* (*fn)(void*, Msg*)) {
+srv_writectl(Req9 *req, std::function<char*(void*, Msg*)> fn) {
 	char *err, *s, *p, c;
 	FileId *file;
 	Msg msg;
