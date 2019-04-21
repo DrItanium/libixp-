@@ -152,7 +152,7 @@ Fcall::packUnpack(Msg& msg) noexcept {
 		msg.pstrings(&twalk.nwname, twalk.wname, nelem(twalk.wname));
 		break;
 	case FType::RWalk:
-		msg.pqids(&rwalk.nwqid, rwalk.wqid, nelem(rwalk.wqid));
+		msg.pqids(&rwalk.getSizeReference(), rwalk.wqid, nelem(rwalk.wqid));
 		break;
 	case FType::TOpen:
 		msg.pu32(&hdr.fid);

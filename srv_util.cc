@@ -595,9 +595,10 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
 			tfile = tfile->next;
 			srv_freefile(file);
 		}
-	}else
+	} else {
 		req->newfid->aux = file;
-	req->ofcall.rwalk.nwqid = i;
+    }
+    req->ofcall.rwalk.setSize(i);
     req->respond(nullptr);
 }
 

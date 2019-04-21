@@ -100,9 +100,9 @@ walk(Client *c, const char *path) {
 	fcall.twalk.newfid = f->fid;
 	if(!dofcall(c, &fcall))
 		goto fail;
-	if(fcall.rwalk.nwqid < n) {
+	if(fcall.rwalk.size() < n) {
 		werrstr("File does not exist");
-		if(fcall.rwalk.nwqid == 0)
+		if(fcall.rwalk.empty())
 			werrstr("Protocol botch");
 		goto fail;
 	}

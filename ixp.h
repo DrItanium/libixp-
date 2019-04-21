@@ -389,8 +389,14 @@ namespace ixp {
         char*		wname[maximum::Welem];
     };
     struct FRWalk : public QueryHeader {
-        uint16_t	nwqid;
         Qid		wqid[maximum::Welem];
+        constexpr uint16_t size() const noexcept { return _nwqid; }
+        uint16_t& getSizeReference() noexcept { return _nwqid; }
+        void setSize(uint16_t value) noexcept { _nwqid = value; }
+        constexpr bool empty() const noexcept { return size() == 0; }
+        private:
+            uint16_t	_nwqid;
+
     };
     struct FIO : public QueryHeader {
         uint64_t	offset; /* Tread, Twrite */

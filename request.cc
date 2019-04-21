@@ -402,16 +402,18 @@ Req9::respond(const char *error) {
 		free(ifcall.tcreate.name);
 		break;
 	case FType::TWalk:
-		if(error || ofcall.rwalk.nwqid < ifcall.twalk.nwname) {
+		if(error || ofcall.rwalk.size() < ifcall.twalk.nwname) {
 			if(ifcall.hdr.fid != ifcall.twalk.newfid && newfid)
 				destroyfid(p9conn, newfid->fid);
-			if(!error && ofcall.rwalk.nwqid == 0)
+			if(!error && ofcall.rwalk.empty()) {
 				error = Enofile.c_str();
+            }
 		}else{
-			if(ofcall.rwalk.nwqid == 0)
+            if (ofcall.rwalk.empty()) {
 				newfid->qid = fid->qid;
-			else
-				newfid->qid = ofcall.rwalk.wqid[ofcall.rwalk.nwqid-1];
+            } else {
+				newfid->qid = ofcall.rwalk.wqid[ofcall.rwalk.size()-1];
+            }
 		}
 		free(*ifcall.twalk.wname);
 		break;
