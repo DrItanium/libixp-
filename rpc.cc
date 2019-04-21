@@ -30,16 +30,17 @@ Fcall*
 muxrecv(Client *mux)
 {
 	Fcall *f = nullptr;
-	concurrency::threadModel->lock(&mux->rlock);
-	if(recvmsg(mux->fd, &mux->rmsg) == 0)
+    mux->rlock.lock();
+	if(recvmsg(mux->fd, &mux->rmsg) == 0) {
 		goto fail;
+    }
 	f = (decltype(f))ixp::emallocz(sizeof *f);
 	if(msg2fcall(&mux->rmsg, f) == 0) {
 		free(f);
 		f = nullptr;
 	}
 fail:
-	concurrency::threadModel->unlock(&mux->rlock);
+    mux->rlock.unlock();
 	return f;
 }
 
@@ -141,23 +142,24 @@ sendrpc(Rpc *r, Fcall *f)
 	auto ret = 0;
 	auto mux = r->mux;
 	/* assign the tag, add selves to response queue */
-	concurrency::threadModel->lock(&mux->lk);
-	r->tag = gettag(mux, r);
-	f->hdr.tag = r->tag;
-	enqueue(mux, r);
-	concurrency::threadModel->unlock(&mux->lk);
+    {
+        concurrency::Locker<Mutex> lk(mux->lk);
+        r->tag = gettag(mux, r);
+        f->hdr.tag = r->tag;
+        enqueue(mux, r);
+    }
 
-	concurrency::threadModel->lock(&mux->wlock);
-	if(!fcall2msg(&mux->wmsg, f) || !sendmsg(mux->fd, &mux->wmsg)) {
-		/* werrstr("settag/send tag %d: %r", tag); fprint(2, "%r\n"); */
-		concurrency::threadModel->lock(&mux->lk);
-		dequeue(mux, r);
-		puttag(mux, r);
-		concurrency::threadModel->unlock(&mux->lk);
-		ret = -1;
-	}
-	concurrency::threadModel->unlock(&mux->wlock);
-	return ret;
+    {
+        concurrency::Locker<Mutex> a(mux->wlock);
+        if(!fcall2msg(&mux->wmsg, f) || !sendmsg(mux->fd, &mux->wmsg)) {
+            /* werrstr("settag/send tag %d: %r", tag); fprint(2, "%r\n"); */
+            concurrency::Locker<Mutex> lk(mux->lk);
+            dequeue(mux, r);
+            puttag(mux, r);
+            ret = -1;
+        }
+    }
+    return ret;
 }
 void
 dispatchandqlock(Client *mux, Fcall *f)
@@ -166,7 +168,7 @@ dispatchandqlock(Client *mux, Fcall *f)
 	Rpc *r2;
 
 	tag = f->hdr.tag - mux->mintag;
-	concurrency::threadModel->lock(&mux->lk);
+    mux->lk.lock();
 	/* hand packet to correct sleeper */
 	if(tag < 0 || tag >= mux->mwait) {
 		fprintf(stderr, "libixp: received unfeasible tag: %d (min: %d, max: %d)\n", f->hdr.tag, mux->mintag, mux->mintag+mux->mwait);
@@ -179,7 +181,7 @@ dispatchandqlock(Client *mux, Fcall *f)
 	}
 	r2->p = f;
 	dequeue(mux, r2);
-	concurrency::threadModel->wake(&r2->r);
+    r2->r.wake();
 	return;
 fail:
 	Fcall::free(f);
