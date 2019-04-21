@@ -775,45 +775,47 @@ namespace ixp {
         template<typename T>
         class Locker final {
             public:
-                Locker(T* lock) : _lock(lock) { threadModel->lock(_lock); }
-                ~Locker() { threadModel->unlock(_lock); }
+                Locker(T& lock) : _lock(lock) { threadModel->lock(&_lock); }
+                ~Locker() { threadModel->unlock(&_lock); }
                 Locker(const Locker<T>&) = delete;
                 Locker(Locker<T>&&) = delete;
                 Locker<T>& operator=(const Locker<T>&) = delete;
                 Locker<T>& operator=(Locker<T>&&) = delete;
-                bool canLock() { return threadModel->canlock(_lock); }
+                bool canLock() { return threadModel->canlock(&_lock); }
             private:
-                T* _lock;
+                T& _lock;
         };
-        class WLocker final {
+        template<>
+        class Locker<RWLock> final {
             public:
-                WLocker(ixp::RWLock* lock) : _lock(lock) {
-                    threadModel->wlock(_lock);
+                Locker(RWLock& lock, bool readLock = false) : _lock(lock), _readLock(readLock) { 
+                    if (_readLock) {
+                        threadModel->rlock(&_lock);
+                    } else {
+                        threadModel->wlock(&_lock);
+                    }
                 }
-                ~WLocker() {
-                    threadModel->wunlock(_lock);
+                ~Locker() { 
+                    if (_readLock) {
+                        threadModel->runlock(&_lock);
+                    } else {
+                        threadModel->wunlock(&_lock); 
+                    }
                 }
-                WLocker(const WLocker&) = delete;
-                WLocker(WLocker&&) = delete;
-                WLocker& operator=(const WLocker&) = delete;
-                WLocker& operator=(WLocker&&) = delete;
+                Locker(const Locker<RWLock>&) = delete;
+                Locker(Locker<RWLock>&&) = delete;
+                Locker<RWLock>& operator=(const Locker<RWLock>&) = delete;
+                Locker<RWLock>& operator=(Locker<RWLock>&&) = delete;
+                bool canLock() { 
+                    if (_readLock) {
+                        return threadModel->canrlock(&_lock);
+                    } else {
+                        return threadModel->canwlock(&_lock);
+                    }
+                }
             private:
-                ixp::RWLock* _lock;
-        };
-        class RLocker final {
-            public:
-                RLocker(ixp::RWLock* lock) : _lock(lock) {
-                    threadModel->rlock(_lock);
-                }
-                ~RLocker() {
-                    threadModel->runlock(_lock);
-                }
-                RLocker(const RLocker&) = delete;
-                RLocker(RLocker&&) = delete;
-                RLocker& operator=(const RLocker&) = delete;
-                RLocker& operator=(RLocker&&) = delete;
-            private:
-                ixp::RWLock* _lock;
+                RWLock& _lock;
+                bool _readLock;
         };
     } // end namespace concurrency
 

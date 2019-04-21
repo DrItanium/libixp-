@@ -90,7 +90,7 @@ Server::unsettimer(long id) {
 	Timer *t;
 
     {
-        concurrency::Locker<decltype(lk)> locker(&lk); 
+        concurrency::Locker<decltype(lk)> locker(lk); 
         //concurrency::threadModel->lock(&lk);
         for(tp=&timer; (t=*tp); tp=&t->link)
             if(t->id == id)
