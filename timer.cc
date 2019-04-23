@@ -120,7 +120,6 @@ Server::nexttimer() {
 	Timer *t;
 	uint64_t time;
 
-	SET(time);
     lock();
 	while((t = timer)) {
 		time = msec();

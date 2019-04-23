@@ -144,7 +144,6 @@ dial_tcp(const std::string& host) {
         return -1;
     } else {
         int fd;
-        SET(fd);
         for(auto ai = aip; ai; ai = ai->ai_next) {
             fd = ai_socket(ai);
             if(fd == -1) {
@@ -175,7 +174,6 @@ announce_tcp(const std::string& host) {
 		return -1;
 
 	/* Probably don't need to loop */
-	SET(fd);
 	for(ai = aip; ai; ai = ai->ai_next) {
 		fd = ai_socket(ai);
 		if(fd == -1)

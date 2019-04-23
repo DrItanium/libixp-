@@ -9,20 +9,20 @@ extern char* argv0;
 #define ARGBEGIN \
     int _argtmp=0, _inargv=0; char *_argv=nullptr; \
 if(!argv0) {argv0=*argv; argv++, argc--;} \
-_inargv=1; USED(_inargv); \
+_inargv=1; \
 while(argc && argv[0][0] == '-') { \
     _argv=&argv[0][1]; argv++; argc--; \
     if(_argv[0] == '-' && _argv[1] == '\0') \
     break; \
     while(*_argv) switch(*_argv++)
-#define ARGEND }_inargv=0;USED(_argtmp, _argv, _inargv)
+#define ARGEND }_inargv=0
 
 #define EARGF(f) ((_inargv && *_argv) ? \
         (_argtmp=strlen(_argv), _argv+=_argtmp, _argv-_argtmp) \
         : ((argc > 0) ? \
-            (--argc, ++argv, _used(argc), *(argv-1)) \
+            (--argc, ++argv, *(argv-1)) \
             : ((f), (char*)0)))
-#define ARGF() EARGF(_used(0))
+#define ARGF() EARGF(0)
 
 #define nelem(ary) (sizeof(ary) / sizeof(*ary))
 

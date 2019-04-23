@@ -182,7 +182,6 @@ Msg::pstrings(uint16_t *num, char *strings[], uint max) {
 		return;
 	}
 
-	SET(s);
     if (unpackRequested()) {
 		s = pos;
 		size = 0;
