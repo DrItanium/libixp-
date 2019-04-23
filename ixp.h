@@ -19,6 +19,7 @@
 
 namespace ixp {
     using uint = unsigned int;
+    using ulong = unsigned long;
     constexpr auto ApiVersion = 135;
     constexpr auto Version = "9P2000";
     constexpr auto NoTag = uint16_t(~0); 

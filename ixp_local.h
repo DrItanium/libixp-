@@ -5,13 +5,6 @@
 #include <stdbool.h>
 #include <iostream>
 
-#undef ulong
-#define ulong _ixpulong
-typedef unsigned long ulong;
-
-#ifdef CPROTO
-typedef char* va_list;
-#endif
 extern char* argv0;
 #define ARGBEGIN \
     int _argtmp=0, _inargv=0; char *_argv=nullptr; \
@@ -30,13 +23,6 @@ while(argc && argv[0][0] == '-') { \
             (--argc, ++argv, _used(argc), *(argv-1)) \
             : ((f), (char*)0)))
 #define ARGF() EARGF(_used(0))
-
-#ifndef KENC
-static inline void _used(long a, ...) { if(a){} }
-# define USED(...) _used((long)__VA_ARGS__)
-# define SET(x) (x = 0)
-/* # define SET(x) USED(&x) GCC 4 is 'too smart' for this. */
-#endif
 
 #define nelem(ary) (sizeof(ary) / sizeof(*ary))
 
