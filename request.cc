@@ -1,12 +1,12 @@
 /* Copyright ©2006-2010 Kris Maglione <maglione.k at Gmail>
  * See LICENSE file for license details.
  */
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <cassert>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
 #include <sys/socket.h>
-#include "ixp_local.h"
+#include "ixp.h"
 
 
 namespace ixp {

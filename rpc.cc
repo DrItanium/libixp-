@@ -2,11 +2,11 @@
  * Copyright (c) 2003 Russ Cox, Massachusetts Institute of Technology
  * Distributed under the same terms as libixp.
  */
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include "ixp_local.h"
+#include <cassert>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#include "ixp.h"
 
 namespace ixp {
 namespace {

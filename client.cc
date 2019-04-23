@@ -10,7 +10,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include "ixp_local.h"
+#include "ixp.h"
 
 #define nelem(ary) (sizeof(ary) / sizeof(*ary))
 namespace ixp {

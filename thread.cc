@@ -1,6 +1,6 @@
 /* Public Domain --Kris Maglione */
 #include <unistd.h>
-#include "ixp_local.h"
+#include "ixp.h"
 
 namespace ixp {
 Mutex::Mutex() { concurrency::threadModel->init(this); }

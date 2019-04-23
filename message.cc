@@ -1,10 +1,10 @@
 /* Copyright ©2007-2010 Kris Maglione <maglione.k at Gmail>
  * See LICENSE file for license details.
  */
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include "ixp_local.h"
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#include "ixp.h"
 
 namespace ixp {
 namespace {

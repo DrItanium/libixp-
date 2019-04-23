@@ -2,21 +2,21 @@
  * Copyright ©2004-2006 Anselm R. Garbe <garbeam at gmail dot com>
  * See LICENSE file for license details.
  */
-#include <errno.h>
+#include <cerrno>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <signal.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <csignal>
+#include <cstring>
+#include <cstdlib>
+#include <cstdio>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
-#include "ixp_local.h"
 #include <map>
 #include <string>
+#include "ixp.h"
 
 
 /* Note: These functions modify the strings that they are passed.

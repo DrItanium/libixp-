@@ -1,16 +1,16 @@
 /* Copyright ©2007-2010 Kris Maglione <maglione.k at Gmail>
  * See LICENSE file for license details.
  */
-#include <errno.h>
+#include <cerrno>
 #include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
-#include "ixp_local.h"
+#include "ixp.h"
 
 namespace ixp {
 namespace {

@@ -1,12 +1,12 @@
 /* Written by Kris Maglione <maglione.k at Gmail> */
 /* Public domain */
 #define _XOPEN_SOURCE 600
-#include <errno.h>
+#include <cerrno>
 #include <pthread.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <unistd.h>
 #include <memory>
-#include "ixp_local.h"
+#include "ixp.h"
 #include "thread_pthread.h"
 
 

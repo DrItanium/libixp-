@@ -2,13 +2,13 @@
  * Copyright ©2004-2006 Anselm R. Garbe <garbeam at gmail dot com>
  * See LICENSE file for license details.
  */
-#include <assert.h>
-#include <errno.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cerrno>
+#include <cstdlib>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include "ixp_local.h"
+#include "ixp.h"
 
 namespace ixp {
 /**

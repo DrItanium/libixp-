@@ -1,7 +1,7 @@
 /* Written by Kris Maglione */
 /* Public domain */
-#include <stdlib.h>
-#include "ixp_local.h"
+#include <cstdlib>
+#include "ixp.h"
 
 namespace ixp {
 /* Edit s/^([a-zA-Z].*)\n([a-z].*) {/\1 \2;/g  x/^([^a-zA-Z]|static|$)/-+d  s/ (\*map|val|*str)//g */

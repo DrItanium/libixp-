@@ -8,7 +8,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-#include <ixp_local.h>
+#include <ixp.h>
 #include <string>
 #include <list>
 #include <functional>

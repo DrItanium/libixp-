@@ -1,15 +1,15 @@
 /* Copyright ©2006-2010 Kris Maglione <maglione.k at Gmail>
  * See LICENSE file for license details.
  */
-#include <assert.h>
+#include <cassert>
 #include <ctype.h>
-#include <stdarg.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <cstdarg>
+#include <cstdbool>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #include <unistd.h>
-#include "ixp_local.h"
+#include "ixp.h"
 
 namespace ixp {
 using FileIdU = void*;
