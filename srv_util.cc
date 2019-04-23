@@ -10,17 +10,10 @@
 #include <ctime>
 #include <unistd.h>
 #include "ixp.h"
-
-namespace ixp {
-using FileIdU = void*;
-
-static char
-	Enofile[] = "file not found";
-} // end namespace ixp
-
 #include "ixp_srvutil.h"
 
 namespace ixp {
+static std::string  Enofile("file not found");
 struct Queue {
 	Queue*	link;
 	char*		dat;

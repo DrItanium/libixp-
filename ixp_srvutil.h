@@ -2,6 +2,7 @@
 #define LIBIXP_SRVUTIL_H__
 
 #include <functional>
+#include "ixp.h"
 namespace ixp {
 struct Dirtab;
 struct PendingLink;
