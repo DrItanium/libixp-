@@ -54,9 +54,7 @@ struct FileId {
 	char		volatil;
 };
 
-enum {
-	FLHide = 1,
-};
+constexpr auto FLHide = 1;
 
 bool	pending_clunk(Req9*);
 void	pending_flush(Req9*);
