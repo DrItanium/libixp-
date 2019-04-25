@@ -608,14 +608,14 @@ namespace jyq {
         CFid*	create(const char*, uint perm, uint8_t mode);
         CFid*	open(const char*, uint8_t);
         Stat*	stat(const char*);
-        inline bool  remove(const std::string& str) noexcept { return remove(str.c_str()); }
-        inline CFid* create(const std::string& str, uint perm, uint8_t mode) { return create(str.c_str(), perm, mode); }
-        inline CFid* create(const std::string& str, uint perm, OMode mode) { return create(str.c_str(), perm, mode); }
-        inline CFid* create(const char* str, uint perm, OMode mode) { return create(str, perm, uint8_t(mode)); }
-        inline CFid* open(const std::string& str, uint8_t val) { return open(str.c_str(), val); }
-        inline CFid* open(const std::string& str, OMode mode) { return open(str, uint8_t(mode)); }
-        inline CFid* open(const char* str, OMode mode) { return open(str, uint8_t(mode)); }
-        inline Stat* stat(const std::string& str) { return stat(str.c_str()); }
+        bool  remove(const std::string& str) noexcept { return remove(str.c_str()); }
+        CFid* create(const std::string& str, uint perm, uint8_t mode) { return create(str.c_str(), perm, mode); }
+        CFid* create(const std::string& str, uint perm, OMode mode) { return create(str.c_str(), perm, mode); }
+        CFid* create(const char* str, uint perm, OMode mode) { return create(str, perm, uint8_t(mode)); }
+        CFid* open(const std::string& str, uint8_t val) { return open(str.c_str(), val); }
+        CFid* open(const std::string& str, OMode mode) { return open(str, uint8_t(mode)); }
+        CFid* open(const char* str, OMode mode) { return open(str, uint8_t(mode)); }
+        Stat* stat(const std::string& str) { return stat(str.c_str()); }
         void	muxfree();
         void	muxinit();
         Fcall*	muxrpc(Fcall*);
