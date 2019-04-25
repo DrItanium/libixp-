@@ -9,6 +9,11 @@
 #include "jyq.h"
 
 namespace jyq {
+Rpc::Rpc(Client* m) : mux(m) {
+    waiting = true;
+    r.mutex = (decltype(r.mutex))&m->lk;
+    p = nullptr;
+}
 namespace {
 void
 initrpc(Client *mux, Rpc *r)
@@ -221,10 +226,9 @@ Client::muxfree()
 Fcall*
 Client::muxrpc(Fcall *tx)
 {
-	Rpc r;
+	Rpc r(this);
 	Fcall *p;
 
-	initrpc(this, &r);
 	if(sendrpc(&r, tx) < 0)
 		return nullptr;
 

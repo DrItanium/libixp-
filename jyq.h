@@ -569,14 +569,15 @@ namespace jyq {
     };
 
     struct Rpc {
+        Rpc(Client* m);
         Client*	mux;
         Rpc*		next;
         Rpc*		prev;
         Rendez	r;
         uint		tag;
         Fcall*	p;
-        int		waiting;
-        int		async;
+        bool waiting;
+        bool async;
     };
 
     struct Client {
