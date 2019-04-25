@@ -4,10 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "ixp.h"
+#include "jyq.h"
 
 
-namespace ixp {
+namespace jyq {
 namespace {
 int
 _vsnprint(char *buf, int nbuf, const char *fmt, va_list ap) {
@@ -51,7 +51,7 @@ constexpr auto EPLAN9 = 0x19283745;
  *	...:  Arguments to P<fmt>.
  *
  * These functions simulate Plan 9's errstr functionality.
- * They replace errno in libixp. Note that these functions
+ * They replace errno in libjyq. Note that these functions
  * are not internationalized.
  *
  * F<errbuf> returns the errstr buffer for the current
@@ -110,4 +110,4 @@ werrstr(const char *fmt, ...) {
 	errno = EPLAN9;
 }
 
-} // end namespace ixp
+} // end namespace jyq

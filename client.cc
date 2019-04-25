@@ -10,10 +10,10 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include "ixp.h"
+#include "jyq.h"
 
 #define nelem(ary) (sizeof(ary) / sizeof(*ary))
-namespace ixp {
+namespace jyq {
 constexpr auto RootFid = 1;
 
 namespace {
@@ -658,5 +658,5 @@ CFid::clunk() {
 	Fcall::free(&fcall);
 	return ret;
 }
-} // end namespace ixp
+} // end namespace jyq
 

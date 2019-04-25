@@ -4,11 +4,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "ixp.h"
+#include "jyq.h"
 
 
 
-namespace ixp {
+namespace jyq {
 namespace {
 constexpr auto SByte = 1;
 constexpr auto SWord = 2;
@@ -136,7 +136,7 @@ Msg::pstring(char **s) {
 
 	if((pos + len) <= end) {
         if (unpackRequested()) {
-			*s = (char*)ixp::emalloc(len + 1);
+			*s = (char*)jyq::emalloc(len + 1);
 			memcpy(*s, pos, len);
 			(*s)[len] = '\0';
 		} else {
@@ -194,7 +194,7 @@ Msg::pstrings(uint16_t *num, char *strings[], uint max) {
 		}
 		pos = s;
 		size += *num;
-		s = (char*)ixp::emalloc(size);
+		s = (char*)jyq::emalloc(size);
 	}
 
 	for(auto i = 0; i < *num; ++i) {
@@ -236,7 +236,7 @@ void
 Msg::pdata(char **data, uint len) {
     if(pos + len <= end) {
         if (unpackRequested()) {
-            *data = (char*)ixp::emalloc(len);
+            *data = (char*)jyq::emalloc(len);
             memcpy(*data, pos, len);
         } else {
             memcpy(pos, *data, len);
@@ -253,7 +253,7 @@ Msg::pdata(char **data, uint len) {
  * Function: sizeof_stat
  *
  * These convenience functions pack or unpack the contents of
- * libixp structures into their wire format. They behave as if
+ * libjyq structures into their wire format. They behave as if
  * F<pu8>, F<pu16>, F<pu32>, F<pu64>, and
  * F<pstring> were called for each member of the structure
  * in question. pqid is to pqid as F<pstrings> is to
@@ -307,4 +307,4 @@ Stat::packUnpack(Msg& msg) noexcept {
 	msg.pstring(&gid);
 	msg.pstring(&muid);
 }
-} // end namespace ixp
+} // end namespace jyq

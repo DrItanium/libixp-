@@ -4,10 +4,10 @@
 #include <cassert>
 #include <cstdlib>
 #include <sys/time.h>
-#include "ixp.h"
+#include "jyq.h"
 
 
-namespace ixp {
+namespace jyq {
 /**
  * Function: msec
  *
@@ -106,7 +106,7 @@ Server::unsettimer(long id) {
  * Function: nexttimer
  *
  * Triggers any timers whose timeouts have ellapsed. This is
- * primarily intended to be called from libixp's select
+ * primarily intended to be called from libjyq's select
  * loop.
  *
  * Returns:
@@ -140,5 +140,5 @@ Server::nexttimer() {
     unlock();
 	return ret;
 }
-} // end namespace ixp
+} // end namespace jyq
 

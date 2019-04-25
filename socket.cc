@@ -16,7 +16,7 @@
 #include <unistd.h>
 #include <map>
 #include <string>
-#include "ixp.h"
+#include "jyq.h"
 
 
 /* Note: These functions modify the strings that they are passed.
@@ -29,7 +29,7 @@
 #define SUN_LEN(su) \
 	(sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
 #endif
-namespace ixp {
+namespace jyq {
 namespace {
 std::string
 get_port(const std::string& addr) {
@@ -255,4 +255,4 @@ int
 announce(const std::string& address) {
     return lookup(address, atab);
 }
-} // end namespace ixp
+} // end namespace jyq

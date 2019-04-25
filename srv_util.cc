@@ -9,10 +9,10 @@
 #include <cstring>
 #include <ctime>
 #include <unistd.h>
-#include "ixp.h"
-#include "ixp_srvutil.h"
+#include "jyq.h"
+#include "jyq_srvutil.h"
 
-namespace ixp {
+namespace jyq {
 static std::string  Enofile("file not found");
 struct Queue {
 	Queue*	link;
@@ -42,7 +42,7 @@ srv_getfile(void) {
 
 	if(!free_fileid) {
 		i = 15;
-		file = (decltype(file))ixp::emallocz(i * sizeof *file);
+		file = (decltype(file))jyq::emallocz(i * sizeof *file);
 		for(; i; i--) {
 			file->next = free_fileid;
 			free_fileid = file++;
@@ -91,7 +91,7 @@ srv_clonefiles(FileId *fileid) {
 
 	r = srv_getfile();
 	memcpy(r, fileid, sizeof *r);
-	r->tab.name = ixp::estrdup(r->tab.name);
+	r->tab.name = jyq::estrdup(r->tab.name);
 	r->nref = 1;
 	for(fileid=fileid->next; fileid; fileid=fileid->next)
 		assert(fileid->nref++);
@@ -129,7 +129,7 @@ srv_readbuf(Req9 *req, char *buf, uint len) {
 	len -= req->ifcall.io.offset;
 	if(len > req->ifcall.io.size())
 		len = req->ifcall.io.size();
-	req->ofcall.io.data = (decltype(req->ofcall.io.data))ixp::emalloc(len);
+	req->ofcall.io.data = (decltype(req->ofcall.io.data))jyq::emalloc(len);
 	memcpy(req->ofcall.io.data, buf + req->ifcall.io.offset, len);
 	req->ofcall.io.setSize(len);
 }
@@ -157,7 +157,7 @@ srv_writebuf(Req9 *req, char **buf, uint *len, uint max) {
 
 	*len = offset + count;
 	if(max == 0)
-		*buf = (char*)ixp::erealloc(*buf, *len + 1);
+		*buf = (char*)jyq::erealloc(*buf, *len + 1);
 	p = *buf;
 
 	memcpy(p+offset, req->ifcall.io.data, count);
@@ -187,7 +187,7 @@ srv_data2cstring(Req9 *req) {
 	if(q)
 		i = q - p;
 
-	p = (decltype(p))ixp::erealloc(req->ifcall.io.data, i+1);
+	p = (decltype(p))jyq::erealloc(req->ifcall.io.data, i+1);
 	p[i] = '\0';
 	req->ifcall.io.data = p;
 }
@@ -298,7 +298,7 @@ pending_respond(Req9 *req) {
 		req->respond(nullptr);
 		free(queue);
 	}else {
-		req_link = (decltype(req_link))ixp::emallocz(sizeof *req_link);
+		req_link = (decltype(req_link))jyq::emallocz(sizeof *req_link);
 		req_link->req = req;
 		req_link->next = &p->pending->req;
 		req_link->prev = req_link->next->prev;
@@ -328,8 +328,8 @@ pending_write(Pending *pending, const char *dat, long ndat) {
 	for(pp=pending->fids.next; pp != &pending->fids; pp=pp->next) {
 		for(qp=&pp->queue; *qp; qp=&qp[0]->link)
 			;
-		queue = (decltype(queue))ixp::emallocz(sizeof *queue);
-		queue->dat = (decltype(queue->dat))ixp::emalloc(ndat);
+		queue = (decltype(queue))jyq::emallocz(sizeof *queue);
+		queue->dat = (decltype(queue->dat))jyq::emalloc(ndat);
 		memcpy(queue->dat, dat, ndat);
 		queue->len = ndat;
 		*qp = queue;
@@ -385,7 +385,7 @@ pending_pushfid(Pending *pending, Fid *fid) {
 	}
 
 	auto file = std::any_cast<FileId*>(fid->aux);
-	pend_link = (decltype(pend_link))ixp::emallocz(sizeof *pend_link);
+	pend_link = (decltype(pend_link))jyq::emallocz(sizeof *pend_link);
 	pend_link->fid = fid;
 	pend_link->pending = pending;
 	pend_link->next = &pending->fids;
@@ -518,7 +518,7 @@ srv_readdir(Req9 *req, LookupFn lookup, std::function<void(Stat*, FileId*)> dost
 	ulong size = req->ifcall.io.size();
 	if(size > req->fid->iounit)
 		size = req->fid->iounit;
-	auto buf = (char*)ixp::emallocz(size);
+	auto buf = (char*)jyq::emallocz(size);
 	auto msg = Msg::message(buf, size, Msg::Mode::Pack);
 
 	file = lookup(file, nullptr);
@@ -595,4 +595,4 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
     req->respond(nullptr);
 }
 
-} // end namespace ixp
+} // end namespace jyq

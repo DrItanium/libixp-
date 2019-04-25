@@ -4,9 +4,9 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
-#include "ixp.h"
+#include "jyq.h"
 
-namespace ixp {
+namespace jyq {
 namespace {
 constexpr auto SByte = 1;
 constexpr auto SWord = 2;
@@ -23,7 +23,7 @@ constexpr auto SQid = SByte + SDWord + SQWord;
  * Function: message
  *
  * The Msg struct represents a binary message, and is used
- * extensively by libixp for converting messages to and from
+ * extensively by libjyq for converting messages to and from
  * wire format. The location and size of a buffer are stored in
  * P<data> and P<size>, respectively. P<pos> points to the
  * location in the message currently being packed or unpacked,
@@ -256,4 +256,4 @@ msg2fcall(Msg *msg, Fcall *fcall) {
 	return msg->pos - msg->data;
 }
 
-} // end namespace ixp
+} // end namespace jyq

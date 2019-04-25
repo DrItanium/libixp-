@@ -1,9 +1,9 @@
 /* Written by Kris Maglione */
 /* Public domain */
 #include <cstdlib>
-#include "ixp.h"
+#include "jyq.h"
 
-namespace ixp {
+namespace jyq {
 /* Edit s/^([a-zA-Z].*)\n([a-z].*) {/\1 \2;/g  x/^([^a-zA-Z]|static|$)/-+d  s/ (\*map|val|*str)//g */
 
 struct MapEnt {
@@ -19,7 +19,7 @@ static void
 insert(MapEnt **e, ulong val, const char *key) {
 	MapEnt *te;
 	
-	te = (MapEnt*)ixp::emallocz(sizeof *te);
+	te = (MapEnt*)jyq::emallocz(sizeof *te);
 	te->hash = val;
 	te->key = key;
 	te->next = *e;
@@ -131,4 +131,4 @@ Map::rm(ulong val) {
 	return ret;
 }
 
-} // end namespace ixp
+} // end namespace jyq

@@ -1,8 +1,8 @@
 /* Public Domain --Kris Maglione */
 #include <unistd.h>
-#include "ixp.h"
+#include "jyq.h"
 
-namespace ixp {
+namespace jyq {
 Mutex::Mutex() { concurrency::threadModel->init(this); }
 Mutex::~Mutex() { concurrency::threadModel->destroy(this); }
 

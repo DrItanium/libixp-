@@ -1,14 +1,14 @@
 /* From Plan 9's libmux.
  * Copyright (c) 2003 Russ Cox, Massachusetts Institute of Technology
- * Distributed under the same terms as libixp.
+ * Distributed under the same terms as libjyq.
  */
 #include <cassert>
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
-#include "ixp.h"
+#include "jyq.h"
 
-namespace ixp {
+namespace jyq {
 namespace {
 void
 initrpc(Client *mux, Rpc *r)
@@ -34,7 +34,7 @@ muxrecv(Client *mux)
 	if(recvmsg(mux->fd, &mux->rmsg) == 0) {
 		goto fail;
     }
-	f = (decltype(f))ixp::emallocz(sizeof *f);
+	f = (decltype(f))jyq::emallocz(sizeof *f);
 	if(msg2fcall(&mux->rmsg, f) == 0) {
 		free(f);
 		f = nullptr;
@@ -171,12 +171,12 @@ dispatchandqlock(Client *mux, Fcall *f)
     mux->lk.lock();
 	/* hand packet to correct sleeper */
 	if(tag < 0 || tag >= mux->mwait) {
-		fprintf(stderr, "libixp: received unfeasible tag: %d (min: %d, max: %d)\n", f->hdr.tag, mux->mintag, mux->mintag+mux->mwait);
+		fprintf(stderr, "libjyq: received unfeasible tag: %d (min: %d, max: %d)\n", f->hdr.tag, mux->mintag, mux->mintag+mux->mwait);
 		goto fail;
 	}
 	r2 = mux->wait[tag];
     if (!r2 || !(r2->prev)) {
-		fprintf(stderr, "libixp: received message with bad tag\n");
+		fprintf(stderr, "libjyq: received message with bad tag\n");
 		goto fail;
 	}
 	r2->p = f;
@@ -253,6 +253,6 @@ Client::muxrpc(Fcall *tx)
     }
 	return p;
 }
-} // end namespace ixp
+} // end namespace jyq
 
 

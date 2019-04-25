@@ -10,9 +10,9 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
-#include "ixp.h"
+#include "jyq.h"
 
-namespace ixp {
+namespace jyq {
 namespace {
 auto 
 mread(int fd, Msg *msg, uint count) {
@@ -95,7 +95,7 @@ recvmsg(int fd, Msg *msg) {
     msg->setMode(Msg::Mode::Unpack);
 	msg->pos = msg->data;
 	msg->end = msg->data + msg->size();
-	if(ixp::readn(fd, msg, SSize) != SSize)
+	if(jyq::readn(fd, msg, SSize) != SSize)
 		return 0;
 
 	msg->pos = msg->data;
@@ -106,7 +106,7 @@ recvmsg(int fd, Msg *msg) {
 		werrstr("message too large");
 		return 0;
 	}
-	if(ixp::readn(fd, msg, size) != size) {
+	if(jyq::readn(fd, msg, size) != size) {
 		werrstr("message incomplete");
 		return 0;
 	}
@@ -115,4 +115,4 @@ recvmsg(int fd, Msg *msg) {
 	return msize;
 }
 
-} // end namespace ixp
+} // end namespace jyq

@@ -9,9 +9,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <pwd.h>
-#include "ixp.h"
+#include "jyq.h"
 
-namespace ixp {
+namespace jyq {
 /**
  * Function: smprint
  *
@@ -133,7 +133,7 @@ getNamespace(void) {
 /**
  * Function: eprint
  *
- * libixp calls this function on error. It formats its arguments
+ * libjyq calls this function on error. It formats its arguments
  * as F<printf> and exits the program.
  */
 void
@@ -141,7 +141,7 @@ eprint(const char *fmt, ...) {
 	va_list ap;
 
 	int err = errno;
-	fprintf(stderr, "libixp: fatal: ");
+	fprintf(stderr, "libjyq: fatal: ");
 
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
@@ -159,7 +159,7 @@ eprint(const char *fmt, ...) {
 static void
 mfatal(const char *name, uint size) {
     static std::string 
-        couldnot = "libixp: fatal: Could not ",
+        couldnot = "libjyq: fatal: Could not ",
         paren = "() ",
         bytes = " bytes\n";
         
@@ -260,6 +260,6 @@ strlcat(char *dst, const char *src, uint size) {
 		*d = '\0';
 	return size - n - 1;
 }
-} // end namespace ixp
+} // end namespace jyq
 
 char* argv0 = nullptr;

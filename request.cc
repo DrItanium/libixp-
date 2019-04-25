@@ -6,10 +6,10 @@
 #include <cstdio>
 #include <cstring>
 #include <sys/socket.h>
-#include "ixp.h"
+#include "jyq.h"
 
 
-namespace ixp {
+namespace jyq {
 
 static void handlereq(Req9 *r);
 /**
@@ -82,7 +82,7 @@ static void*
 createfid(Map *map, int fid, Conn9 *p9conn) {
 	Fid *f;
 
-	f = (Fid*)ixp::emallocz(sizeof *f);
+	f = (Fid*)jyq::emallocz(sizeof *f);
 	p9conn->ref++;
 	f->conn = p9conn;
 	f->fid = fid;
@@ -125,7 +125,7 @@ handlefcall(Conn *c) {
 		goto Fail;
     p9conn->rlock.unlock();
 
-	req = (Req9*)ixp::emallocz(sizeof *req);
+	req = (Req9*)jyq::emallocz(sizeof *req);
 	p9conn->ref++;
 	req->conn = p9conn;
 	req->srv = p9conn->srv;
@@ -376,9 +376,9 @@ Req9::respond(const char *error) {
         {
             concurrency::Locker<Mutex> theRlock(p9conn->rlock);
             concurrency::Locker<Mutex> theWlock(p9conn->wlock);
-		    msize = ixp::min<int>(ofcall.version.size(), maximum::Msg);
-		    p9conn->rmsg.data = (decltype(p9conn->rmsg.data))ixp::erealloc(p9conn->rmsg.data, msize);
-		    p9conn->wmsg.data = (decltype(p9conn->wmsg.data))ixp::erealloc(p9conn->wmsg.data, msize);
+		    msize = jyq::min<int>(ofcall.version.size(), maximum::Msg);
+		    p9conn->rmsg.data = (decltype(p9conn->rmsg.data))jyq::erealloc(p9conn->rmsg.data, msize);
+		    p9conn->wmsg.data = (decltype(p9conn->wmsg.data))jyq::erealloc(p9conn->wmsg.data, msize);
 		    p9conn->rmsg.setSize(msize);
 		    p9conn->wmsg.setSize(msize);
         }
@@ -491,7 +491,7 @@ voidrequest(void *context, void *arg) {
 	conn = orig_req->conn;
 	conn->ref++;
 
-	flush_req = (Req9*)ixp::emallocz(sizeof *orig_req);
+	flush_req = (Req9*)jyq::emallocz(sizeof *orig_req);
 	flush_req->ifcall.setType(FType::TFlush);
 	flush_req->ifcall.setNoTag();
 	flush_req->ifcall.tflush.oldtag = orig_req->ifcall.hdr.tag;
@@ -512,7 +512,7 @@ voidfid(void *context, void *arg) {
 	p9conn = fid->conn;
 	p9conn->ref++;
 
-	clunk_req = (Req9*)ixp::emallocz(sizeof *clunk_req);
+	clunk_req = (Req9*)jyq::emallocz(sizeof *clunk_req);
 	clunk_req->ifcall.setType(FType::TClunk);
 	clunk_req->ifcall.setNoTag();
 	clunk_req->ifcall.setFid(fid->fid);
@@ -556,7 +556,7 @@ cleanupconn(Conn *c) {
  * Fcall type is received. The handlers are expected to call
  * F<respond> at some point, whether before they return or at
  * some undefined point in the future. Whenever a client
- * disconnects, libixp generates whatever flush and clunk events are
+ * disconnects, libjyq generates whatever flush and clunk events are
  * required to leave the connection in a clean state and waits for
  * all responses before freeing the connections associated data
  * structures.
@@ -575,13 +575,13 @@ serve9conn(Conn *c) {
 	if(auto fd = accept(c->fd, nullptr, nullptr); fd < 0) {
 		return;
     } else {
-        auto p9conn = (Conn9*)ixp::emallocz(sizeof(Conn9));
+        auto p9conn = (Conn9*)jyq::emallocz(sizeof(Conn9));
         p9conn->ref++;
         p9conn->srv = std::any_cast<decltype(p9conn->srv)>(c->aux);
         p9conn->rmsg.setSize(1024);
         p9conn->wmsg.setSize(1024);
-        p9conn->rmsg.data = (decltype(p9conn->rmsg.data))ixp::emalloc(p9conn->rmsg.size());
-        p9conn->wmsg.data = (decltype(p9conn->wmsg.data))ixp::emalloc(p9conn->wmsg.size());
+        p9conn->rmsg.data = (decltype(p9conn->rmsg.data))jyq::emalloc(p9conn->rmsg.size());
+        p9conn->wmsg.data = (decltype(p9conn->wmsg.data))jyq::emalloc(p9conn->wmsg.size());
 
         p9conn->tagmap.init(p9conn->taghash, nelem(p9conn->taghash));
         p9conn->fidmap.init(p9conn->fidhash, nelem(p9conn->fidhash));
@@ -591,4 +591,4 @@ serve9conn(Conn *c) {
         c->srv->listen(fd, p9conn, handlefcall, cleanupconn);
     }
 }
-} // end namespace ixp
+} // end namespace jyq
