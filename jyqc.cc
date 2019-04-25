@@ -146,7 +146,7 @@ xawrite(int argc, char *argv[]) {
 
 	auto nbuf = 0;
 	auto mbuf = 128;
-	auto buf = (char*)jyq::emalloc(mbuf);
+    auto buf = new char[mbuf];
 	while(argc) {
 		auto arg = ARGF();
 		int len = strlen(arg);
@@ -163,6 +163,7 @@ xawrite(int argc, char *argv[]) {
 	if(fid->write(buf, nbuf, client->getDoFcallLambda()) == -1) {
         jyq::fatalPrint("cannot write file '", file, "': ", jyq::errbuf(), "\n");
     }
+    delete[] buf;
 	return 0;
 }
 
@@ -212,7 +213,7 @@ xread(int argc, char *argv[]) {
     }
 
     int count = 0;
-	auto buf = (char*)jyq::emalloc(fid->iounit);
+    auto buf = new char[fid->iounit];
 	while((count = fid->read(buf, fid->iounit, client->getDoFcallLambda())) > 0) {
 		write(1, buf, count);
     }
@@ -220,6 +221,8 @@ xread(int argc, char *argv[]) {
 	if(count == -1) {
         jyq::fatalPrint("cannot read file/directory '", file, "': ", jyq::errbuf(), "\n");
     }
+
+    delete[] buf;
 
 	return 0;
 }
