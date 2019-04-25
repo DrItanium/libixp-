@@ -3,14 +3,55 @@
 #include "jyq.h"
 
 namespace jyq {
-Mutex::Mutex() { concurrency::threadModel->init(this); }
-Mutex::~Mutex() { concurrency::threadModel->destroy(this); }
+Mutex::Mutex() { 
+    _active = true;
+    concurrency::threadModel->init(this); 
+}
+bool
+Mutex::deactivate() {
+    if (_active) {
+        concurrency::threadModel->destroy(this); 
+        _active = false;
+    }
+    return _active;
+}
 
-Rendez::Rendez() { concurrency::threadModel->init(this); }
-Rendez::~Rendez() { concurrency::threadModel->destroy(this); }
+Mutex::~Mutex() { 
+    deactivate();
+}
 
-RWLock::RWLock() { concurrency::threadModel->init(this); }
-RWLock::~RWLock() { concurrency::threadModel->destroy(this); }
+Rendez::Rendez(Mutex* m) : mutex(m) {
+    concurrency::threadModel->init(this); 
+    _active = true;
+}
+Rendez::~Rendez() { 
+    deactivate();
+}
+bool
+Rendez::deactivate() {
+    if (_active) {
+        concurrency::threadModel->destroy(this); 
+        _active = false;
+    }
+    return _active;
+}
+
+
+RWLock::RWLock() { 
+    concurrency::threadModel->init(this); 
+    _active = true;
+}
+RWLock::~RWLock() { 
+    deactivate();
+}
+bool
+RWLock::deactivate() {
+    if (_active) {
+        concurrency::threadModel->destroy(this); 
+        _active = false;
+    }
+    return _active;
+}
 namespace concurrency {
 
 ssize_t 

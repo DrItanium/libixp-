@@ -162,7 +162,6 @@ namespace jyq {
 
     /* Threading */
     constexpr auto ErrorMax = maximum::Error;
-
     struct Mutex {
         Mutex();
         ~Mutex();
@@ -170,16 +169,24 @@ namespace jyq {
         void lock();
         void unlock();
         bool canlock();
+        bool isActive() const noexcept { return _active; }
+        bool deactivate();
+        private:
+            bool _active = false;
     };
 
     struct Rendez {
-        Rendez();
+        Rendez(Mutex* m = nullptr);
         ~Rendez();
         Mutex* mutex;
         std::any aux;
         bool wake();
         bool wakeall();
         void sleep();
+        bool isActive() const noexcept { return _active; }
+        bool deactivate();
+        private:
+            bool _active = false;
     };
 
     struct RWLock {
@@ -192,6 +199,10 @@ namespace jyq {
         void writeLock();
         void writeUnlock();
         bool canWriteLock();
+        bool isActive() const noexcept { return _active; }
+        bool deactivate();
+        private:
+            bool _active = false;
     };
     template<typename T>
     struct ContainsSizeParameter {
@@ -570,6 +581,7 @@ namespace jyq {
 
     struct Rpc {
         Rpc(Client* m);
+        ~Rpc() = default;
         Client*	mux;
         Rpc*		next;
         Rpc*		prev;

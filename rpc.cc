@@ -11,25 +11,10 @@
 namespace jyq {
 Rpc::Rpc(Client* m) : mux(m) {
     waiting = true;
-    r.mutex = (decltype(r.mutex))&m->lk;
+    r.mutex = &m->lk;
     p = nullptr;
 }
 namespace {
-void
-initrpc(Client *mux, Rpc *r)
-{
-	r->mux = mux;
-	r->waiting = 1;
-	r->r.mutex = (decltype(r->r.mutex))&mux->lk;
-	r->p = nullptr;
-	concurrency::threadModel->initrendez(&r->r);
-}
-
-void
-freemuxrpc(Rpc *r)
-{
-	concurrency::threadModel->rdestroy(&r->r);
-}
 
 Fcall*
 muxrecv(Client *mux)
@@ -131,7 +116,7 @@ puttag(Client *mux, Rpc *r)
 	mux->nwait--;
 	mux->freetag = i;
     mux->tagrend.wake();
-	freemuxrpc(r);
+    r->r.deactivate();
 }
 int
 sendrpc(Rpc *r, Fcall *f)
