@@ -589,7 +589,7 @@ namespace jyq {
         bool waiting;
         bool async;
     };
-    using RpcList = std::list<Rpc>;
+    using RpcPtrList = std::list<std::shared_ptr<Rpc>>;
 
     struct Client {
         static void	unmount(Client*);
@@ -640,8 +640,8 @@ namespace jyq {
         std::shared_ptr<CFid> walk(const char*);
         std::shared_ptr<CFid> walkdir(char *path, const char **rest);
         bool dofcall(Fcall *fcall);
-        void enqueue(Rpc*);
-        void dequeue(Rpc*);
+        void enqueue(std::shared_ptr<Rpc>);
+        void dequeue(std::shared_ptr<Rpc>);
         void putfid(std::shared_ptr<CFid> cfid);
         void clunk(std::shared_ptr<CFid> fid);
         std::function<bool(Fcall*)> getDoFcallLambda() noexcept { return [this](auto* ptr) { return this->dofcall(ptr); }; }

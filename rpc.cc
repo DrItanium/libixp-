@@ -169,12 +169,12 @@ dispatchandqlock(Client *mux, Fcall *f)
 }
 } // end namespace
 void
-Client::enqueue(Rpc* r) {
+Client::enqueue(std::shared_ptr<Rpc> r) {
     sleep.emplace_back(r);
 }
 
 void
-Client::dequeue(Rpc* r) {
+Client::dequeue(std::shared_ptr<Rpc> r) {
 
 }
 
@@ -182,8 +182,6 @@ void
 Client::muxinit()
 {
 	tagrend.mutex = &lk;
-	sleep.next = &sleep;
-	sleep.prev = &sleep;
 	concurrency::threadModel->initmutex(&lk);
 	concurrency::threadModel->initmutex(&rlock);
 	concurrency::threadModel->initmutex(&wlock);
