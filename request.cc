@@ -113,10 +113,9 @@ destroyfid(Conn9 *p9conn, ulong fid) {
 static void
 handlefcall(Conn *c) {
 	Fcall fcall;
-	Conn9 *p9conn;
 	Req9 *req;
 
-	p9conn = std::any_cast<decltype(p9conn)>(c->aux);
+	auto p9conn = std::any_cast<Conn9*>(c->aux);
 
     p9conn->rlock.lock();
 	if(recvmsg(c->fd, &p9conn->rmsg) == 0)
@@ -148,14 +147,12 @@ Fail:
 
 static void
 handlereq(Req9 *r) {
-	Conn9 *p9conn;
-	Srv9 *srv;
+	auto p9conn = r->conn;
+	auto srv = p9conn->srv;
 
-	p9conn = r->conn;
-	srv = p9conn->srv;
-
-	if(printfcall)
+	if(printfcall) {
 		printfcall(&r->ifcall);
+    }
 
 	switch(r->ifcall.getType()) {
 	default:
