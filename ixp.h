@@ -1,5 +1,5 @@
-#ifndef LIBIXP_H__
-#define LIBIXP_H__
+#ifndef LIBJYQ_H__
+#define LIBJYQ_H__
 /* C Implementation copyright ©2006-2010 Kris Maglione <maglione.k at Gmail>
  * C++ Implementation copyright (c)2019 Joshua Scoggins
  * See LICENSE file for license details.
@@ -18,7 +18,7 @@
 #include <memory>
 #include <any>
 
-namespace ixp {
+namespace jyq {
     using uint = unsigned int;
     using ulong = unsigned long;
     constexpr auto ApiVersion = 135;
@@ -33,7 +33,7 @@ namespace ixp {
 
     template<typename ... Args>
         void errorPrint(Args&& ... args) {
-            ixp::print(std::cerr, args...);
+            jyq::print(std::cerr, args...);
         }
 
     template<typename ... Args>
@@ -694,9 +694,9 @@ namespace ixp {
          * Type: Rendez
          * Variable: thread
          *
-         * The Thread structure is used to adapt libixp to any of the
+         * The Thread structure is used to adapt libjyq to any of the
          * myriad threading systems it may be used with. Before any
-         * other of libixp's functions is called, thread may be set
+         * other of libjyq's functions is called, thread may be set
          * to a structure filled with implementations of various locking
          * primitives, along with primitive IO functions which may
          * perform context switches until data is available.
@@ -707,7 +707,7 @@ namespace ixp {
          * while a writer is waitng for a lock. Mutexes should allow
          * only one accessor at a time. Rendezvous points are similar to
          * pthread condition types. P<errbuf> should return a
-         * thread-local buffer or the size IXP_ERRMAX.
+         * thread-local buffer or the size JYQ_ERRMAX.
          *
          * See also:
          *	F<pthread_init>, F<taskinit>, F<rubyinit>
@@ -884,7 +884,7 @@ namespace ixp {
         std::function<void(long, const std::any&)> fn;
         std::any	aux;
     };
-} // end namespace ixp
+} // end namespace jyq
 extern char* argv0;
 #define ARGBEGIN \
     int _argtmp=0, _inargv=0; char *_argv=nullptr; \

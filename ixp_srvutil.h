@@ -1,9 +1,9 @@
-#ifndef LIBIXP_SRVUTIL_H__
-#define LIBIXP_SRVUTIL_H__
+#ifndef LIBJYQ_SRVUTIL_H__
+#define LIBJYQ_SRVUTIL_H__
 
 #include <functional>
-#include "ixp.h"
-namespace ixp {
+#include "jyq.h"
+namespace jyq {
 struct Dirtab;
 struct PendingLink;
 struct Pending;
@@ -74,6 +74,6 @@ void	srv_writebuf(Req9*, char**, uint*, uint);
 char*	srv_writectl(Req9*, std::function<char*(void*, Msg*)>);
 FileId* srv_getfile(void);
 
-} // end namespace ixp
+} // end namespace jyq
 #endif
 

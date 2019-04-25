@@ -1,7 +1,7 @@
-#ifndef IXP_THREAD_PTHREAD_H__
-#define IXP_THREAD_PTHREAD_H__
-#include "ixp.h"
-namespace ixp::concurrency
+#ifndef JYQ_THREAD_PTHREAD_H__
+#define JYQ_THREAD_PTHREAD_H__
+#include "jyq.h"
+namespace jyq::concurrency
 {
 
 class PThreadImpl final : public ThreadImpl
@@ -11,30 +11,30 @@ class PThreadImpl final : public ThreadImpl
     public:
         using Parent::Parent;
         /* Read/write lock */
-         bool init(ixp::RWLock*) override;
-         void rlock(ixp::RWLock*) override;
-         bool canrlock(ixp::RWLock*) override;
-         void runlock(ixp::RWLock*) override;
-         void wlock(ixp::RWLock*) override;
-         bool canwlock(ixp::RWLock*) override;
-         void wunlock(ixp::RWLock*) override;
-         void destroy(ixp::RWLock*) override;
+         bool init(jyq::RWLock*) override;
+         void rlock(jyq::RWLock*) override;
+         bool canrlock(jyq::RWLock*) override;
+         void runlock(jyq::RWLock*) override;
+         void wlock(jyq::RWLock*) override;
+         bool canwlock(jyq::RWLock*) override;
+         void wunlock(jyq::RWLock*) override;
+         void destroy(jyq::RWLock*) override;
         /* Mutex */
-         bool init(ixp::Mutex*) override;
-         bool canlock(ixp::Mutex*) override;
-         void lock(ixp::Mutex*) override;
-         void unlock(ixp::Mutex*) override;
-         void destroy(ixp::Mutex*) override;
+         bool init(jyq::Mutex*) override;
+         bool canlock(jyq::Mutex*) override;
+         void lock(jyq::Mutex*) override;
+         void unlock(jyq::Mutex*) override;
+         void destroy(jyq::Mutex*) override;
         /* Rendezvous point */
-         bool init(ixp::Rendez*) override;
-         bool wake(ixp::Rendez*) override;
-         bool wakeall(ixp::Rendez*) override;
-         void sleep(ixp::Rendez*) override;
-         void destroy(ixp::Rendez*) override;
+         bool init(jyq::Rendez*) override;
+         bool wake(jyq::Rendez*) override;
+         bool wakeall(jyq::Rendez*) override;
+         void sleep(jyq::Rendez*) override;
+         void destroy(jyq::Rendez*) override;
         /* Other */
          char* errbuf() override;
 };
 
-} // end namespace ixp
+} // end namespace jyq
 
 #endif // end JYQ_THREAD_PTHREAD_H__
