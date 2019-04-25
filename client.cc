@@ -295,7 +295,7 @@ Client::mountfd(int fd) {
 	Fcall fcall;
 
     fcall.setType(FType::TVersion);
-	auto c = (Client*)emallocz(sizeof(Client));
+    auto c = new Client();
 	c->fd = fd;
     c->muxinit();
 

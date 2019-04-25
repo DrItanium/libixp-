@@ -600,6 +600,7 @@ namespace jyq {
 
         static inline Client* mount(const std::string& str) { return mount(str.c_str()); }
         static inline Client* nsmount(const std::string& str) { return nsmount(str.c_str()); }
+        Client() : sleep(this) { };
         ~Client();
         int	fd;
         uint	msize;
