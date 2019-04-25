@@ -643,8 +643,8 @@ namespace jyq {
         long read(void*, long);
         long pread(void*, long, int64_t);
         long pwrite(const void*, long, int64_t);
-        //int vprint(const char*, va_list);
-        //inline int vprint(const std::string& str, va_list l) { return vprint(str.c_str(), l); }
+        int vprint(const char*, va_list);
+        inline int vprint(const std::string& str, va_list l) { return vprint(str.c_str(), l); }
         long write(const void*, long);
         Stat*	fstat();
     };
