@@ -9,9 +9,9 @@
 #include "jyq.h"
 
 namespace jyq {
-Rpc::Rpc(Client* m) : mux(m) {
+Rpc::Rpc(Client& m) : mux(m) {
     waiting = true;
-    r.mutex = &m->lk;
+    r.mutex = &m.lk;
     p = nullptr;
 }
 namespace {

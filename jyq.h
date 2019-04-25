@@ -580,17 +580,16 @@ namespace jyq {
     };
 
     struct Rpc {
-        Rpc(Client* m);
+        Rpc(Client&);
         ~Rpc() = default;
-        Client*	mux;
-        Rpc*		next;
-        Rpc*		prev;
+        Client& mux;
         Rendez	r;
         uint		tag;
         Fcall*	p;
         bool waiting;
         bool async;
     };
+    using RpcList = std::list<Rpc>;
 
     struct Client {
         static void	unmount(Client*);
@@ -600,7 +599,7 @@ namespace jyq {
 
         static inline Client* mount(const std::string& str) { return mount(str.c_str()); }
         static inline Client* nsmount(const std::string& str) { return nsmount(str.c_str()); }
-        Client() : sleep(this) { };
+        Client() : sleep(*this) { };
         ~Client();
         int	fd;
         uint	msize;
