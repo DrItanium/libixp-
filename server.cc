@@ -146,7 +146,7 @@ handle_conns(Server *s) {
  *	F<listen>, F<settimer>
  */
 
-int
+bool
 Server::serverloop() {
 	timeval tv;
 

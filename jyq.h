@@ -556,8 +556,8 @@ namespace jyq {
         Conn* listen(int, const std::any&,
                 std::function<void(Conn*)> read,
                 std::function<void(Conn*)> close);
-        int	    serverloop();
-        void	close();
+        bool serverloop();
+        void close();
         bool unsettimer(long);
         long settimer(long, std::function<void(long, const std::any&)>, const std::any& aux);
         long nexttimer();
