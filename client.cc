@@ -16,24 +16,23 @@
 namespace jyq {
 constexpr auto RootFid = 1;
 
-namespace {
 CFid*
-getfid(Client *c) {
-	CFid *f;
-    concurrency::Locker<Mutex> theLock(c->lk);
-	f = c->freefid;
+Client::getFid() {
+    concurrency::Locker<Mutex> theLock(this->lk);
+	auto f = this->freefid;
     if (f) {
-		c->freefid = f->next;
+		this->freefid = f->next;
     } else {
 		f = (CFid*)emallocz(sizeof *f);
-		f->client = c;
-		f->fid = ++c->lastfid;
+		f->client = this;
+		f->fid = ++this->lastfid;
 		concurrency::threadModel->initmutex(&f->iolock);
 	}
 	f->next = nullptr;
 	f->open = 0;
 	return f;
 }
+namespace {
 
 void
 putfid(CFid *f) {
@@ -81,59 +80,7 @@ allocmsg(Client *c, int n) {
 	c->rmsg.data = (char*)erealloc(c->rmsg.data, n);
 	c->wmsg.data = (char*)erealloc(c->wmsg.data, n);
 }
-CFid*
-walk(Client *c, const char *path) {
-	Fcall fcall(FType::TWalk);
-    // TODO use the new tokenize method
-    //std::string cpy(path);
-    //auto separation = tokenize(cpy, '/');
-	auto p = estrdup(path);
-	auto n = tokenize(fcall.twalk.wname, nelem(fcall.twalk.wname), p, '/');
-	auto f = getfid(c);
-    fcall.setFid(RootFid);
 
-    fcall.twalk.setSize(n);
-	fcall.twalk.newfid = f->fid;
-	if(!dofcall(c, &fcall))
-		goto fail;
-	if(fcall.rwalk.size() < n) {
-		werrstr("File does not exist");
-		if(fcall.rwalk.empty())
-			werrstr("Protocol botch");
-		goto fail;
-	}
-
-	f->qid = fcall.rwalk.wqid[n-1];
-
-	Fcall::free(&fcall);
-	free(p);
-	return f;
-fail:
-	putfid(f);
-	free(p);
-	return nullptr;
-}
-
-CFid*
-walkdir(Client *c, char *path, const char **rest) {
-	char *p;
-
-	p = path + strlen(path) - 1;
-	assert(p >= path);
-	while(*p == '/')
-		*p-- = '\0';
-
-	while((p > path) && (*p != '/'))
-		p--;
-	if(*p != '/') {
-		werrstr("bad path");
-		return nullptr;
-	}
-
-	*p++ = '\0';
-	*rest = p;
-	return walk(c, path);
-}
 
 void
 initfid(CFid *f, Fcall *fcall) {
@@ -215,6 +162,58 @@ _pwrite(CFid *f, const void *buf, long count, int64_t offset) {
 	return len;
 }
 } // end namespace
+CFid*
+Client::walkdir(char *path, const char **rest) {
+	char *p;
+
+	p = path + strlen(path) - 1;
+	assert(p >= path);
+	while(*p == '/')
+		*p-- = '\0';
+
+	while((p > path) && (*p != '/'))
+		p--;
+	if(*p != '/') {
+		werrstr("bad path");
+		return nullptr;
+	}
+
+	*p++ = '\0';
+	*rest = p;
+    return this->walk(path);
+}
+CFid*
+Client::walk(const char *path) {
+	Fcall fcall(FType::TWalk);
+    // TODO use the new tokenize method
+    //std::string cpy(path);
+    //auto separation = tokenize(cpy, '/');
+	auto p = estrdup(path);
+	auto n = tokenize(fcall.twalk.wname, nelem(fcall.twalk.wname), p, '/');
+	auto f = this->getFid();
+    fcall.setFid(RootFid);
+
+    fcall.twalk.setSize(n);
+	fcall.twalk.newfid = f->fid;
+	if(!dofcall(this, &fcall))
+		goto fail;
+	if(fcall.rwalk.size() < n) {
+		werrstr("File does not exist");
+		if(fcall.rwalk.empty())
+			werrstr("Protocol botch");
+		goto fail;
+	}
+
+	f->qid = fcall.rwalk.wqid[n-1];
+
+	Fcall::free(&fcall);
+	free(p);
+	return f;
+fail:
+	putfid(f);
+	free(p);
+	return nullptr;
+}
 
 /**
  * Function: remove
@@ -234,7 +233,7 @@ bool
 Client::remove(const char *path) {
 	Fcall fcall;
 
-    if (auto f = walk(this, path); !f) {
+    if (auto f = walk(path); !f) {
         return false;
     } else {
         fcall.setTypeAndFid(FType::TRemove, f->fid);
@@ -354,12 +353,11 @@ Client::mountfd(int fd) {
 
 Client*
 Client::mount(const char *address) {
-	int fd;
-
-	fd = dial(address);
-	if(fd < 0)
-		return nullptr;
-	return mountfd(fd);
+	if (auto fd = dial(address); fd < 0) {
+        return nullptr;
+    } else {
+        return mountfd(fd);
+    }
 }
 
 Client*
@@ -414,7 +412,7 @@ Client::create(const char *path, uint perm, uint8_t mode) {
 
 	tpath = estrdup(path);
 
-	f = walkdir(this, tpath, &path);
+	f = walkdir(tpath, &path);
     if (!f) 
 		goto done;
 
@@ -444,7 +442,7 @@ Client::open(const char *path, uint8_t mode) {
 	Fcall fcall;
 	CFid *f;
 
-	f = walk(this, path);
+	f = walk(path);
     if (!f) 
 		return nullptr;
 
@@ -507,7 +505,7 @@ Client::stat(const char *path) {
 	Stat *stat;
 	CFid *f;
 
-	f = walk(this, path);
+	f = walk(path);
     if (!f) 
 		return nullptr;
 
