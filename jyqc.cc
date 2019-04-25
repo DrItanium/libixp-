@@ -33,7 +33,7 @@ void
 write_data(std::shared_ptr<jyq::CFid> fid, char *name) {
 	long len = 0;
 
-	auto buf = jyq::emalloc(fid->iounit);
+    auto buf = new char[fid->iounit];
 	do {
 		len = read(0, buf, fid->iounit);
 		if(len >= 0 && fid->write(buf, len, client->getDoFcallLambda()) != len) {
@@ -41,7 +41,7 @@ write_data(std::shared_ptr<jyq::CFid> fid, char *name) {
         }
 	} while(len > 0);
 
-	free(buf);
+    delete [] buf;
 }
 
 int
