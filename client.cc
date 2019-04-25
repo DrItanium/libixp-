@@ -622,16 +622,16 @@ CFid::pwrite(const void *buf, long count, int64_t offset) {
  *	F<mount>, F<open>, printf(3)
  */
 
-int
-CFid::vprint(const char *fmt, va_list args) {
-	if (auto buf = vsmprint(fmt, args); !buf) {
-        return -1;
-    } else {
-        auto n = write(buf, strlen(buf));
-        free(buf);
-        return n;
-    }
-}
+//int
+//CFid::vprint(const char *fmt, va_list args) {
+//	if (auto buf = vsmprint(fmt, args); !buf) {
+//        return -1;
+//    } else {
+//        auto n = write(buf, strlen(buf));
+//        free(buf);
+//        return n;
+//    }
+//}
 
 bool 
 CFid::clunk() {
