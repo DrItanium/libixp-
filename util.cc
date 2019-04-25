@@ -232,28 +232,15 @@ uint
 tokenize(char *res[], uint reslen, char *str, char delim) {
 	uint i = 0;
 	char* s = str;
-    std::cout << "reslen: " << reslen << std::endl;
 	while(i < reslen && *s) {
     std::cout << "i: " << i << std::endl;
-        std::cout << "Loop start, s = " << s << std::endl;
 		while(*s == delim)
 			*(s++) = '\0';
-        std::cout << "After delim walk, s = " << s << std::endl;
 		if(*s)
 			res[i++] = s;
-        std::cout << "After null check, s = " << s << std::endl;
 		while(*s && *s != delim)
 			s++;
-        std::cout << "After advancement of s (bottom of loop), s = " << s << std::endl;
 	}
-    for (auto k = 0; k < i; ++k) {
-        std::cout << "res[" << k << "] = ";
-        if (res[k]) {
-            std::cout << res[k] << std::endl;
-        } else {
-            std::cout << "nil" << std::endl;
-        }
-    }
 	return i;
 }
 std::list<std::string>
@@ -261,7 +248,9 @@ tokenize(const std::string& input, char delim) {
     std::list<std::string> tokens;
     std::istringstream ss(input);
     for (std::string line; std::getline(ss, line, delim);) {
-        tokens.emplace_back(line);
+        if (!line.empty()) {
+            tokens.emplace_back(line);
+        }
     }
     return tokens;
 }
