@@ -75,7 +75,12 @@ gettag(Client *mux, Rpc *r)
 {
 	int i, mw;
 	Rpc **w;
-
+    auto Found = [mux, r](auto index) {
+        mux->nwait++;
+        mux->wait[index] = r;
+        r->tag = index+mux->mintag;
+        return r->tag;
+    };
 	for(;;){
 		/* wait for a free tag */
 		while(mux->nwait == mux->mwait){
@@ -99,22 +104,17 @@ gettag(Client *mux, Rpc *r)
 
 		i=mux->freetag;
 		if(mux->wait[i] == 0)
-			goto Found;
+            return Found(i);
 		for(; i<mux->mwait; i++)
 			if(mux->wait[i] == 0)
-				goto Found;
+                return Found(i);
 		for(i=0; i<mux->freetag; i++)
 			if(mux->wait[i] == 0)
-				goto Found;
+                return Found(i);
 		/* should not fall out of while without free tag */
-		abort();
+        throw "Fell out of loop without free tag!";
 	}
 
-Found:
-	mux->nwait++;
-	mux->wait[i] = r;
-	r->tag = i+mux->mintag;
-	return r->tag;
 }
 
 void
