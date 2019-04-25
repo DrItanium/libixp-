@@ -532,20 +532,19 @@ namespace jyq {
     };
 
     struct Conn {
+        ~Conn();
         Server*	srv;
         std::any	aux;	/* Arbitrary pointer, to be used by handlers. */
         int		fd;	/* The file descriptor of the connection. */
         std::function<void(Conn*)> read, close;
         bool		closed;	/* Non-zero when P<fd> has been closed. */
 
-        /* Private members */
-        Conn		*next;
         void    serve9conn();
     };
     void	hangup(Conn*);
 
     struct Server {
-        Conn*	conn;
+        std::list<std::shared_ptr<Conn>> conns;
         Mutex	lk;
         Timer*	timer;
         std::function<void(Server*)> preselect;
@@ -553,7 +552,7 @@ namespace jyq {
         bool	running;
         int		maxfd;
         fd_set		rd;
-        Conn* listen(int, const std::any&,
+        std::shared_ptr<Conn> listen(int, const std::any&,
                 std::function<void(Conn*)> read,
                 std::function<void(Conn*)> close);
         bool serverloop();

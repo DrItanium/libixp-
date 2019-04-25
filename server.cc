@@ -34,20 +34,18 @@ namespace jyq {
  * See also:
  *	F<serverloop>, F<serve9conn>, F<hangup>
  */
-Conn*
+std::shared_ptr<Conn>
 Server::listen(int fd, const std::any& aux,
         std::function<void(Conn*)> read,
         std::function<void(Conn*)> close) {
-    auto c = new Conn;
-	c->fd = fd;
-	c->aux = aux;
-	c->srv = this;
-	c->read = read;
-	c->close = close;
-	c->next = conn;
-    c->closed = false;
-	conn = c;
-	return c;
+    conns.emplace_back(std::make_shared<Conn>());
+	conns.back()->fd = fd;
+	conns.back()->aux = aux;
+	conns.back()->srv = this;
+	conns.back()->read = read;
+	conns.back()->close = close;
+    conns.back()->closed = false;
+    return conns.back();
 }
 
 void 
@@ -79,56 +77,42 @@ Server::canlock() {
  *	F<listen>, S<Server>, S<Conn>
  */
 
-void
-hangup(Conn *c) {
-	Conn **tc;
-
-	auto s = c->srv;
-	for(tc=&s->conn; *tc; tc=&(*tc)->next)
-		if(*tc == c) break;
-	assert(*tc == c);
-
-	*tc = c->next;
-	c->closed = true;
-	if(c->close)
-		c->close(c);
-	else
-		shutdown(c->fd, SHUT_RDWR);
-
-	::close(c->fd);
-    delete c;
+Conn::~Conn() {
+    closed = true;
+    if (close) {
+        close(this);
+    } else {
+        shutdown(fd, SHUT_RDWR);
+    }
+    ::close(fd);
 }
 
 void
 Server::close() {
-	Conn *next = nullptr;
-
-	for(auto c = conn; c; c = next) {
-		next = c->next;
-		hangup(c);
-	}
+    conns.clear();
 }
 
 void
 Server::prepareSelect() {
 	FD_ZERO(&this->rd);
-	for(auto c = this->conn; c; c = c->next)
-		if(c->read) {
-			if(this->maxfd < c->fd)
-				this->maxfd = c->fd;
-			FD_SET(c->fd, &this->rd);
-		}
+    for (auto& c : conns) {
+        if (c->read) {
+            if (maxfd < c->fd) {
+                maxfd = c->fd;
+            }
+            FD_SET(c->fd, &rd);
+        }
+    }
 }
 
 void
 Server::handleConns() {
 	Conn *n;
-	for(auto c = this->conn; c; c = n) {
-		n = c->next;
-		if(FD_ISSET(c->fd, &this->rd)) {
-			c->read(c);
+    for (auto& c : conns) {
+        if (FD_ISSET(c->fd, &rd)) {
+            c->read(c.get());
         }
-	}
+    }
 }
 
 /**
