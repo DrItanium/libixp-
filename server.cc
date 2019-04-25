@@ -107,12 +107,16 @@ Server::prepareSelect() {
 
 void
 Server::handleConns() {
-	Conn *n;
     for (auto& c : conns) {
         if (FD_ISSET(c->fd, &rd)) {
             c->read(c.get());
         }
     }
+}
+
+void
+hangup(Conn *c) {
+    delete c;
 }
 
 /**
