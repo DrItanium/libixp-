@@ -418,10 +418,20 @@ namespace jyq {
         char*		uname;
         char*		aname;
     };
+    struct FAttachCxx : public QueryHeader {
+        uint32_t     afid;
+        std::string  uname;
+        std::string  aname;
+    };
     struct FTCreate : public QueryHeader {
         uint32_t	perm;
         char*		name;
         uint8_t		mode; /* +Topen */
+    };
+    struct FTCreateCxx : public QueryHeader {
+        uint32_t     perm;
+        std::string  name;
+        uint8_t      mode; /* +Topen */
     };
     struct FTWalk : public QueryHeader, public ContainsSizeParameter<uint16_t>  {
         uint32_t	newfid;
