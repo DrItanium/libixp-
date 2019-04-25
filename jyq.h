@@ -542,7 +542,7 @@ namespace jyq {
         Conn		*next;
         void    serve9conn();
     };
-        void	hangup(Conn*);
+    void	hangup(Conn*);
 
     struct Server {
         Conn*	conn;
