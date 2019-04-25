@@ -644,6 +644,7 @@ namespace jyq {
         void dequeue(Rpc*);
         void putfid(std::shared_ptr<CFid> cfid);
         void clunk(std::shared_ptr<CFid> fid);
+        std::function<bool(Fcall*)> getDoFcallLambda() noexcept { return [this](auto* ptr) { return this->dofcall(ptr); }; }
     };
 
     struct CFid {
@@ -665,8 +666,8 @@ namespace jyq {
         long read(void*, long, DoFcallFunc);
         long pread(void*, long, int64_t, DoFcallFunc);
         long pwrite(const void*, long, int64_t, DoFcallFunc);
-        int vprint(const char*, va_list);
-        inline int vprint(const std::string& str, va_list l) { return vprint(str.c_str(), l); }
+        //int vprint(const char*, va_list);
+        //inline int vprint(const std::string& str, va_list l) { return vprint(str.c_str(), l); }
         long write(const void*, long, DoFcallFunc);
         std::shared_ptr<Stat> fstat(DoFcallFunc);
     };

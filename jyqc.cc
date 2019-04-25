@@ -30,13 +30,13 @@ usage(int errorCode = 1) {
 
 /* Utility Functions */
 void
-write_data(jyq::CFid *fid, char *name) {
+write_data(std::shared_ptr<jyq::CFid> fid, char *name) {
 	long len = 0;
 
 	auto buf = jyq::emalloc(fid->iounit);
 	do {
 		len = read(0, buf, fid->iounit);
-		if(len >= 0 && fid->write(buf, len) != len) {
+		if(len >= 0 && fid->write(buf, len, client->getDoFcallLambda()) != len) {
             jyq::fatalPrint("cannot write file '", name, "': ", jyq::errbuf(), "\n");
         }
 	} while(len > 0);
@@ -78,7 +78,7 @@ str_of_time(uint val) {
 }
 
 void
-print_stat(jyq::Stat *s, int details) {
+print_stat(std::shared_ptr<jyq::Stat> s, int details) {
 	if(details) {
         jyq::print(std::cout, str_of_mode(s->mode), " ", 
                 s->uid, " ", s->gid, " ", s->length, " ", 
@@ -109,8 +109,7 @@ xappend(int argc, char *argv[]) {
 	
 	auto stat = client->stat(file);
 	fid->offset = stat->length;
-    jyq::Stat::free(stat);
-	free(stat);
+    jyq::Stat::free(stat.get());
 	write_data(fid, file);
 	return 0;
 }
@@ -161,7 +160,7 @@ xawrite(int argc, char *argv[]) {
 			buf[nbuf++] = ' ';
 	}
 
-	if(fid->write(buf, nbuf) == -1) {
+	if(fid->write(buf, nbuf, client->getDoFcallLambda()) == -1) {
         jyq::fatalPrint("cannot write file '", file, "': ", jyq::errbuf(), "\n");
     }
 	return 0;
@@ -214,7 +213,7 @@ xread(int argc, char *argv[]) {
 
     int count = 0;
 	auto buf = (char*)jyq::emalloc(fid->iounit);
-	while((count = fid->read(buf, fid->iounit)) > 0) {
+	while((count = fid->read(buf, fid->iounit, client->getDoFcallLambda())) > 0) {
 		write(1, buf, count);
     }
 
@@ -228,8 +227,7 @@ xread(int argc, char *argv[]) {
 int
 xls(int argc, char *argv[]) {
 	jyq::Msg m;
-	jyq::CFid *fid;
-	char *file, *buf;
+	char *file;
 	int count;
 
 	auto lflag = 0;
@@ -255,31 +253,32 @@ xls(int argc, char *argv[]) {
 
 	if(dflag || (stat->mode&static_cast<uint32_t>(jyq::DMode::DIR)) == 0) {
 		print_stat(stat, lflag);
-        jyq::Stat::free(stat);
+        jyq::Stat::free(stat.get());
 		return 0;
 	}
-    jyq::Stat::free(stat);
+    jyq::Stat::free(stat.get());
 
-    fid = client->open(file, jyq::OMode::READ);
+    auto fid = client->open(file, jyq::OMode::READ);
 	if(!fid) {
         jyq::fatalPrint("Can't open file '", file, "': ", jyq::errbuf(), "\n");
     }
 
-    std::vector<jyq::Stat> stats;
-	buf = (decltype(buf))jyq::emalloc(fid->iounit);
-	while((count = fid->read(buf, fid->iounit)) > 0) {
+    std::vector<std::shared_ptr<jyq::Stat>> stats;
+    char* buf = new char[fid->iounit];
+	while((count = fid->read(buf, fid->iounit, client->getDoFcallLambda())) > 0) {
         m = jyq::Msg::message(buf, count, jyq::Msg::Mode::Unpack);
 		while(m.pos < m.end) {
-            stats.emplace_back();
-            m.pstat(stats.back());
+            stats.emplace_back(std::make_shared<jyq::Stat>());
+            m.pstat(stats.back().get());
 		}
 	}
+    delete[] buf;
 
     // TODO implement sorting in the future
 	//qsort(stats, nstat, sizeof(*stat), comp_stat);
     for (auto& stat : stats) {
-        print_stat(&stat, lflag);
-        jyq::Stat::free(&stat);
+        print_stat(stat, lflag);
+        jyq::Stat::free(stat.get());
     }
 	//free(stat);
 
