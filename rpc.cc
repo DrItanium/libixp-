@@ -39,13 +39,13 @@ void
 electmuxer(Client *mux)
 {
 	/* if there is anyone else sleeping, wake them to mux */
-	for(auto rpc=mux->sleep.next; rpc != &mux->sleep; rpc = rpc->next){
-		if(!rpc->async){
-			mux->muxer = rpc;
-			concurrency::threadModel->wake(&rpc->r);
-			return;
-		}
-	}
+    for (auto& rpc : mux->sleep) {
+        if (!rpc.async) {
+            mux->muxer = &rpc;
+            rpc.r.wake();
+            return;
+        }
+    }
 	mux->muxer = nullptr;
 }
 void
@@ -125,19 +125,19 @@ sendrpc(Rpc *r, Fcall *f)
 	auto mux = r->mux;
 	/* assign the tag, add selves to response queue */
     {
-        concurrency::Locker<Mutex> lk(mux->lk);
-        r->tag = gettag(mux, r);
+        concurrency::Locker<Mutex> lk(mux.lk);
+        r->tag = gettag(&mux, r);
         f->hdr.tag = r->tag;
-        enqueue(mux, r);
+        mux.enqueue(r);
     }
 
     {
-        concurrency::Locker<Mutex> a(mux->wlock);
-        if(!fcall2msg(&mux->wmsg, f) || !sendmsg(mux->fd, &mux->wmsg)) {
+        concurrency::Locker<Mutex> a(mux.wlock);
+        if(!fcall2msg(&mux.wmsg, f) || !sendmsg(mux.fd, &mux.wmsg)) {
             /* werrstr("settag/send tag %d: %r", tag); fprint(2, "%r\n"); */
-            concurrency::Locker<Mutex> lk(mux->lk);
-            dequeue(mux, r);
-            puttag(mux, r);
+            concurrency::Locker<Mutex> lk(mux.lk);
+            mux.dequeue(r);
+            puttag(&mux, r);
             ret = -1;
         }
     }
@@ -170,18 +170,11 @@ dispatchandqlock(Client *mux, Fcall *f)
 } // end namespace
 void
 Client::enqueue(Rpc* r) {
-	r->next = sleep.next;
-	r->prev = &sleep;
-	r->next->prev = r;
-	r->prev->next = r;
+    sleep.emplace_back(r);
 }
 
 void
 Client::dequeue(Rpc* r) {
-	r->next->prev = r->prev;
-	r->prev->next = r->next;
-	r->prev = nullptr;
-	r->next = nullptr;
 
 }
 

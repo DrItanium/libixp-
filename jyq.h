@@ -599,7 +599,7 @@ namespace jyq {
 
         static inline Client* mount(const std::string& str) { return mount(str.c_str()); }
         static inline Client* nsmount(const std::string& str) { return nsmount(str.c_str()); }
-        Client() : sleep(*this) { };
+        Client() = default;
         ~Client();
         int	fd;
         uint	msize;
@@ -618,7 +618,7 @@ namespace jyq {
         Rendez	tagrend;
         Rpc**	wait;
         Rpc*		muxer;
-        Rpc		sleep;
+        RpcList sleep;
         int		mintag;
         int		maxtag;
         bool remove(const char*);
