@@ -48,10 +48,8 @@ fail:
 void
 electmuxer(Client *mux)
 {
-	Rpc *rpc;
-
 	/* if there is anyone else sleeping, wake them to mux */
-	for(rpc=mux->sleep.next; rpc != &mux->sleep; rpc = rpc->next){
+	for(auto rpc=mux->sleep.next; rpc != &mux->sleep; rpc = rpc->next){
 		if(!rpc->async){
 			mux->muxer = rpc;
 			concurrency::threadModel->wake(&rpc->r);
