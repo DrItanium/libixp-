@@ -21,7 +21,6 @@ Client::getFid() {
     concurrency::Locker<Mutex> theLock(this->lk);
     if (freefid.empty()) {
         auto ptr = std::make_shared<CFid>();
-        ptr->client = this;
         ptr->fid = ++lastfid;
         return ptr;
     } else {
@@ -30,18 +29,18 @@ Client::getFid() {
         return front;
     }
 }
-namespace {
 
 void
-putfid(std::shared_ptr<CFid> f) {
-    auto c = f->client;
-    concurrency::Locker<Mutex> theLock(c->lk);
-    if (f->fid == c->lastfid) {
-		c->lastfid--;
+Client::putfid(std::shared_ptr<CFid> f) {
+    concurrency::Locker<Mutex> theLock(lk);
+    if (f->fid == lastfid) {
+		lastfid--;
 	} else {
-        c->freefid.emplace_front(f);
+        freefid.emplace_front(f);
 	}
 }
+namespace {
+
 
 void
 allocmsg(Client *c, int n) {
@@ -53,36 +52,31 @@ allocmsg(Client *c, int n) {
 
 
 void
-initfid(CFid *f, Fcall *fcall) {
+initfid(std::shared_ptr<CFid> f, Fcall *fcall, decltype(CFid::iounit) iounit) {
 	f->open = 1;
 	f->offset = 0;
-	f->iounit = fcall->ropen.iounit;
-	if(f->iounit == 0 || fcall->ropen.iounit > f->client->msize-24)
-		f->iounit =  f->client->msize-24;
+    f->iounit = iounit;
 	f->qid = fcall->ropen.qid;
 }
-Stat*
-_stat(Client *c, ulong fid) {
-	Msg msg;
+std::shared_ptr<Stat>
+_stat(Client& c, ulong fid) {
 	Fcall fcall(FType::TStat, fid);
-	Stat *stat;
-	if(!c->dofcall(&fcall))
+	if(!c.dofcall(&fcall))
 		return nullptr;
 
-	msg = Msg::message((char*)fcall.rstat.stat, fcall.rstat.size(), Msg::Mode::Unpack);
+	auto msg = Msg::message((char*)fcall.rstat.stat, fcall.rstat.size(), Msg::Mode::Unpack);
 
-	stat = (Stat*)emalloc(sizeof *stat);
-    msg.pstat(stat);
-	Fcall::free(&fcall);
+    auto stat = std::make_shared<Stat>();
+    msg.pstat(*stat);
+	Fcall::free(&fcall); // TODO eliminate this eventually
 	if(msg.pos > msg.end) {
-		free(stat);
-		stat = nullptr;
+        stat = nullptr;
 	}
 	return stat;
 }
 
 long
-_pread(CFid *f, char *buf, long count, int64_t offset) {
+_pread(CFid *f, char *buf, long count, int64_t offset, std::function<bool(Fcall*)> dofcall) {
 	Fcall fcall;
 
 	auto len = 0l;
@@ -91,8 +85,9 @@ _pread(CFid *f, char *buf, long count, int64_t offset) {
         fcall.setTypeAndFid(FType::TRead, f->fid);
 		fcall.tread.offset = offset;
         fcall.tread.setSize(n);
-		if(!f->client->dofcall(&fcall))
+        if (!dofcall(&fcall)) {
 			return -1;
+        }
 		if(fcall.rread.size() > n)
 			return -1;
 
@@ -108,7 +103,7 @@ _pread(CFid *f, char *buf, long count, int64_t offset) {
 }
 
 long
-_pwrite(CFid *f, const void *buf, long count, int64_t offset) {
+_pwrite(CFid *f, const void *buf, long count, int64_t offset, std::function<bool(Fcall*)> dofcall) {
 	Fcall fcall;
 	int n, len;
 
@@ -119,8 +114,9 @@ _pwrite(CFid *f, const void *buf, long count, int64_t offset) {
 		fcall.twrite.offset = offset;
 		fcall.twrite.data = (char*)buf + len;
         fcall.twrite.setSize(n);
-		if(!f->client->dofcall(&fcall))
+        if (!dofcall(&fcall)) {
 			return -1;
+        }
 
 		offset += fcall.rwrite.size();
 		len += fcall.rwrite.size();
@@ -156,7 +152,7 @@ fail:
 	free(ret);
 	return false;
 }
-CFid*
+std::shared_ptr<CFid>
 Client::walkdir(char *path, const char **rest) {
 	char *p;
 
@@ -232,7 +228,7 @@ Client::remove(const char *path) {
     } else {
         fcall.setTypeAndFid(FType::TRemove, f->fid);
         auto ret = dofcall(&fcall);
-        Fcall::free(&fcall);
+        Fcall::free(&fcall); // TODO eliminate this
         putfid(f);
 
         return ret;
@@ -401,14 +397,15 @@ Client::nsmount(const char *name) {
 CFid*
 Client::create(const char *path, uint perm, uint8_t mode) {
 	Fcall fcall;
-	CFid *f;
 	char *tpath;;
 
 	tpath = estrdup(path);
 
-	f = walkdir(tpath, &path);
-    if (!f) 
-		goto done;
+    auto f = walkdir(tpath, &path);
+    if (!f)  {
+        free(tpath);
+        return f;
+    }
 
     fcall.setTypeAndFid(FType::TCreate, f->fid);
 	fcall.tcreate.name = (char*)(uintptr_t)path;
@@ -416,17 +413,21 @@ Client::create(const char *path, uint perm, uint8_t mode) {
 	fcall.tcreate.mode = mode;
 
 	if(!dofcall(&fcall)) {
-        f->clunk();
-		f = nullptr;
-		goto done;
+        clunk(f);
+        putfid(f);
+        free(tpath);
+        return nullptr;
 	}
 
-	initfid(f, &fcall);
+    auto count = fcall.ropen.iounit;
+    if (count == 0 || (fcall.ropen.iounit > (msize-24))) {
+        count = msize-24;
+    }
+	initfid(f, &fcall, count);
 	f->mode = mode;
 
 	Fcall::free(&fcall);
 
-done:
 	free(tpath);
 	return f;
 }
@@ -434,9 +435,8 @@ done:
 CFid*
 Client::open(const char *path, uint8_t mode) {
 	Fcall fcall;
-	CFid *f;
 
-	f = walk(path);
+	auto f = walk(path);
     if (!f) 
 		return nullptr;
 
@@ -444,11 +444,15 @@ Client::open(const char *path, uint8_t mode) {
 	fcall.topen.mode = mode;
 
 	if(!dofcall(&fcall)) {
-		f->clunk();
+		clunk(f);
 		return nullptr;
 	}
 
-	initfid(f, &fcall);
+    auto count = fcall.ropen.iounit;
+    if (count == 0 || (fcall.ropen.iounit > (msize-24))) {
+        count = msize-24;
+    }
+	initfid(f, &fcall, count);
 	f->mode = mode;
 
 	Fcall::free(&fcall);
@@ -468,8 +472,8 @@ Client::open(const char *path, uint8_t mode) {
  */
 
 bool
-CFid::close() {
-    return clunk();
+CFid::close(Client& c) {
+    return clunk(c);
 }
 
 
@@ -494,20 +498,20 @@ CFid::close() {
  *	F<mount>, F<open>
  */
 
-Stat*
+std::shared_ptr<Stat>
 Client::stat(const char *path) {
 	if (auto f = walk(path); !f) {
         return nullptr;
     } else {
-	    auto stat = _stat(this, f->fid);
-        f->clunk();
+	    auto stat = _stat(*this, f->fid);
+        f->clunk(*this);
 	    return stat;
     }
 }
 
-Stat*
-CFid::fstat() {
-	return _stat(client, fid);
+std::shared_ptr<Stat>
+CFid::fstat(Client& c) {
+	return _stat(c, fid);
 }
 
 
@@ -638,6 +642,15 @@ CFid::performClunk(Client& c) {
 bool 
 CFid::clunk(Client& c) {
     return performClunk(c);
+	//Fcall fcall(FType::TClunk, fid);
+	//auto c = client;
+	//auto ret = c->dofcall(&fcall);
+	//if(ret) {
+    //    // this is really gross, the CFid should not be aware of its parent
+	//	putfid(this);
+    //}
+	//Fcall::free(&fcall);
+	//return ret;
 }
 } // end namespace jyq
 

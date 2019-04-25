@@ -624,15 +624,15 @@ namespace jyq {
         bool remove(const char*);
         CFid*	create(const char*, uint perm, uint8_t mode);
         CFid*	open(const char*, uint8_t);
-        Stat*	stat(const char*);
+        std::shared_ptr<Stat> stat(const char*);
         bool  remove(const std::string& str) noexcept { return remove(str.c_str()); }
-        CFid* create(const std::string& str, uint perm, uint8_t mode) { return create(str.c_str(), perm, mode); }
-        CFid* create(const std::string& str, uint perm, OMode mode) { return create(str.c_str(), perm, mode); }
-        CFid* create(const char* str, uint perm, OMode mode) { return create(str, perm, uint8_t(mode)); }
-        CFid* open(const std::string& str, uint8_t val) { return open(str.c_str(), val); }
-        CFid* open(const std::string& str, OMode mode) { return open(str, uint8_t(mode)); }
-        CFid* open(const char* str, OMode mode) { return open(str, uint8_t(mode)); }
-        Stat* stat(const std::string& str) { return stat(str.c_str()); }
+        auto create(const std::string& str, uint perm, uint8_t mode) { return create(str.c_str(), perm, mode); }
+        auto create(const std::string& str, uint perm, OMode mode) { return create(str.c_str(), perm, uint8_t(mode)); }
+        auto create(const char* str, uint perm, OMode mode) { return create(str, perm, uint8_t(mode)); }
+        auto open(const std::string& str, uint8_t val) { return open(str.c_str(), val); }
+        auto open(const std::string& str, OMode mode) { return open(str, uint8_t(mode)); }
+        auto open(const char* str, OMode mode) { return open(str, uint8_t(mode)); }
+        auto stat(const std::string& str) { return stat(str.c_str()); }
         void	muxfree();
         void	muxinit();
         Fcall*	muxrpc(Fcall*);
@@ -642,6 +642,8 @@ namespace jyq {
         bool dofcall(Fcall *fcall);
         void enqueue(Rpc*);
         void dequeue(Rpc*);
+        void putfid(std::shared_ptr<CFid> cfid);
+        void clunk(std::shared_ptr<CFid> fid);
     };
 
     struct CFid {
@@ -656,16 +658,16 @@ namespace jyq {
         /* Private members */
         //CFid*	next;
         Mutex	iolock;
-        bool close();
-        bool clunk(Client& c); 
-        bool performClunk(Client& c);
+        bool close(std::function<bool(Fcall*)>);
+        bool clunk(std::function<bool(Fcall*)>); 
+        bool performClunk(std::function<bool(Fcall*)>);
         long read(void*, long);
         long pread(void*, long, int64_t);
         long pwrite(const void*, long, int64_t);
         int vprint(const char*, va_list);
         inline int vprint(const std::string& str, va_list l) { return vprint(str.c_str(), l); }
         long write(const void*, long);
-        Stat*	fstat();
+        std::shared_ptr<Stat> fstat(std::function<bool(Fcall*)>);
     };
 
     /**
