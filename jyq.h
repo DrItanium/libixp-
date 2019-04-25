@@ -622,8 +622,8 @@ namespace jyq {
         int		mintag;
         int		maxtag;
         bool remove(const char*);
-        CFid*	create(const char*, uint perm, uint8_t mode);
-        CFid*	open(const char*, uint8_t);
+        std::shared_ptr<CFid> create(const char*, uint perm, uint8_t mode);
+        std::shared_ptr<CFid> open(const char*, uint8_t);
         std::shared_ptr<Stat> stat(const char*);
         bool  remove(const std::string& str) noexcept { return remove(str.c_str()); }
         auto create(const std::string& str, uint perm, uint8_t mode) { return create(str.c_str(), perm, mode); }
@@ -647,6 +647,7 @@ namespace jyq {
     };
 
     struct CFid {
+        using DoFcallFunc = std::function<bool(Fcall*)>;
         uint32_t	fid;
         Qid		qid;
         uint8_t		mode;
@@ -658,16 +659,16 @@ namespace jyq {
         /* Private members */
         //CFid*	next;
         Mutex	iolock;
-        bool close(std::function<bool(Fcall*)>);
-        bool clunk(std::function<bool(Fcall*)>); 
-        bool performClunk(std::function<bool(Fcall*)>);
-        long read(void*, long);
-        long pread(void*, long, int64_t);
-        long pwrite(const void*, long, int64_t);
+        bool close(DoFcallFunc);
+        bool clunk(DoFcallFunc); 
+        bool performClunk(DoFcallFunc);
+        long read(void*, long, DoFcallFunc);
+        long pread(void*, long, int64_t, DoFcallFunc);
+        long pwrite(const void*, long, int64_t, DoFcallFunc);
         int vprint(const char*, va_list);
         inline int vprint(const std::string& str, va_list l) { return vprint(str.c_str(), l); }
-        long write(const void*, long);
-        std::shared_ptr<Stat> fstat(std::function<bool(Fcall*)>);
+        long write(const void*, long, DoFcallFunc);
+        std::shared_ptr<Stat> fstat(DoFcallFunc);
     };
 
     /**

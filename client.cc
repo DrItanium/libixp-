@@ -16,6 +16,11 @@
 namespace jyq {
 constexpr auto RootFid = 1;
 
+void
+Client::clunk(std::shared_ptr<CFid> ptr) {
+    ptr->clunk([this](auto* value) { return this->dofcall(value); });
+    putfid(ptr);
+}
 std::shared_ptr<CFid>
 Client::getFid() {
     concurrency::Locker<Mutex> theLock(this->lk);
@@ -59,9 +64,9 @@ initfid(std::shared_ptr<CFid> f, Fcall *fcall, decltype(CFid::iounit) iounit) {
 	f->qid = fcall->ropen.qid;
 }
 std::shared_ptr<Stat>
-_stat(Client& c, ulong fid) {
+_stat(ulong fid, std::function<bool(Fcall*)> dofcall) {
 	Fcall fcall(FType::TStat, fid);
-	if(!c.dofcall(&fcall))
+	if(!dofcall(&fcall))
 		return nullptr;
 
 	auto msg = Msg::message((char*)fcall.rstat.stat, fcall.rstat.size(), Msg::Mode::Unpack);
@@ -249,7 +254,6 @@ Client::~Client() {
 }
 void
 Client::unmount(Client *client) {
-	CFid *f;
     // TODO migrate this to the client destructor eventually
 
 	shutdown(client->fd, SHUT_RDWR);
@@ -257,14 +261,8 @@ Client::unmount(Client *client) {
 
     client->muxfree();
 
-	while((f = client->freefid)) {
-		client->freefid = f->next;
-		concurrency::threadModel->mdestroy(&f->iolock);
-		free(f);
-	}
 	free(client->rmsg.data);
 	free(client->wmsg.data);
-    free(client);
 }
 
 
@@ -394,7 +392,7 @@ Client::nsmount(const char *name) {
  *	F<fstat>, F<close>
  */
 
-CFid*
+std::shared_ptr<CFid>
 Client::create(const char *path, uint perm, uint8_t mode) {
 	Fcall fcall;
 	char *tpath;;
@@ -414,7 +412,6 @@ Client::create(const char *path, uint perm, uint8_t mode) {
 
 	if(!dofcall(&fcall)) {
         clunk(f);
-        putfid(f);
         free(tpath);
         return nullptr;
 	}
@@ -432,7 +429,7 @@ Client::create(const char *path, uint perm, uint8_t mode) {
 	return f;
 }
 
-CFid*
+std::shared_ptr<CFid>
 Client::open(const char *path, uint8_t mode) {
 	Fcall fcall;
 
@@ -472,8 +469,8 @@ Client::open(const char *path, uint8_t mode) {
  */
 
 bool
-CFid::close(Client& c) {
-    return clunk(c);
+CFid::close(std::function<bool(Fcall*)> fn) {
+    return clunk(fn);
 }
 
 
@@ -503,15 +500,15 @@ Client::stat(const char *path) {
 	if (auto f = walk(path); !f) {
         return nullptr;
     } else {
-	    auto stat = _stat(*this, f->fid);
-        f->clunk(*this);
+	    auto stat = _stat(f->fid, [this](auto* fc) { return this->dofcall(fc); });
+        clunk(f);
 	    return stat;
     }
 }
 
 std::shared_ptr<Stat>
-CFid::fstat(Client& c) {
-	return _stat(c, fid);
+CFid::fstat(std::function<bool(Fcall*)> c) {
+	return _stat(fid, c);
 }
 
 
@@ -538,18 +535,18 @@ CFid::fstat(Client& c) {
  */
 
 long
-CFid::read(void *buf, long count) {
+CFid::read(void *buf, long count, DoFcallFunc dofcall) {
     concurrency::Locker<Mutex> theLock(iolock);
-	int n = _pread(this, (char*)buf, count, offset);
+	int n = _pread(this, (char*)buf, count, offset, dofcall);
 	if(n > 0)
 		offset += n;
 	return n;
 }
 
 long
-CFid::pread(void *buf, long count, int64_t offset) {
+CFid::pread(void *buf, long count, int64_t offset, DoFcallFunc fn) {
     concurrency::Locker<Mutex> theLock(iolock);
-	return _pread(this, (char*)buf, count, offset);
+	return _pread(this, (char*)buf, count, offset, fn);
 }
 
 
@@ -577,9 +574,9 @@ CFid::pread(void *buf, long count, int64_t offset) {
  */
 
 long
-CFid::write(const void *buf, long count) {
+CFid::write(const void *buf, long count, DoFcallFunc fn) {
     concurrency::Locker<Mutex> theLock(iolock);
-	auto n = _pwrite(this, buf, count, offset);
+	auto n = _pwrite(this, buf, count, offset, fn);
 	if(n > 0) {
 		offset += n;
     }
@@ -587,9 +584,9 @@ CFid::write(const void *buf, long count) {
 }
 
 long
-CFid::pwrite(const void *buf, long count, int64_t offset) {
+CFid::pwrite(const void *buf, long count, int64_t offset, DoFcallFunc fn) {
     concurrency::Locker<Mutex> theLock(iolock);
-	return _pwrite(this, buf, count, offset);
+	return _pwrite(this, buf, count, offset, fn);
 }
 
 /**
@@ -620,37 +617,28 @@ CFid::pwrite(const void *buf, long count, int64_t offset) {
  *	F<mount>, F<open>, printf(3)
  */
 
-int
-CFid::vprint(const char *fmt, va_list args) {
-	if (auto buf = vsmprint(fmt, args); !buf) {
-        return -1;
-    } else {
-        auto n = write(buf, strlen(buf));
-        free(buf);
-        return n;
-    }
-}
+//int
+//CFid::vprint(const char *fmt, va_list args) {
+//	if (auto buf = vsmprint(fmt, args); !buf) {
+//        return -1;
+//    } else {
+//        auto n = write(buf, strlen(buf));
+//        free(buf);
+//        return n;
+//    }
+//}
 
 bool
-CFid::performClunk(Client& c) {
+CFid::performClunk(DoFcallFunc c) {
 	Fcall fcall(FType::TClunk, fid);
-	auto result = c.dofcall(&fcall);
+	auto result = c(&fcall);
     Fcall::free(&fcall); // TODO eliminate this call and use destructor
     return result;
 }
 
 bool 
-CFid::clunk(Client& c) {
-    return performClunk(c);
-	//Fcall fcall(FType::TClunk, fid);
-	//auto c = client;
-	//auto ret = c->dofcall(&fcall);
-	//if(ret) {
-    //    // this is really gross, the CFid should not be aware of its parent
-	//	putfid(this);
-    //}
-	//Fcall::free(&fcall);
-	//return ret;
+CFid::clunk(DoFcallFunc fn) {
+    return performClunk(fn);
 }
 } // end namespace jyq
 
