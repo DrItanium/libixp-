@@ -99,7 +99,7 @@ _pread(CFid *f, char *buf, long count, int64_t offset) {
         fcall.tread.setSize(n);
 		if(!f->client->dofcall(&fcall))
 			return -1;
-		if(fcall.rread.size()> n)
+		if(fcall.rread.size() > n)
 			return -1;
 
 		memcpy(buf+len, fcall.rread.data, fcall.rread.size());
@@ -502,16 +502,13 @@ CFid::close() {
 
 Stat*
 Client::stat(const char *path) {
-	Stat *stat;
-	CFid *f;
-
-	f = walk(path);
-    if (!f) 
-		return nullptr;
-
-	stat = _stat(this, f->fid);
-    f->clunk();
-	return stat;
+	if (auto f = walk(path); !f) {
+        return nullptr;
+    } else {
+	    auto stat = _stat(this, f->fid);
+        f->clunk();
+	    return stat;
+    }
 }
 
 Stat*
@@ -585,8 +582,9 @@ long
 CFid::write(const void *buf, long count) {
     concurrency::Locker<Mutex> theLock(iolock);
 	auto n = _pwrite(this, buf, count, offset);
-	if(n > 0)
+	if(n > 0) {
 		offset += n;
+    }
 	return n;
 }
 
@@ -635,16 +633,6 @@ CFid::vprint(const char *fmt, va_list args) {
     }
 }
 
-int
-CFid::print(const char *fmt, ...) {
-	va_list ap;
-
-	va_start(ap, fmt);
-	auto n = vprint(fmt, ap);
-	va_end(ap);
-
-	return n;
-}
 bool 
 CFid::clunk() {
 	Fcall fcall(FType::TClunk, fid);
