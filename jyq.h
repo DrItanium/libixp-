@@ -627,7 +627,8 @@ namespace jyq {
         CFid* walk(const char*);
         CFid* walkdir(char *path, const char **rest);
         bool dofcall(Fcall *fcall);
-
+        void enqueue(Rpc*);
+        void dequeue(Rpc*);
     };
 
     struct CFid {

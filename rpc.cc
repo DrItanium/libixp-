@@ -61,19 +61,13 @@ electmuxer(Client *mux)
 void
 enqueue(Client *mux, Rpc *r)
 {
-	r->next = mux->sleep.next;
-	r->prev = &mux->sleep;
-	r->next->prev = r;
-	r->prev->next = r;
+    mux->enqueue(r);
 }
 
 void
-dequeue(Client *, Rpc *r)
+dequeue(Client * c, Rpc *r)
 {
-	r->next->prev = r->prev;
-	r->prev->next = r->next;
-	r->prev = nullptr;
-	r->next = nullptr;
+    c->dequeue(r);
 }
 
 int 
@@ -186,6 +180,22 @@ fail:
 	free(f);
 }
 } // end namespace
+void
+Client::enqueue(Rpc* r) {
+	r->next = sleep.next;
+	r->prev = &sleep;
+	r->next->prev = r;
+	r->prev->next = r;
+}
+
+void
+Client::dequeue(Rpc* r) {
+	r->next->prev = r->prev;
+	r->prev->next = r->next;
+	r->prev = nullptr;
+	r->next = nullptr;
+
+}
 
 void
 Client::muxinit()
@@ -236,7 +246,7 @@ Client::muxrpc(Fcall *tx)
             if (!p) {
 				/* eof -- just give up and pass the buck */
                 lk.lock();
-				dequeue(this, &r);
+                dequeue(&r);
 				break;
 			}
 			dispatchandqlock(this, p);
