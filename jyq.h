@@ -849,7 +849,6 @@ namespace jyq {
     uint64_t msec();
 
     /* util.c */
-    void	cleanname(char*);
     void*	emalloc(uint);
     void*	emallocz(uint);
     void	eprint(const char*, ...);
