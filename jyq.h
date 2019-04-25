@@ -619,10 +619,10 @@ namespace jyq {
         void	muxfree();
         void	muxinit();
         Fcall*	muxrpc(Fcall*);
-        private:
-            CFid* getFid();
-            CFid* walk(const char*);
-            CFid* walkdir(char *path, const char **rest);
+        CFid* getFid();
+        CFid* walk(const char*);
+        CFid* walkdir(char *path, const char **rest);
+        bool dofcall(Fcall *fcall);
 
     };
 

@@ -49,30 +49,6 @@ putfid(CFid *f) {
 	}
 }
 
-bool 
-dofcall(Client *c, Fcall *fcall) {
-
-    auto ret = c->muxrpc(fcall);
-    if (!ret) {
-		return false;
-    }
-	if(ret->hdr.type == FType::RError) {
-		werrstr("%s", ret->error.ename);
-		goto fail;
-	}
-    if (auto hdrVal = uint8_t(ret->hdr.type), fhdrVal = uint8_t(fcall->getType()); hdrVal != (fhdrVal^1)) {
-        std::cout << "hdrVal: " << hdrVal << std::endl;
-		werrstr("received mismatched fcall");
-		goto fail;
-	}
-	memcpy(fcall, ret, sizeof *fcall);
-	free(ret);
-	return true;
-fail:
-	Fcall::free(fcall);
-	free(ret);
-	return false;
-}
 void
 allocmsg(Client *c, int n) {
     c->rmsg.setSize(n);
@@ -96,7 +72,7 @@ _stat(Client *c, ulong fid) {
 	Msg msg;
 	Fcall fcall(FType::TStat, fid);
 	Stat *stat;
-	if(!dofcall(c, &fcall))
+	if(!c->dofcall(&fcall))
 		return nullptr;
 
 	msg = Msg::message((char*)fcall.rstat.stat, fcall.rstat.size(), Msg::Mode::Unpack);
@@ -121,7 +97,7 @@ _pread(CFid *f, char *buf, long count, int64_t offset) {
         fcall.setTypeAndFid(FType::TRead, f->fid);
 		fcall.tread.offset = offset;
         fcall.tread.setSize(n);
-		if(!dofcall(f->client, &fcall))
+		if(!f->client->dofcall(&fcall))
 			return -1;
 		if(fcall.rread.size()> n)
 			return -1;
@@ -149,7 +125,7 @@ _pwrite(CFid *f, const void *buf, long count, int64_t offset) {
 		fcall.twrite.offset = offset;
 		fcall.twrite.data = (char*)buf + len;
         fcall.twrite.setSize(n);
-		if(!dofcall(f->client, &fcall))
+		if(!f->client->dofcall(&fcall))
 			return -1;
 
 		offset += fcall.rwrite.size();
@@ -162,6 +138,30 @@ _pwrite(CFid *f, const void *buf, long count, int64_t offset) {
 	return len;
 }
 } // end namespace
+bool 
+Client::dofcall(Fcall *fcall) {
+
+    auto ret = this->muxrpc(fcall);
+    if (!ret) {
+		return false;
+    }
+	if(ret->hdr.type == FType::RError) {
+		werrstr("%s", ret->error.ename);
+		goto fail;
+	}
+    if (auto hdrVal = uint8_t(ret->hdr.type), fhdrVal = uint8_t(fcall->getType()); hdrVal != (fhdrVal^1)) {
+        std::cout << "hdrVal: " << hdrVal << std::endl;
+		werrstr("received mismatched fcall");
+		goto fail;
+	}
+	memcpy(fcall, ret, sizeof *fcall);
+	free(ret);
+	return true;
+fail:
+	Fcall::free(fcall);
+	free(ret);
+	return false;
+}
 CFid*
 Client::walkdir(char *path, const char **rest) {
 	char *p;
@@ -195,7 +195,7 @@ Client::walk(const char *path) {
 
     fcall.twalk.setSize(n);
 	fcall.twalk.newfid = f->fid;
-	if(!dofcall(this, &fcall))
+	if(!dofcall(&fcall))
 		goto fail;
 	if(fcall.rwalk.size() < n) {
 		werrstr("File does not exist");
@@ -237,7 +237,7 @@ Client::remove(const char *path) {
         return false;
     } else {
         fcall.setTypeAndFid(FType::TRemove, f->fid);
-        auto ret = dofcall(this, &fcall);
+        auto ret = dofcall(&fcall);
         Fcall::free(&fcall);
         putfid(f);
 
@@ -320,7 +320,7 @@ Client::mountfd(int fd) {
     fcall.version.setSize(maximum::Msg);
 	fcall.version.version = (char*)Version;
 
-	if(!dofcall(c, &fcall)) {
+	if(!c->dofcall(&fcall)) {
 		unmount(c);
 		return nullptr;
 	}
@@ -343,7 +343,7 @@ Client::mountfd(int fd) {
 	fcall.tattach.afid = NoFid;
 	fcall.tattach.uname = getenv("USER");
 	fcall.tattach.aname = (char*)"";
-	if(!dofcall(c, &fcall)) {
+	if(!c->dofcall(&fcall)) {
 		unmount(c);
 		return nullptr;
 	}
@@ -421,7 +421,7 @@ Client::create(const char *path, uint perm, uint8_t mode) {
 	fcall.tcreate.perm = perm;
 	fcall.tcreate.mode = mode;
 
-	if(!dofcall(this, &fcall)) {
+	if(!dofcall(&fcall)) {
         f->clunk();
 		f = nullptr;
 		goto done;
@@ -449,7 +449,7 @@ Client::open(const char *path, uint8_t mode) {
     fcall.setTypeAndFid(FType::TOpen, f->fid);
 	fcall.topen.mode = mode;
 
-	if(!dofcall(this, &fcall)) {
+	if(!dofcall(&fcall)) {
 		f->clunk();
 		return nullptr;
 	}
@@ -649,7 +649,7 @@ bool
 CFid::clunk() {
 	Fcall fcall(FType::TClunk, fid);
 	auto c = client;
-	auto ret = dofcall(c, &fcall);
+	auto ret = c->dofcall(&fcall);
 	if(ret)
 		putfid(this);
 	Fcall::free(&fcall);
