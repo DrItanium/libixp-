@@ -688,8 +688,7 @@ namespace jyq {
 
     struct Srv9 {
         std::any aux;
-        using ReqFunc = std::function<void(Req9*)>;
-        ReqFunc attach,
+        std::function<void(Req9*)> attach,
                 clunk,
                 create,
                 flush,
