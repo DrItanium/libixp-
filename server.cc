@@ -109,24 +109,25 @@ Server::close() {
 	}
 }
 
-static void
-prepare_select(Server *s) {
-	FD_ZERO(&s->rd);
-	for(auto c = s->conn; c; c = c->next)
+void
+Server::prepareSelect() {
+	FD_ZERO(&this->rd);
+	for(auto c = this->conn; c; c = c->next)
 		if(c->read) {
-			if(s->maxfd < c->fd)
-				s->maxfd = c->fd;
-			FD_SET(c->fd, &s->rd);
+			if(this->maxfd < c->fd)
+				this->maxfd = c->fd;
+			FD_SET(c->fd, &this->rd);
 		}
 }
 
-static void
-handle_conns(Server *s) {
+void
+Server::handleConns() {
 	Conn *n;
-	for(auto c = s->conn; c; c = n) {
+	for(auto c = this->conn; c; c = n) {
 		n = c->next;
-		if(FD_ISSET(c->fd, &s->rd))
+		if(FD_ISSET(c->fd, &this->rd)) {
 			c->read(c);
+        }
 	}
 }
 
@@ -168,13 +169,13 @@ Server::serverloop() {
 			break;
         }
 
-		prepare_select(this);
+        prepareSelect();
 		if (int r = concurrency::threadModel->select(maxfd + 1, &rd, 0, 0, tvp); r < 0) {
 			if(errno == EINTR)
 				continue;
 			return true;
 		}
-		handle_conns(this);
+        handleConns();
 	}
 	return false;
 }

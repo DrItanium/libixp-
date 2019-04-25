@@ -564,6 +564,9 @@ namespace jyq {
         void lock();
         void unlock();
         bool canlock();
+        private:
+            void prepareSelect();
+            void handleConns();
     };
 
     struct Rpc {
