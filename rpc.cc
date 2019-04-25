@@ -32,14 +32,14 @@ muxrecv(Client *mux)
 	Fcall *f = nullptr;
     mux->rlock.lock();
 	if(recvmsg(mux->fd, &mux->rmsg) == 0) {
-		goto fail;
+        mux->rlock.unlock();
+        return f;
     }
 	f = (decltype(f))jyq::emallocz(sizeof *f);
 	if(msg2fcall(&mux->rmsg, f) == 0) {
 		free(f);
 		f = nullptr;
 	}
-fail:
     mux->rlock.unlock();
 	return f;
 }
