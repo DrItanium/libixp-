@@ -1,14 +1,14 @@
 /* Copyright ©2007-2010 Kris Maglione <maglione.k at Gmail>
  * See LICENSE file for license details.
  */
-#define IXP_NO_P9_
-#define IXP_P9_STRUCTS
+#define JYQ_NO_P9_
+#define JYQ_P9_STRUCTS
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-#include <ixp.h>
+#include <jyq.h>
 #include <string>
 #include <list>
 #include <functional>
@@ -18,11 +18,11 @@
 
 
 namespace {
-ixp::Client *client;
+jyq::Client *client;
 
 void
 usage(int errorCode = 1) {
-    ixp::errorPrint("usage: ", argv0, " [-a <address>] {create | read | ls [-ld] | remove | write | append} <file>\n"
+    jyq::errorPrint("usage: ", argv0, " [-a <address>] {create | read | ls [-ld] | remove | write | append} <file>\n"
                 "       ", argv0, " [-a <address>] xwrite <file> <data>\n"
                 "       ", argv0, " -v\n");
 	exit(errorCode);
@@ -30,14 +30,14 @@ usage(int errorCode = 1) {
 
 /* Utility Functions */
 void
-write_data(ixp::CFid *fid, char *name) {
+write_data(jyq::CFid *fid, char *name) {
 	long len = 0;
 
-	auto buf = ixp::emalloc(fid->iounit);
+	auto buf = jyq::emalloc(fid->iounit);
 	do {
 		len = read(0, buf, fid->iounit);
 		if(len >= 0 && fid->write(buf, len) != len) {
-            ixp::fatalPrint("cannot write file '", name, "': ", ixp::errbuf(), "\n");
+            jyq::fatalPrint("cannot write file '", name, "': ", jyq::errbuf(), "\n");
         }
 	} while(len > 0);
 
@@ -46,8 +46,8 @@ write_data(ixp::CFid *fid, char *name) {
 
 int
 comp_stat(const void *s1, const void *s2) {
-	auto st1 = (ixp::Stat*)s1;
-	auto st2 = (ixp::Stat*)s2;
+	auto st1 = (jyq::Stat*)s1;
+	auto st2 = (jyq::Stat*)s2;
 	return strcmp(st1->name, st2->name);
 }
 
@@ -60,7 +60,7 @@ str_of_mode(uint mode) {
 		"rw-", "rwx",
 	};
     std::stringstream buf;
-    ixp::print(buf, (mode & (uint32_t)ixp::DMode::DIR ? 'd' : '-'),
+    jyq::print(buf, (mode & (uint32_t)jyq::DMode::DIR ? 'd' : '-'),
             '-', 
             modes[(mode >> 6) & 0b111],
             modes[(mode >> 3) & 0b111],
@@ -78,16 +78,16 @@ str_of_time(uint val) {
 }
 
 void
-print_stat(ixp::Stat *s, int details) {
+print_stat(jyq::Stat *s, int details) {
 	if(details) {
-        ixp::print(std::cout, str_of_mode(s->mode), " ", 
+        jyq::print(std::cout, str_of_mode(s->mode), " ", 
                 s->uid, " ", s->gid, " ", s->length, " ", 
                 str_of_time(s->mtime), " ", s->name, "\n");
     } else {
-		if((s->mode&(uint32_t)ixp::DMode::DIR) && strcmp(s->name, "/")) {
-            ixp::print(std::cout, s->name, "/\n");
+		if((s->mode&(uint32_t)jyq::DMode::DIR) && strcmp(s->name, "/")) {
+            jyq::print(std::cout, s->name, "/\n");
         } else {
-            ixp::print(std::cout, s->name, "\n");
+            jyq::print(std::cout, s->name, "\n");
         }
 	}
 }
@@ -102,14 +102,14 @@ xappend(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-    auto fid = client->open(file, ixp::OMode::WRITE);
+    auto fid = client->open(file, jyq::OMode::WRITE);
     if (!fid) {
-        ixp::fatalPrint("Can't open file '", file, "': ", ixp::errbuf(), "\n");
+        jyq::fatalPrint("Can't open file '", file, "': ", jyq::errbuf(), "\n");
     }
 	
 	auto stat = client->stat(file);
 	fid->offset = stat->length;
-    ixp::Stat::free(stat);
+    jyq::Stat::free(stat);
 	free(stat);
 	write_data(fid, file);
 	return 0;
@@ -123,9 +123,9 @@ xwrite(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-    auto fid = client->open(file, ixp::OMode::WRITE);
+    auto fid = client->open(file, jyq::OMode::WRITE);
     if (!fid) {
-        ixp::fatalPrint("Can't open file '", file, "': ", ixp::errbuf(), "\n");
+        jyq::fatalPrint("Can't open file '", file, "': ", jyq::errbuf(), "\n");
     }
 
 	write_data(fid, file);
@@ -140,20 +140,20 @@ xawrite(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-    auto fid = client->open(file, ixp::OMode::WRITE);
+    auto fid = client->open(file, jyq::OMode::WRITE);
     if (!fid) {
-        ixp::fatalPrint("Can't open file '", file, "': ", ixp::errbuf(), "\n");
+        jyq::fatalPrint("Can't open file '", file, "': ", jyq::errbuf(), "\n");
     }
 
 	auto nbuf = 0;
 	auto mbuf = 128;
-	auto buf = (char*)ixp::emalloc(mbuf);
+	auto buf = (char*)jyq::emalloc(mbuf);
 	while(argc) {
 		auto arg = ARGF();
 		int len = strlen(arg);
 		if(nbuf + len > mbuf) {
 			mbuf <<= 1;
-			buf = (decltype(buf))ixp::erealloc(buf, mbuf);
+			buf = (decltype(buf))jyq::erealloc(buf, mbuf);
 		}
 		memcpy(buf+nbuf, arg, len);
 		nbuf += len;
@@ -162,7 +162,7 @@ xawrite(int argc, char *argv[]) {
 	}
 
 	if(fid->write(buf, nbuf) == -1) {
-        ixp::fatalPrint("cannot write file '", file, "': ", ixp::errbuf(), "\n");
+        jyq::fatalPrint("cannot write file '", file, "': ", jyq::errbuf(), "\n");
     }
 	return 0;
 }
@@ -175,12 +175,12 @@ xcreate(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-    auto fid = client->create(file, 0777, ixp::OMode::WRITE);
+    auto fid = client->create(file, 0777, jyq::OMode::WRITE);
     if (!fid) {
-        ixp::fatalPrint("Can't create file '", file, "': ", ixp::errbuf(), "\n");
+        jyq::fatalPrint("Can't create file '", file, "': ", jyq::errbuf(), "\n");
     }
 
-	if((fid->qid.type&(uint32_t)ixp::DMode::DIR) == 0)
+	if((fid->qid.type&(uint32_t)jyq::DMode::DIR) == 0)
 		write_data(fid, file);
 
 	return 0;
@@ -194,7 +194,7 @@ xremove(int argc, char *argv[]) {
 	}ARGEND;
 
     if (auto file = EARGF(usage()); !client->remove(file)) {
-        ixp::fatalPrint("Can't remove file '", file, "': ", ixp::errbuf(), "\n");
+        jyq::fatalPrint("Can't remove file '", file, "': ", jyq::errbuf(), "\n");
     }
 	return 0;
 }
@@ -207,19 +207,19 @@ xread(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-    auto fid = client->open(file, ixp::OMode::READ);
+    auto fid = client->open(file, jyq::OMode::READ);
     if (!fid) {
-        ixp::fatalPrint("Can't open file '", file, "': ", ixp::errbuf(), "\n");
+        jyq::fatalPrint("Can't open file '", file, "': ", jyq::errbuf(), "\n");
     }
 
     int count = 0;
-	auto buf = (char*)ixp::emalloc(fid->iounit);
+	auto buf = (char*)jyq::emalloc(fid->iounit);
 	while((count = fid->read(buf, fid->iounit)) > 0) {
 		write(1, buf, count);
     }
 
 	if(count == -1) {
-        ixp::fatalPrint("cannot read file/directory '", file, "': ", ixp::errbuf(), "\n");
+        jyq::fatalPrint("cannot read file/directory '", file, "': ", jyq::errbuf(), "\n");
     }
 
 	return 0;
@@ -227,8 +227,8 @@ xread(int argc, char *argv[]) {
 
 int
 xls(int argc, char *argv[]) {
-	ixp::Msg m;
-	ixp::CFid *fid;
+	jyq::Msg m;
+	jyq::CFid *fid;
 	char *file, *buf;
 	int count;
 
@@ -250,25 +250,25 @@ xls(int argc, char *argv[]) {
 
     auto stat = client->stat(file);
     if (!stat) {
-        ixp::fatalPrint("Can't stat file '", file, "': ", ixp::errbuf(), "\n");
+        jyq::fatalPrint("Can't stat file '", file, "': ", jyq::errbuf(), "\n");
     }
 
-	if(dflag || (stat->mode&static_cast<uint32_t>(ixp::DMode::DIR)) == 0) {
+	if(dflag || (stat->mode&static_cast<uint32_t>(jyq::DMode::DIR)) == 0) {
 		print_stat(stat, lflag);
-        ixp::Stat::free(stat);
+        jyq::Stat::free(stat);
 		return 0;
 	}
-    ixp::Stat::free(stat);
+    jyq::Stat::free(stat);
 
-    fid = client->open(file, ixp::OMode::READ);
+    fid = client->open(file, jyq::OMode::READ);
 	if(!fid) {
-        ixp::fatalPrint("Can't open file '", file, "': ", ixp::errbuf(), "\n");
+        jyq::fatalPrint("Can't open file '", file, "': ", jyq::errbuf(), "\n");
     }
 
-    std::vector<ixp::Stat> stats;
-	buf = (decltype(buf))ixp::emalloc(fid->iounit);
+    std::vector<jyq::Stat> stats;
+	buf = (decltype(buf))jyq::emalloc(fid->iounit);
 	while((count = fid->read(buf, fid->iounit)) > 0) {
-        m = ixp::Msg::message(buf, count, ixp::Msg::Mode::Unpack);
+        m = jyq::Msg::message(buf, count, jyq::Msg::Mode::Unpack);
 		while(m.pos < m.end) {
             stats.emplace_back();
             m.pstat(stats.back());
@@ -279,12 +279,12 @@ xls(int argc, char *argv[]) {
 	//qsort(stats, nstat, sizeof(*stat), comp_stat);
     for (auto& stat : stats) {
         print_stat(&stat, lflag);
-        ixp::Stat::free(&stat);
+        jyq::Stat::free(&stat);
     }
 	//free(stat);
 
 	if(count == -1)
-        ixp::fatalPrint("Can't read directory '", file, "': ", ixp::errbuf(), "\n");
+        jyq::fatalPrint("Can't read directory '", file, "': ", jyq::errbuf(), "\n");
 	return 0;
 }
 
@@ -302,10 +302,10 @@ std::map<std::string, ServiceFunction> etab = {
 int
 main(int argc, char *argv[]) {
 
-	auto address = getenv("IXP_ADDRESS");
+	auto address = getenv("JYQ_ADDRESS");
 	ARGBEGIN{
 	case 'v':
-        ixp::print(std::cout, argv0, "-", VERSION, ", ", COPYRIGHT, "\n");
+        jyq::print(std::cout, argv0, "-", VERSION, ", ", COPYRIGHT, "\n");
 		exit(0);
 	case 'a':
 		address = EARGF(usage());
@@ -317,15 +317,15 @@ main(int argc, char *argv[]) {
     std::string cmd = EARGF(usage());
 
 	if(!address) {
-		ixp::fatalPrint("$IXP_ADDRESS not set\n");
+		jyq::fatalPrint("$JYQ_ADDRESS not set\n");
     }
 
-    if (client = ixp::Client::mount(address); !client) {
-        ixp::fatalPrint(ixp::errbuf(), "\n");
+    if (client = jyq::Client::mount(address); !client) {
+        jyq::fatalPrint(jyq::errbuf(), "\n");
     } else {
         if (auto result = etab.find(cmd); result != etab.end()) {
             auto ret = result->second(argc, argv);
-            ixp::Client::unmount(client);
+            jyq::Client::unmount(client);
             return ret;
         } else {
             usage();

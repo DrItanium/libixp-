@@ -5,7 +5,7 @@ COPYRIGHT = ©2019 Joshua Scoggins
 CXXFLAGS += '-DVERSION="$(VERSION)"' \
 			'-DCOPYRIGHT="$(COPYRIGHT)"'
 
-LIBIXP_CORE_OBJS := client.o \
+LIBJYQ_CORE_OBJS := client.o \
 					convert.o \
 					error.o \
 					map.o \
@@ -19,15 +19,15 @@ LIBIXP_CORE_OBJS := client.o \
 					timer.o \
 					transport.o \
 					util.o 
-LIBIXP_PTHREAD_OBJS := thread_pthread.o
-IXPC_OBJS := ixpc.o 
+LIBJYQ_PTHREAD_OBJS := thread_pthread.o
+JYQC_OBJS := jyqc.o 
 
-IXPC_PROG := ixpc
-LIBIXP_ARCHIVE := libixp.a
-LIBIXP_PTHREAD_ARCHIVE := libixp_pthread.a
+JYQC_PROG := jyqc
+LIBJYQ_ARCHIVE := libjyq.a
+LIBJYQ_PTHREAD_ARCHIVE := libjyq_pthread.a
 
-OBJS := $(LIBIXP_CORE_OBJS) $(LIBIXP_PTHREAD_OBJS) $(IXPC_OBJS)
-PROGS := $(IXPC_PROG) $(LIBIXP_ARCHIVE) $(LIBIXP_PTHREAD_ARCHIVE)
+OBJS := $(LIBJYQ_CORE_OBJS) $(LIBJYQ_PTHREAD_OBJS) $(JYQC_OBJS)
+PROGS := $(JYQC_PROG) $(LIBJYQ_ARCHIVE) $(LIBJYQ_PTHREAD_ARCHIVE)
 
 
 all: options $(PROGS)
@@ -40,17 +40,17 @@ options:
 	@echo ------------------
 
 
-$(IXPC_PROG): $(IXPC_OBJS) $(LIBIXP_ARCHIVE)
-	@echo LD ${IXPC_PROG}
-	@${LD} ${LDFLAGS} -o ${IXPC_PROG} ${IXPC_OBJS} ${LIBIXP_ARCHIVE}
+$(JYQC_PROG): $(JYQC_OBJS) $(LIBJYQ_ARCHIVE)
+	@echo LD ${JYQC_PROG}
+	@${LD} ${LDFLAGS} -o ${JYQC_PROG} ${JYQC_OBJS} ${LIBJYQ_ARCHIVE}
 
-$(LIBIXP_ARCHIVE): $(LIBIXP_CORE_OBJS)
-	@echo AR ${LIBIXP_ARCHIVE}
-	@${AR} rcs ${LIBIXP_ARCHIVE} ${LIBIXP_CORE_OBJS}
+$(LIBJYQ_ARCHIVE): $(LIBJYQ_CORE_OBJS)
+	@echo AR ${LIBJYQ_ARCHIVE}
+	@${AR} rcs ${LIBJYQ_ARCHIVE} ${LIBJYQ_CORE_OBJS}
 
-$(LIBIXP_PTHREAD_ARCHIVE): $(LIBIXP_PTHREAD_OBJS)
-	@echo AR ${LIBIXP_PTHREAD_ARCHIVE} 
-	@${AR} rcs ${LIBIXP_PTHREAD_ARCHIVE} ${LIBIXP_PTHREAD_OBJS}
+$(LIBJYQ_PTHREAD_ARCHIVE): $(LIBJYQ_PTHREAD_OBJS)
+	@echo AR ${LIBJYQ_PTHREAD_ARCHIVE} 
+	@${AR} rcs ${LIBJYQ_PTHREAD_ARCHIVE} ${LIBJYQ_PTHREAD_OBJS}
 
 .cc.o :
 	@echo CXX $<
@@ -67,21 +67,21 @@ clean:
 # generated via g++ -MM -std=c++17 *.cc *.h
 
 
-client.o: client.cc ixp.h
-convert.o: convert.cc ixp.h
-error.o: error.cc ixp.h
-ixpc.o: ixpc.cc ixp.h
-map.o: map.cc ixp.h
-message.o: message.cc ixp.h
-request.o: request.cc ixp.h
-rpc.o: rpc.cc ixp.h
-server.o: server.cc ixp.h
-socket.o: socket.cc ixp.h
-srv_util.o: srv_util.cc ixp_srvutil.h ixp.h
-thread.o: thread.cc ixp.h
-thread_pthread.o: thread_pthread.cc thread_pthread.h ixp.h 
-timer.o: timer.cc ixp.h
-transport.o: transport.cc ixp.h
-util.o: util.cc ixp.h
+client.o: client.cc jyq.h
+convert.o: convert.cc jyq.h
+error.o: error.cc jyq.h
+jyqc.o: jyqc.cc jyq.h
+map.o: map.cc jyq.h
+message.o: message.cc jyq.h
+request.o: request.cc jyq.h
+rpc.o: rpc.cc jyq.h
+server.o: server.cc jyq.h
+socket.o: socket.cc jyq.h
+srv_util.o: srv_util.cc jyq_srvutil.h jyq.h
+thread.o: thread.cc jyq.h
+thread_pthread.o: thread_pthread.cc thread_pthread.h jyq.h 
+timer.o: timer.cc jyq.h
+transport.o: transport.cc jyq.h
+util.o: util.cc jyq.h
 
 
