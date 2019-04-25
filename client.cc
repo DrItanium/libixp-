@@ -627,16 +627,17 @@ CFid::vprint(const char *fmt, va_list args) {
     }
 }
 
-bool 
-CFid::clunk() {
+bool
+CFid::performClunk(Client& c) {
 	Fcall fcall(FType::TClunk, fid);
-	auto c = client;
-	auto ret = c->dofcall(&fcall);
-	if(ret) {
-		putfid(this);
-    }
-	Fcall::free(&fcall);
-	return ret;
+	auto result = c.dofcall(&fcall);
+    Fcall::free(&fcall); // TODO eliminate this call and use destructor
+    return result;
+}
+
+bool 
+CFid::clunk(Client& c) {
+    return performClunk(c);
 }
 } // end namespace jyq
 

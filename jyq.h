@@ -651,13 +651,14 @@ namespace jyq {
         uint		open;
         uint		iounit;
         uint32_t	offset;
-        Client*	client;
+        //Client*	client;
 
         /* Private members */
-        CFid*	next;
+        //CFid*	next;
         Mutex	iolock;
         bool close();
-        bool clunk(); 
+        bool clunk(Client& c); 
+        bool performClunk(Client& c);
         long read(void*, long);
         long pread(void*, long, int64_t);
         long pwrite(const void*, long, int64_t);
