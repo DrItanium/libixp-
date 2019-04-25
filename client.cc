@@ -88,8 +88,18 @@ walk(Client *c, const char *path) {
 	Fcall fcall(FType::TWalk);
 	int n;
 
+    std::string cpy(path);
 	p = estrdup(path);
+    std::cout << "old school method" << std::endl;
+    std::cout << "p before tokenization: " << p << std::endl;
 	n = tokenize(fcall.twalk.wname, nelem(fcall.twalk.wname), p, '/');
+    std::cout << "p after tokenization: " << p << std::endl;
+    std::cout << "n = " << n << std::endl;
+    std::cout << "new school method" << std::endl;
+    auto separation = tokenize(cpy, '/');
+    for (const auto& tok : separation) {
+        std::cout << "tok: " << tok << std::endl;
+    }
 	f = getfid(c);
     fcall.setFid(RootFid);
 

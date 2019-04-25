@@ -17,6 +17,7 @@
 #include <functional>
 #include <memory>
 #include <any>
+#include <list>
 
 namespace jyq {
     using uint = unsigned int;
@@ -854,9 +855,10 @@ namespace jyq {
     void	eprint(const char*, ...);
     void*	erealloc(void*, uint);
     char*	estrdup(const char*);
-    char*	getNamespace(void);
+    char*	getNamespace();
     char*	smprint(const char*, ...);
     uint	tokenize(char**, uint len, char*, char);
+    std::list<std::string> tokenize(const std::string& str, char delim); 
     struct MapEnt;
     using Map = Map;
     using Timer = Timer;
