@@ -575,20 +575,20 @@ Conn::serve9conn() {
 	if(auto fd = accept(this->fd, nullptr, nullptr); fd < 0) {
 		return;
     } else {
-        auto p9conn = (Conn9*)jyq::emallocz(sizeof(Conn9));
-        p9conn->ref++;
-        p9conn->srv = std::any_cast<decltype(p9conn->srv)>(this->aux);
-        p9conn->rmsg.setSize(1024);
-        p9conn->wmsg.setSize(1024);
-        p9conn->rmsg.data = (decltype(p9conn->rmsg.data))jyq::emalloc(p9conn->rmsg.size());
-        p9conn->wmsg.data = (decltype(p9conn->wmsg.data))jyq::emalloc(p9conn->wmsg.size());
+        Conn9 p9conn;
+        p9conn.ref++;
+        p9conn.srv = std::any_cast<decltype(p9conn.srv)>(this->aux);
+        p9conn.rmsg.setSize(1024);
+        p9conn.wmsg.setSize(1024);
+        p9conn.rmsg.data = (decltype(p9conn.rmsg.data))jyq::emalloc(p9conn.rmsg.size());
+        p9conn.wmsg.data = (decltype(p9conn.wmsg.data))jyq::emalloc(p9conn.wmsg.size());
 
-        p9conn->tagmap.init(p9conn->taghash, nelem(p9conn->taghash));
-        p9conn->fidmap.init(p9conn->fidhash, nelem(p9conn->fidhash));
-        concurrency::threadModel->initmutex(&p9conn->rlock);
-        concurrency::threadModel->initmutex(&p9conn->wlock);
+        p9conn.tagmap.init(p9conn.taghash, nelem(p9conn.taghash));
+        p9conn.fidmap.init(p9conn.fidhash, nelem(p9conn.fidhash));
+        concurrency::threadModel->initmutex(&p9conn.rlock);
+        concurrency::threadModel->initmutex(&p9conn.wlock);
 
-        this->srv->listen(fd, p9conn, handlefcall, cleanupconn);
+        this->srv->listen(fd, &p9conn, handlefcall, cleanupconn);
     }
 }
 } // end namespace jyq
