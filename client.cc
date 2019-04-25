@@ -83,24 +83,13 @@ allocmsg(Client *c, int n) {
 }
 CFid*
 walk(Client *c, const char *path) {
-	CFid *f;
-	char *p;
 	Fcall fcall(FType::TWalk);
-	int n;
-
-    std::string cpy(path);
-	p = estrdup(path);
-    std::cout << "old school method" << std::endl;
-    std::cout << "p before tokenization: " << p << std::endl;
-	n = tokenize(fcall.twalk.wname, nelem(fcall.twalk.wname), p, '/');
-    std::cout << "p after tokenization: " << p << std::endl;
-    std::cout << "n = " << n << std::endl;
-    std::cout << "new school method" << std::endl;
-    auto separation = tokenize(cpy, '/');
-    for (const auto& tok : separation) {
-        std::cout << "tok: " << tok << std::endl;
-    }
-	f = getfid(c);
+    // TODO use the new tokenize method
+    //std::string cpy(path);
+    //auto separation = tokenize(cpy, '/');
+	auto p = estrdup(path);
+	auto n = tokenize(fcall.twalk.wname, nelem(fcall.twalk.wname), p, '/');
+	auto f = getfid(c);
     fcall.setFid(RootFid);
 
     fcall.twalk.setSize(n);
