@@ -609,7 +609,7 @@ namespace jyq {
         uint		nwait;
         uint		mwait;
         uint		freetag;
-        CFid*	freefid;
+        std::list<std::shared_ptr<CFid>> freefid;
         Msg		rmsg;
         Msg		wmsg;
         Mutex	lk;
@@ -636,9 +636,9 @@ namespace jyq {
         void	muxfree();
         void	muxinit();
         Fcall*	muxrpc(Fcall*);
-        CFid* getFid();
-        CFid* walk(const char*);
-        CFid* walkdir(char *path, const char **rest);
+        std::shared_ptr<CFid> getFid();
+        std::shared_ptr<CFid> walk(const char*);
+        std::shared_ptr<CFid> walkdir(char *path, const char **rest);
         bool dofcall(Fcall *fcall);
         void enqueue(Rpc*);
         void dequeue(Rpc*);

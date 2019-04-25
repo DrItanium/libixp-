@@ -16,36 +16,30 @@
 namespace jyq {
 constexpr auto RootFid = 1;
 
-CFid*
+std::shared_ptr<CFid>
 Client::getFid() {
     concurrency::Locker<Mutex> theLock(this->lk);
-	auto f = this->freefid;
-    if (f) {
-		this->freefid = f->next;
+    if (freefid.empty()) {
+        auto ptr = std::make_shared<CFid>();
+        ptr->client = this;
+        ptr->fid = ++lastfid;
+        return ptr;
     } else {
-		f = (CFid*)emallocz(sizeof *f);
-		f->client = this;
-		f->fid = ++this->lastfid;
-		concurrency::threadModel->initmutex(&f->iolock);
-	}
-	f->next = nullptr;
-	f->open = 0;
-	return f;
+        std::shared_ptr<CFid> front(freefid.front()); // make a copy?
+        freefid.pop_front();
+        return front;
+    }
 }
 namespace {
 
 void
-putfid(CFid *f) {
-
-	auto c = f->client;
+putfid(std::shared_ptr<CFid> f) {
+    auto c = f->client;
     concurrency::Locker<Mutex> theLock(c->lk);
-	if(f->fid == c->lastfid) {
+    if (f->fid == c->lastfid) {
 		c->lastfid--;
-		concurrency::threadModel->mdestroy(&f->iolock);
-		free(f);
 	} else {
-		f->next = c->freefid;
-		c->freefid = f;
+        c->freefid.emplace_front(f);
 	}
 }
 
@@ -182,7 +176,7 @@ Client::walkdir(char *path, const char **rest) {
 	*rest = p;
     return this->walk(path);
 }
-CFid*
+std::shared_ptr<CFid>
 Client::walk(const char *path) {
 	Fcall fcall(FType::TWalk);
     // TODO use the new tokenize method
@@ -190,7 +184,7 @@ Client::walk(const char *path) {
     //auto separation = tokenize(cpy, '/');
 	auto p = estrdup(path);
 	auto n = tokenize(fcall.twalk.wname, nelem(fcall.twalk.wname), p, '/');
-	auto f = this->getFid();
+	auto f = getFid();
     fcall.setFid(RootFid);
 
     fcall.twalk.setSize(n);
@@ -638,8 +632,9 @@ CFid::clunk() {
 	Fcall fcall(FType::TClunk, fid);
 	auto c = client;
 	auto ret = c->dofcall(&fcall);
-	if(ret)
+	if(ret) {
 		putfid(this);
+    }
 	Fcall::free(&fcall);
 	return ret;
 }
