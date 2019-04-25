@@ -156,28 +156,26 @@ sendrpc(Rpc *r, Fcall *f)
 void
 dispatchandqlock(Client *mux, Fcall *f)
 {
-	int tag;
-	Rpc *r2;
-
-	tag = f->hdr.tag - mux->mintag;
+	int tag = f->hdr.tag - mux->mintag;
     mux->lk.lock();
 	/* hand packet to correct sleeper */
 	if(tag < 0 || tag >= mux->mwait) {
 		fprintf(stderr, "libjyq: received unfeasible tag: %d (min: %d, max: %d)\n", f->hdr.tag, mux->mintag, mux->mintag+mux->mwait);
-		goto fail;
+        Fcall::free(f);
+        free(f);
+        return;
 	}
-	r2 = mux->wait[tag];
+	auto r2 = mux->wait[tag];
     if (!r2 || !(r2->prev)) {
 		fprintf(stderr, "libjyq: received message with bad tag\n");
-		goto fail;
+        Fcall::free(f);
+        free(f);
+        return;
 	}
 	r2->p = f;
 	dequeue(mux, r2);
     r2->r.wake();
 	return;
-fail:
-	Fcall::free(f);
-	free(f);
 }
 } // end namespace
 void
