@@ -540,7 +540,9 @@ namespace jyq {
 
         /* Private members */
         Conn		*next;
+        void    serve9conn();
     };
+        void	hangup(Conn*);
 
     struct Server {
         Conn*	conn;
@@ -858,8 +860,6 @@ namespace jyq {
     void	errstr(char*, int);
     void	rerrstr(char*, int);
     void	werrstr(const char*, ...);
-    void serve9conn(Conn*);
-    void	hangup(Conn*);
 
     /* socket.c */
     int dial(const std::string&);

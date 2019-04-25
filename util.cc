@@ -233,7 +233,6 @@ tokenize(char *res[], uint reslen, char *str, char delim) {
 	uint i = 0;
 	char* s = str;
 	while(i < reslen && *s) {
-    std::cout << "i: " << i << std::endl;
 		while(*s == delim)
 			*(s++) = '\0';
 		if(*s)

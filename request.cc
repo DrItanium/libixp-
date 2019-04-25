@@ -570,14 +570,14 @@ cleanupconn(Conn *c) {
  *	F<Fcall>, F<Fid>
  */
 void
-serve9conn(Conn *c) {
+Conn::serve9conn() {
 
-	if(auto fd = accept(c->fd, nullptr, nullptr); fd < 0) {
+	if(auto fd = accept(this->fd, nullptr, nullptr); fd < 0) {
 		return;
     } else {
         auto p9conn = (Conn9*)jyq::emallocz(sizeof(Conn9));
         p9conn->ref++;
-        p9conn->srv = std::any_cast<decltype(p9conn->srv)>(c->aux);
+        p9conn->srv = std::any_cast<decltype(p9conn->srv)>(this->aux);
         p9conn->rmsg.setSize(1024);
         p9conn->wmsg.setSize(1024);
         p9conn->rmsg.data = (decltype(p9conn->rmsg.data))jyq::emalloc(p9conn->rmsg.size());
@@ -588,7 +588,7 @@ serve9conn(Conn *c) {
         concurrency::threadModel->initmutex(&p9conn->rlock);
         concurrency::threadModel->initmutex(&p9conn->wlock);
 
-        c->srv->listen(fd, p9conn, handlefcall, cleanupconn);
+        this->srv->listen(fd, p9conn, handlefcall, cleanupconn);
     }
 }
 } // end namespace jyq
