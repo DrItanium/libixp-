@@ -243,23 +243,6 @@ tokenize(char *res[], uint reslen, char *str, char delim) {
 	return i;
 }
 
-uint
-strlcat(char *dst, const char *src, uint size) {
-	char* d = dst;
-	const char* s = src;
-	int n = size;
-	while(n-- > 0 && *d != '\0')
-		d++;
-	auto len = n;
-
-	while(*s != '\0' && n-- > 0)
-		*d++ = *s++;
-	while(*s++ != '\0')
-		n--;
-	if(len > 0)
-		*d = '\0';
-	return size - n - 1;
-}
 } // end namespace jyq
 
 char* argv0 = nullptr;

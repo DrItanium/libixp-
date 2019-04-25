@@ -857,7 +857,6 @@ namespace jyq {
     char*	estrdup(const char*);
     char*	getNamespace(void);
     char*	smprint(const char*, ...);
-    uint	strlcat(char*, const char*, uint);
     uint	tokenize(char**, uint len, char*, char);
     struct MapEnt;
     using Map = Map;
