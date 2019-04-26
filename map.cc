@@ -47,31 +47,29 @@ map_getp(Map *map, ulong val, bool create, bool *exists) {
 
 void
 Map::free(std::function<void(void*)> destroy) {
-	int i;
 	MapEnt *e;
-
-	concurrency::threadModel->wlock(&lock);
-	for(i=0; i < nhash; i++)
+    lock.writeLock();
+	for(auto i = 0; i < nhash; i++) {
 		while((e = bucket[i])) {
 			bucket[i] = e->next;
-			if(destroy)
+			if(destroy) {
 				destroy(e->val);
+            }
 			::free(e);
 		}
-	concurrency::threadModel->wunlock(&lock);
-	concurrency::threadModel->rwdestroy(&lock);
+    }
+    lock.writeUnlock();
+    lock.deactivate();
 }
 
 void
 Map::exec(std::function<void(void*, void*)> run, void* context) {
-	int i;
-	MapEnt *e;
-
-	concurrency::threadModel->rlock(&lock);
-	for(i=0; i < nhash; i++)
-		for(e=bucket[i]; e; e=e->next)
+    concurrency::Locker<RWLock> theLock(lock, true);
+	for(auto i = 0; i < nhash; i++) {
+		for(auto e = bucket[i]; e; e = e->next) {
 			run(context, e->val);
-	concurrency::threadModel->runlock(&lock);
+        }
+    }
 }
 
 void
@@ -88,46 +86,37 @@ Map::insert(ulong key, void *val, bool overwrite) {
 	bool existed;
 	
 	auto res = true;
-	concurrency::threadModel->wlock(&lock);
+    concurrency::Locker<RWLock> theLock(lock, false);
 	MapEnt* e = *map_getp(this, key, true, &existed);
 	if(existed && !overwrite) {
 		res = false;
     } else {
 		e->val = val;
     }
-	concurrency::threadModel->wunlock(&lock);
 	return res;
 }
 
 void*
 Map::get(ulong val) {
-	MapEnt *e;
-	void *res;
-	
-	concurrency::threadModel->rlock(&lock);
-	e = *map_getp(this, val, false, nullptr);
-	res = e ? e->val : nullptr;
-	concurrency::threadModel->runlock(&lock);
-	return res;
+    concurrency::Locker<RWLock> theLock(lock, true);
+	auto e = *map_getp(this, val, false, nullptr);
+	return e ? e->val : nullptr;
 }
 
 void*
 Map::rm(ulong val) {
-	MapEnt **e, *te;
-	void *ret;
 	
-	ret = nullptr;
-	concurrency::threadModel->wlock(&lock);
-	e = map_getp(this, val, false, nullptr);
-	if(*e) {
-		te = *e;
+	void* ret = nullptr;
+    lock.writeLock();
+	if (MapEnt** e = map_getp(this, val, false, nullptr); *e) {
+		auto te = *e;
 		ret = te->val;
 		*e = te->next;
-		concurrency::threadModel->wunlock(&lock);
+        lock.writeUnlock();
 		::free(te);
-	}
-	else
-		concurrency::threadModel->wunlock(&lock);
+	} else {
+        lock.writeUnlock();
+    }
 	return ret;
 }
 
