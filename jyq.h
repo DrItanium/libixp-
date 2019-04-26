@@ -558,7 +558,7 @@ namespace jyq {
         std::list<std::shared_ptr<Conn>> conns;
         Mutex	lk;
         Timer*	timer;
-        std::function<void(Server*)> preselect;
+        std::function<void(Server*)> _preselect;
         std::any   aux;
         bool	running;
         int		maxfd;
@@ -574,6 +574,11 @@ namespace jyq {
         void lock();
         void unlock();
         bool canlock();
+        void preselect() {
+            if (_preselect) {
+                _preselect(this);
+            }
+        }
         private:
             void prepareSelect();
             void handleConns();

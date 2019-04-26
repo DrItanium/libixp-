@@ -148,19 +148,17 @@ Server::serverloop() {
 			tv.tv_usec = timeout%1000 * 1000;
 			tvp = &tv;
 		}
-
-		if(preselect) {
-			preselect(this);
-        }
+        preselect();
 
 		if(!running) {
 			break;
         }
 
         prepareSelect();
-		if (int r = concurrency::threadModel->select(maxfd + 1, &rd, 0, 0, tvp); r < 0) {
-			if(errno == EINTR)
+		if (auto r = concurrency::threadModel->select(maxfd + 1, &rd, 0, 0, tvp); r < 0) {
+			if(errno == EINTR) {
 				continue;
+            }
 			return true;
 		}
         handleConns();
