@@ -150,7 +150,7 @@ namespace jyq {
     struct Fid;
     struct Msg;
     struct Qid;
-    struct Rpc;
+    struct RpcEntry;
     struct Server;
     struct Stat;
     struct Timer;
@@ -579,17 +579,18 @@ namespace jyq {
             void handleConns();
     };
 
-    struct Rpc {
-        Rpc(Client&);
-        ~Rpc() = default;
+    struct RpcEntry {
+        RpcEntry(Client&);
+        ~RpcEntry() = default;
         Client& mux;
         Rendez	r;
         uint		tag;
         Fcall*	p;
         bool waiting;
         bool async;
+        using SharedPtr = std::shared_ptr<RpcEntry>;
     };
-    using RpcPtrList = std::list<std::shared_ptr<Rpc>>;
+    using Rpc = std::list<RpcEntry::SharedPtr>;
 
     struct Client {
         static void	unmount(Client*);
@@ -616,9 +617,9 @@ namespace jyq {
         Mutex	rlock;
         Mutex	wlock;
         Rendez	tagrend;
-        Rpc**	wait;
-        Rpc*		muxer;
-        RpcList sleep;
+        Rpc** wait;
+        Rpc* muxer;
+        Rpc sleep;
         int		mintag;
         int		maxtag;
         bool remove(const char*);

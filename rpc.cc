@@ -61,7 +61,7 @@ dequeue(Client * c, Rpc *r)
 }
 
 int 
-gettag(Client *mux, Rpc *r)
+gettag(Client *mux, Rpc::SharedPtr r)
 {
 	int i, mw;
 	Rpc **w;
@@ -119,7 +119,7 @@ puttag(Client *mux, Rpc *r)
     r->r.deactivate();
 }
 int
-sendrpc(Rpc *r, Fcall *f)
+sendrpc(Rpc::SharedPtr r, Fcall *f)
 {
 	auto ret = 0;
 	auto mux = r->mux;
@@ -202,7 +202,7 @@ Client::muxfree()
 Fcall*
 Client::muxrpc(Fcall *tx)
 {
-	Rpc r(this);
+    auto r = std::make_shared<Rpc>(*this);
 	Fcall *p;
 
 	if(sendrpc(&r, tx) < 0)
