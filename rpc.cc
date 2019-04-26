@@ -9,9 +9,9 @@
 #include "jyq.h"
 
 namespace jyq {
-Rpc::Rpc(Client* m) : mux(m) {
+Rpc::Rpc(Client& m) : mux(m) {
     waiting = true;
-    r.mutex = &m->lk;
+    r.mutex = &m.lk;
     p = nullptr;
 }
 namespace {
@@ -122,7 +122,7 @@ int
 sendrpc(Rpc *r, Fcall *f)
 {
 	auto ret = 0;
-	auto mux = r->mux;
+	auto mux = &(r->mux);
 	/* assign the tag, add selves to response queue */
     {
         concurrency::Locker<Mutex> lk(mux->lk);
@@ -211,7 +211,7 @@ Client::muxfree()
 Fcall*
 Client::muxrpc(Fcall *tx)
 {
-	Rpc r(this);
+	Rpc r(*this);
 	Fcall *p;
 
 	if(sendrpc(&r, tx) < 0)

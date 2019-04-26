@@ -640,5 +640,7 @@ bool
 CFid::clunk(DoFcallFunc fn) {
     return performClunk(fn);
 }
+
+Client::Client() : sleep(*this) { }
 } // end namespace jyq
 
