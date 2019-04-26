@@ -9,7 +9,7 @@
 #include "jyq.h"
 
 namespace jyq {
-Rpc::Rpc(Client& m) : mux(m) {
+RpcEntry::RpcEntry(Client& m) : mux(m) {
     waiting = true;
     r.mutex = &m.lk;
     p = nullptr;
@@ -40,7 +40,7 @@ electmuxer(Client *mux)
 {
 	/* if there is anyone else sleeping, wake them to mux */
     for (auto& rpc : mux->sleep) {
-        if (!rpc.async) {
+        if (!rpc->async) {
             mux->muxer = &rpc;
             rpc.r.wake();
             return;
@@ -49,22 +49,22 @@ electmuxer(Client *mux)
 	mux->muxer = nullptr;
 }
 void
-enqueue(Client *mux, Rpc *r)
+enqueue(Client *mux, RpcEntry *r)
 {
     mux->enqueue(r);
 }
 
 void
-dequeue(Client * c, Rpc *r)
+dequeue(Client * c, RpcEntry *r)
 {
     c->dequeue(r);
 }
 
 int 
-gettag(Client *mux, Rpc::SharedPtr r)
+gettag(Client *mux, RpcEntry::SharedPtr r)
 {
 	int i, mw;
-	Rpc **w;
+	RpcEntry **w;
     auto Found = [mux, r](auto index) {
         mux->nwait++;
         mux->wait[index] = r;
@@ -108,7 +108,7 @@ gettag(Client *mux, Rpc::SharedPtr r)
 }
 
 void
-puttag(Client *mux, Rpc *r)
+puttag(Client *mux, RpcEntry *r)
 {
 	auto i = r->tag - mux->mintag;
 	assert(mux->wait[i] == r);
@@ -119,7 +119,7 @@ puttag(Client *mux, Rpc *r)
     r->r.deactivate();
 }
 int
-sendrpc(Rpc::SharedPtr r, Fcall *f)
+sendrpc(RpcEntry::SharedPtr r, Fcall *f)
 {
 	auto ret = 0;
 	auto mux = r->mux;
@@ -169,12 +169,12 @@ dispatchandqlock(Client *mux, Fcall *f)
 }
 } // end namespace
 void
-Client::enqueue(std::shared_ptr<Rpc> r) {
+Client::enqueue(std::shared_ptr<RpcEntry> r) {
     sleep.emplace_back(r);
 }
 
 void
-Client::dequeue(std::shared_ptr<Rpc> r) {
+Client::dequeue(std::shared_ptr<RpcEntry> r) {
 
 }
 
