@@ -598,6 +598,7 @@ namespace jyq {
     };
 
     struct Client {
+        using DoFcallFunc = std::function<bool(Fcall*)>;
         static void	unmount(Client*);
         static Client*	mount(const char*);
         static Client*	mountfd(int);
@@ -607,17 +608,17 @@ namespace jyq {
         static inline Client* nsmount(const std::string& str) { return nsmount(str.c_str()); }
         Client();
         ~Client();
-        int	fd;
-        uint	msize;
-        uint	lastfid;
+        int     fd;
+        uint    msize;
+        uint    lastfid;
 
         /* Private members */
-        uint		nwait;
-        uint		mwait;
-        uint		freetag;
+        uint    nwait;
+        uint    mwait;
+        uint    freetag;
         std::list<std::shared_ptr<CFid>> freefid;
-        Msg		rmsg;
-        Msg		wmsg;
+        Msg     rmsg;
+        Msg     wmsg;
         Mutex	lk;
         Mutex	rlock;
         Mutex	wlock;
@@ -639,9 +640,9 @@ namespace jyq {
         auto open(const std::string& str, OMode mode) { return open(str, uint8_t(mode)); }
         auto open(const char* str, OMode mode) { return open(str, uint8_t(mode)); }
         auto stat(const std::string& str) { return stat(str.c_str()); }
-        void	muxfree();
-        void	muxinit();
-        Fcall*	muxrpc(Fcall*);
+        void muxfree();
+        void muxinit();
+        Fcall* muxrpc(Fcall*);
         std::shared_ptr<CFid> getFid();
         std::shared_ptr<CFid> walk(const char*);
         std::shared_ptr<CFid> walkdir(char *path, const char **rest);
@@ -650,20 +651,20 @@ namespace jyq {
         void dequeue(Rpc*);
         void putfid(std::shared_ptr<CFid> cfid);
         void clunk(std::shared_ptr<CFid> fid);
-        std::function<bool(Fcall*)> getDoFcallLambda() noexcept { return [this](auto* ptr) { return this->dofcall(ptr); }; }
+        DoFcallFunc getDoFcallLambda() noexcept { return [this](auto* ptr) { return this->dofcall(ptr); }; }
     };
 
     struct CFid {
-        using DoFcallFunc = std::function<bool(Fcall*)>;
-        uint32_t	fid;
-        Qid		qid;
-        uint8_t		mode;
-        uint		open;
-        uint		iounit;
-        uint32_t	offset;
+        using DoFcallFunc = Client::DoFcallFunc;
+        uint32_t fid;
+        Qid      qid;
+        uint8_t  mode;
+        uint     open;
+        uint     iounit;
+        uint32_t offset;
 
         /* Private members */
-        Mutex	iolock;
+        Mutex iolock;
         bool close(DoFcallFunc);
         bool clunk(DoFcallFunc); 
         bool performClunk(DoFcallFunc);
@@ -688,7 +689,7 @@ namespace jyq {
      *	T<Req9>, T<Qid>, T<OMode>
      */
     struct Fid {
-        char*		uid;	/* The uid of the file opener. */
+        std::string		uid;	/* The uid of the file opener. */
         std::any    aux;    // Arbitrary pointer, to be used by handlers. 
         uint32_t		fid;    /* The ID number of the fid. */
         Qid		qid;    /* The filesystem-unique QID of the file. */
