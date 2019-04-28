@@ -2,8 +2,8 @@
  * C++ Implementation copyright (c)2019 Joshua Scoggins
  * See LICENSE file for license details.
  */
-#ifndef LIBJYQ_CONN_H__
-#define LIBJYQ_CONN_H__
+#ifndef LIBJYQ_SERVER_H__
+#define LIBJYQ_SERVER_H__
 #include <any>
 #include <functional>
 #include <list>
@@ -11,6 +11,7 @@
 #include "types.h"
 #include "Conn.h"
 #include "thread.h"
+#include "timer.h"
 
 namespace jyq {
     struct Server {
@@ -43,4 +44,4 @@ namespace jyq {
             void handleConns();
     };
 } // end namespace jyq
-#endif // end LIBJYQ_CONN_H__
+#endif // end LIBJYQ_SERVER_H__
