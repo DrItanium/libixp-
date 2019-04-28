@@ -133,50 +133,66 @@ handlereq(Req9& r) {
 	if(printfcall) {
 		printfcall(&r.ifcall);
     }
-
+    auto tversion = [](Req9& r) {
+		if(!strcmp(r.ifcall.version.version, "9P")) {
+			r.ofcall.version.version = "9P";
+        } else if(!strcmp(r.ifcall.version.version, "9P2000")) {
+			r.ofcall.version.version = "9P2000";
+        } else {
+			r.ofcall.version.version = "unknown";
+        }
+		r.ofcall.version.setSize(r.ifcall.version.size());
+		r.respond(nullptr);
+    };
+    auto tattach = [&p9conn, srv = p9conn.srv](Req9& r) {
+        auto newfid = createfid(p9conn.fidmap, r.ifcall.hdr.fid, p9conn);
+        r.fid = newfid;
+        if (!r.fid) {
+            r.respond(Edupfid);
+        } else {
+		    /* attach is a required function */
+            srv->attach(&r);
+        }
+    };
+    auto tclunk = [&p9conn, srv = p9conn.srv](Req9& r) {
+        if (auto newfid = p9conn.fidmap.find(r.ifcall.hdr.fid); newfid == p9conn.fidmap.end()) {
+            r.respond(Enofid);
+        } else {
+            r.fid = &newfid->second;
+            if(!srv->clunk) {
+                r.respond(nullptr);
+                return;
+            }
+            srv->clunk(&r);
+        }
+    };
+    auto tflush = [&p9conn, srv = p9conn.srv](Req9& r) {
+        if (auto newfid = p9conn.tagmap.find(r.ifcall.tflush.oldtag); newfid == p9conn.tagmap.end()) {
+            r.respond(Enotag);
+        } else {
+            r.oldreq = &newfid->second;
+            if(!srv->flush) {
+                r.respond(Enofunc);
+                return;
+            }
+            srv->flush(&r);
+        }
+    };
 	switch(r.ifcall.getType()) {
 	default:
 		r.respond(Enofunc);
 		break;
 	case FType::TVersion:
-		if(!strcmp(r.ifcall.version.version, "9P"))
-			r.ofcall.version.version = "9P";
-		else if(!strcmp(r.ifcall.version.version, "9P2000"))
-			r.ofcall.version.version = "9P2000";
-		else
-			r.ofcall.version.version = "unknown";
-		r.ofcall.version.setSize(r.ifcall.version.size());
-		r.respond(nullptr);
+        tversion(r);
 		break;
 	case FType::TAttach:
-		if(!(r.fid = (decltype(r.fid))(createfid(p9conn.fidmap, r.ifcall.hdr.fid, p9conn)))) {
-			r.respond(Edupfid);
-			return;
-		}
-		/* attach is a required function */
-		srv->attach(&r);
+        tattach(r);
 		break;
 	case FType::TClunk:
-		if(r.fid = p9conn.fidmap.get(r.ifcall.hdr.fid); !r.fid) {
-			r.respond(Enofid);
-			return;
-		}
-		if(!srv->clunk) {
-			r.respond(nullptr);
-			return;
-		}
-		srv->clunk(r);
+        tclunk(r);
 		break;
 	case FType::TFlush:
-        if (r.oldreq = decltype(r.oldreq)(p9conn.tagmap.get(r.ifcall.tflush.oldtag)); !r.oldreq) {
-			r.respond(Enotag);
-			return;
-		}
-		if(!srv->flush) {
-			r.respond(Enofunc);
-			return;
-		}
-		srv->flush(r);
+        tflush(r);
 		break;
 	case FType::TCreate:
         if (r.fid = decltype(r.fid)(p9conn.fidmap.get(r.ifcall.hdr.fid)); !r.fid) {
