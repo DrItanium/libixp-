@@ -10,9 +10,11 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include "qid.h"
-#include "Msg.h"
-#include "jyq.h"
+#include "Client.h"
+#include "CFid.h"
+#include "util.h"
+#include "PrintFunctions.h"
+#include "socket.h"
 
 #define nelem(ary) (sizeof(ary) / sizeof(*ary))
 namespace jyq {

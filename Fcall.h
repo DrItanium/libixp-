@@ -2,8 +2,8 @@
  * C++ Implementation copyright (c)2019 Joshua Scoggins
  * See LICENSE file for license details.
  */
-#ifndef LIBJYQ_STAT_H__
-#define LIBJYQ_STAT_H__
+#ifndef LIBJYQ_FCALL_H__
+#define LIBJYQ_FCALL_H__
 #include <string>
 #include <array>
 #include <functional>
@@ -162,4 +162,4 @@ namespace jyq {
     uint	msg2fcall(Msg*, Fcall*);
     uint	fcall2msg(Msg*, Fcall*);
 } // end namespace jyq
-#endif // end LIBJYQ_STAT_H__
+#endif // end LIBJYQ_FCALL_H__
