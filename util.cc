@@ -9,7 +9,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <pwd.h>
-#include "jyq.h"
+#include "PrintFunctions.h"
+#include "util.h"
+//#include "jyq.h"
 
 namespace jyq {
 /**

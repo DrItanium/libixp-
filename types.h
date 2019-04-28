@@ -5,6 +5,8 @@
  * See LICENSE file for license details.
  */
 
+#include <sys/types.h>
+
 namespace jyq {
     using uint = unsigned int;
     using ulong = unsigned long;
