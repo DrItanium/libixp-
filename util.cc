@@ -34,7 +34,19 @@ _user() {
 }
 
 static bool 
-rmkdir(char *path, int mode) {
+rmkdir(const std::string& path, int mode) {
+    auto tokens = tokenize(path, '/');
+    for (const auto& pathComponent: tokens) {
+        if (auto ret = mkdir(pathComponent.c_str(), mode); (ret == -1) && (errno != EEXIST)) {
+            std::ostringstream msg;
+            print(msg, "Can't create path '", path, "': ", errbuf());
+            auto str = msg.str();
+            throw str; // TODO throw an actual exception
+        }
+    }
+    return true;
+
+#if 0
 	for(char* p = path+1; ; p++) {
 		char c = *p;
 		if((c == '/') || (c == '\0')) {
@@ -50,9 +62,10 @@ rmkdir(char *path, int mode) {
 			break;
 	}
 	return true;
+#endif 
 }
 
-static char*
+static std::string
 ns_display() {
 	char *path, *disp;
 	struct stat st;
@@ -68,10 +81,11 @@ ns_display() {
 	if(path > disp && !strcmp(path, ".0"))
 		*path = '\0';
 
-	path = smprint("/tmp/ns.%s.%s", _user(), disp);
+    auto newPath = smprint("/tmp/ns.", _user(), ".", disp);
 	free(disp);
 
-	if(!rmkdir(path, 0700))
+    
+	if(!rmkdir(newPath.c_str(), 0700))
 		;
 	else if(stat(path, &st))
 		werrstr("Can't stat Namespace path '%s': %s", path, errbuf());
@@ -81,7 +95,6 @@ ns_display() {
 		werrstr("Namespace path '%s' exists, but has wrong permissions: %s", path, errbuf());
 	else
 		return path;
-	free(path);
 	return nullptr;
 }
 
@@ -104,10 +117,10 @@ ns_display() {
  *	call.
  */
 /* Not especially threadsafe. */
-char*
+std::string
 getNamespace(void) {
-    static char* _namespace;
-    if (!_namespace) {
+    static std::string _namespace;
+    if (_namespace.empty()) {
         if (auto ev = getenv("NAMESPACE"); !ev) {
             _namespace = ns_display();
         } else {
