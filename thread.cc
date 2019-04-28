@@ -1,6 +1,6 @@
 /* Public Domain --Kris Maglione */
 #include <unistd.h>
-#include "jyq.h"
+#include "thread.h"
 
 namespace jyq {
 Mutex::Mutex() { 
@@ -87,7 +87,7 @@ void RWLock::readUnlock() { concurrency::threadModel->runlock(this); }
 bool RWLock::canReadLock() { return concurrency::threadModel->canrlock(this); }
 void RWLock::writeLock() { concurrency::threadModel->wlock(this); }
 void RWLock::writeUnlock() { concurrency::threadModel->wunlock(this); }
-bool RWLock::canWriteLock() { concurrency::threadModel->canwlock(this); }
+bool RWLock::canWriteLock() { return concurrency::threadModel->canwlock(this); }
 bool Rendez::wake() { return concurrency::threadModel->wake(this); }
 bool Rendez::wakeall() { return concurrency::threadModel->wakeall(this); }
 void Rendez::sleep() { concurrency::threadModel->sleep(this); }

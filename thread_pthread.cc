@@ -6,8 +6,8 @@
 #include <cstdlib>
 #include <unistd.h>
 #include <memory>
-#include "jyq.h"
 #include "thread_pthread.h"
+#include "util.h"
 
 
 namespace jyq::concurrency {

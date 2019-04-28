@@ -1,6 +1,6 @@
 #ifndef JYQ_THREAD_PTHREAD_H__
 #define JYQ_THREAD_PTHREAD_H__
-#include "jyq.h"
+#include "thread.h"
 namespace jyq::concurrency
 {
 

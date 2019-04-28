@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <map>
 #include <string>
+#include "Msg.h"
 #include "jyq.h"
 
 

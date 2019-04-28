@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <sys/time.h>
+#include "Msg.h"
 #include "jyq.h"
 #include "timer.h"
 

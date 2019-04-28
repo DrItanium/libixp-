@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+#include "Msg.h"
 #include "jyq.h"
 
 namespace jyq {

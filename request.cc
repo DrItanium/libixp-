@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <cstring>
 #include <sys/socket.h>
+#include "Msg.h"
 #include "jyq.h"
 #include "map.h"
 #include "argv.h"

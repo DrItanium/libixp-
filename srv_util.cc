@@ -9,6 +9,7 @@
 #include <cstring>
 #include <ctime>
 #include <unistd.h>
+#include "Msg.h"
 #include "jyq.h"
 #include "jyq_srvutil.h"
 
