@@ -1,7 +1,7 @@
 /* Written by Kris Maglione */
 /* Public domain */
 #include <cstdlib>
-#include "jyq.h"
+#include "map.h"
 
 namespace jyq {
 /* Edit s/^([a-zA-Z].*)\n([a-z].*) {/\1 \2;/g  x/^([^a-zA-Z]|static|$)/-+d  s/ (\*map|val|*str)//g */
