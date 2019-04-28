@@ -323,7 +323,6 @@ handlereq(Req9& r) {
     } else {
         ptr->second(r);
     }
-	}
 }
 
 /**
