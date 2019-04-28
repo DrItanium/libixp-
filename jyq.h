@@ -41,28 +41,6 @@ namespace jyq {
     struct RWLock;
     struct Rendez;
     union Fcall;
-
-
-
-    /* stat structure */
-    struct Stat {
-        uint16_t	type;
-        uint32_t	dev;
-        Qid         qid;
-        uint32_t	mode;
-        uint32_t	atime;
-        uint32_t	mtime;
-        uint64_t	length;
-        char*	name;
-        char*	uid;
-        char*	gid;
-        char*	muid;
-        uint16_t    size() noexcept;
-        static void free(Stat* stat);
-        void packUnpack(Msg& msg) noexcept;
-        //~Stat();
-    };
-
     struct FHdr;
     struct FError;
     struct FROpen;
