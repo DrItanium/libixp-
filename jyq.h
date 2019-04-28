@@ -5,9 +5,7 @@
  * See LICENSE file for license details.
  */
 
-#include <cstdbool>
 #include <cstdarg>
-#include <cstdint>
 #include <sys/types.h>
 #include <sys/select.h>
 #include <unistd.h>

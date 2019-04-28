@@ -5,6 +5,8 @@
  * See LICENSE file for license details.
  */
 
+#include <cstdint>
+#include <cstdbool>
 #include <sys/types.h>
 
 namespace jyq {
