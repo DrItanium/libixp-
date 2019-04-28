@@ -71,9 +71,10 @@ client.o: client.cc jyq.h types.h PrintFunctions.h thread.h util.h
 convert.o: convert.cc jyq.h types.h PrintFunctions.h thread.h util.h
 error.o: error.cc PrintFunctions.h thread.h types.h
 jyqc.o: jyqc.cc
-map.o: map.cc jyq.h types.h PrintFunctions.h thread.h util.h
+map.o: map.cc map.h types.h thread.h util.h
 message.o: message.cc jyq.h types.h PrintFunctions.h thread.h util.h
-request.o: request.cc jyq.h types.h PrintFunctions.h thread.h util.h
+request.o: request.cc jyq.h types.h PrintFunctions.h thread.h util.h \
+ map.h
 rpc.o: rpc.cc jyq.h types.h PrintFunctions.h thread.h util.h
 server.o: server.cc jyq.h types.h PrintFunctions.h thread.h util.h
 socket.o: socket.cc jyq.h types.h PrintFunctions.h thread.h util.h
