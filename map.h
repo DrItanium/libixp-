@@ -6,24 +6,27 @@
  */
 
 #include <functional>
+#include <map>
+#include <any>
 #include "types.h"
 #include "thread.h"
 
 
 namespace jyq {
-    struct MapEnt;
-    struct Map {
-        MapEnt**	bucket;
-        int		nhash;
+    //struct MapEnt;
+    //struct Map {
+    //    MapEnt**	bucket;
+    //    int		nhash;
 
-        RWLock	lock;
-        void	free(std::function<void(void*)>);
-        void	exec(std::function<void(void*, void*)>, void*);
-        void	init(MapEnt**, int);
-        bool	insert(ulong, void*, bool);
-        void*	get(ulong);
-        void*	rm(ulong);
-    };
+    //    RWLock	lock;
+    //    void	free(std::function<void(void*)>);
+    //    void	exec(std::function<void(void*, void*)>, void*);
+    //    void	init(MapEnt**, int);
+    //    bool	insert(ulong, void*, bool);
+    //    void*	get(ulong);
+    //    void*	rm(ulong);
+    //};
+    using Map = std::map<std::string, std::any>;
 } // end namespace jyq
 
 #endif // end LIBJYQ_MAP_H__

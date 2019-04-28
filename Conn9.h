@@ -25,8 +25,6 @@ constexpr auto FID_BUCKETS = 61;
 struct Conn9 {
 	Map		tagmap;
 	Map		fidmap;
-	MapEnt*		taghash[TAG_BUCKETS];
-	MapEnt*		fidhash[FID_BUCKETS];
 	Srv9*	srv;
 	Conn*	conn;
 	Mutex	rlock;

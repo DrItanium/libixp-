@@ -74,7 +74,6 @@ convert.o: convert.cc qid.h types.h Msg.h stat.h jyq.h PrintFunctions.h \
  Client.h Rpc.h CFid.h
 error.o: error.cc PrintFunctions.h thread.h types.h
 jyqc.o: jyqc.cc argv.h types.h
-map.o: map.cc map.h types.h thread.h util.h
 message.o: message.cc Msg.h types.h qid.h stat.h jyq.h PrintFunctions.h \
  thread.h Srv9.h Conn9.h Fcall.h map.h Conn.h Req9.h Fid.h util.h \
  Client.h Rpc.h CFid.h argv.h

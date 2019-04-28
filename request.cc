@@ -572,8 +572,6 @@ Conn::serve9conn() {
         p9conn.rmsg.data = (decltype(p9conn.rmsg.data))jyq::emalloc(p9conn.rmsg.size());
         p9conn.wmsg.data = (decltype(p9conn.wmsg.data))jyq::emalloc(p9conn.wmsg.size());
 
-        p9conn.tagmap.init(p9conn.taghash, nelem(p9conn.taghash));
-        p9conn.fidmap.init(p9conn.fidhash, nelem(p9conn.fidhash));
         concurrency::threadModel->initmutex(&p9conn.rlock);
         concurrency::threadModel->initmutex(&p9conn.wlock);
 
