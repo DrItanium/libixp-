@@ -310,6 +310,10 @@ pending_respond(Req9 *req) {
 }
 
 void
+pending_write(Pending* pending, const std::string& dat) {
+    pending_write(pending, dat.c_str(), dat.length());
+}
+void
 pending_write(Pending *pending, const char *dat, long ndat) {
 	RequestLink req_link;
 	Queue **qp, *queue;
@@ -353,14 +357,13 @@ pending_write(Pending *pending, const char *dat, long ndat) {
 
 int
 pending_vprint(Pending *pending, const char *fmt, va_list ap) {
-	char *dat;
-	int res;
-
-	dat = vsmprint(fmt, ap);
-	res = strlen(dat);
-	pending_write(pending, dat, res);
-	free(dat);
-	return res;
+	auto dat = vsmprint(fmt, ap);
+	pending_write(pending, dat);
+	return dat.length();
+}
+int 
+pending_vprint(Pending* pending, const std::string& fmt, va_list ap) {
+    return pending_vprint(pending, fmt.c_str(), ap);
 }
 
 int

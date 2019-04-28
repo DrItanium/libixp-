@@ -18,25 +18,6 @@
 //#include "jyq.h"
 
 namespace jyq {
-/**
- * Function: smprint
- *
- * This function formats its arguments as F<printf> and returns
- * a F<malloc> allocated string containing the result.
- */
-char*
-smprint(const char *fmt, ...) {
-	va_list ap;
-	char *s;
-
-	va_start(ap, fmt);
-	s = vsmprint(fmt, ap);
-	va_end(ap);
-	if(!s)
-		werrstr("no memory");
-	return s;
-}
-
 static char*
 _user() {
 	static char *user;

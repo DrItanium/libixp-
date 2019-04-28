@@ -4,8 +4,10 @@
  * C++ Implementation copyright (c)2019 Joshua Scoggins
  * See LICENSE file for license details.
  */
-#include "types.h"
+#include <string>
 #include <list>
+#include <sstream>
+#include "types.h"
 
 namespace jyq {
     void*	emalloc(uint);
@@ -14,7 +16,13 @@ namespace jyq {
     void*	erealloc(void*, uint);
     char*	estrdup(const char*);
     char*	getNamespace();
-    char*	smprint(const char*, ...);
+    template<typename ... Args>
+    std::string smprint(Args&& ... args) {
+        std::ostringstream ss;
+        print(ss, args...);
+        auto str = ss.str();
+        return str;
+    }
     uint	tokenize(char**, uint len, char*, char);
     std::list<std::string> tokenize(const std::string& str, char delim); 
 } // end namespace jyq

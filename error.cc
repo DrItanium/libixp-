@@ -16,27 +16,25 @@ _vsnprint(char *buf, int nbuf, const char *fmt, va_list ap) {
 	return vsnprintf(buf, nbuf, fmt, ap);
 }
 
-char*
-_vsmprint(const char *fmt, va_list ap) {
+std::string
+_vsmprint(const std::string& fmt, va_list ap) {
 	va_list al;
-	char *buf = "";
-	int n;
-
 	va_copy(al, ap);
-	n = vsnprintf(buf, 0, fmt, al);
+	auto n = vsnprintf(nullptr, 0, fmt.c_str(), al);
 	va_end(al);
-
-	buf = (char*)malloc(++n);
-	if(buf)
-		vsnprintf(buf, n, fmt, ap);
-	return buf;
+	if(auto buf = std::make_unique<char[]>(++n); buf) {
+		vsnprintf(buf.get(), n, fmt.c_str(), ap);
+        return std::string(buf.get());
+    } else {
+        return "";
+    }
 }
 /* Approach to errno handling taken from Plan 9 Port. */
 constexpr auto EPLAN9 = 0x19283745;
 } // end namespace
 
     std::function<int(char*,int,const char*, va_list)> vsnprint = _vsnprint;
-    std::function<char*(const char*, va_list)> vsmprint = _vsmprint;
+    std::function<std::string(const std::string&, va_list)> vsmprint = _vsmprint;
 
 
 /**

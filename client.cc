@@ -354,16 +354,16 @@ Client::mount(const char *address) {
 
 Client*
 Client::nsmount(const char *name) {
-	char *address;
+    std::string address;
 	Client *c;
 
 	address = getNamespace();
-	if(address)
-		address = smprint("unix!%s/%s", address, name);
-    if (!address) 
+	if(!address.empty()) {
+		address = smprint("unix!%s/%s", address.c_str(), name);
+    }
+    if (address.empty()) 
 		return nullptr;
 	c = mount(address);
-	free(address);
 	return c;
 }
 
