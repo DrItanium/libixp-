@@ -191,31 +191,25 @@ handlereq(Req9& r) {
             srv->create(&r);
         }
     };
+    auto topen = [&p9conn, srv = p9conn.srv](Req9& r) {
+        if (auto newfid = p9conn.fidmap.find(r.ifcall.hdr.fid); newfid == p9conn.fidmap.end()) {
+            r.respond(Enofid);
+        } else if (r.fid = &newfid->second; (r.fid->qid.type&uint8_t(QType::DIR)) && (r.ifcall.topen.mode|uint8_t(OMode::RCLOSE)) != (uint8_t(OMode::READ)|uint8_t(OMode::RCLOSE))) {
+			r.respond(Eisdir);
+		} else if (r.ofcall.ropen.qid = r.fid->qid; !p9conn.srv->open) {
+			r.respond(Enofunc);
+		} else {
+		    srv->open(&r);
+        }
+    };
 	switch(r.ifcall.getType()) {
-	default:
-		r.respond(Enofunc);
-		break;
+	default: r.respond(Enofunc); break;
 	case FType::TVersion: tversion(r); break;
 	case FType::TAttach: tattach(r); break;
 	case FType::TClunk: tclunk(r); break;
 	case FType::TFlush: tflush(r); break;
 	case FType::TCreate: tcreate(r); break;
-	case FType::TOpen:
-        if (r.fid = decltype(r.fid)(p9conn.fidmap.get(r.ifcall.hdr.fid)); !r.fid) {
-			r.respond(Enofid);
-			return;
-		}
-		if((r.fid->qid.type&uint8_t(QType::DIR)) && (r.ifcall.topen.mode|uint8_t(OMode::RCLOSE)) != (uint8_t(OMode::READ)|uint8_t(OMode::RCLOSE))) {
-			r.respond(Eisdir);
-			return;
-		}
-		r.ofcall.ropen.qid = r.fid->qid;
-		if(!p9conn.srv->open) {
-			r.respond(Enofunc);
-			return;
-		}
-		p9conn.srv->open(r);
-		break;
+	case FType::TOpen: topen(r); break;
 	case FType::TRead:
         if (r.fid = decltype(r.fid)(p9conn.fidmap.get(r.ifcall.hdr.fid)); !r.fid) {
 			r.respond(Enofid);
