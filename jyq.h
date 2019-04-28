@@ -655,13 +655,6 @@ namespace jyq {
     uint recvmsg(int, Msg*);
     uint64_t msec();
 
-    struct Timer {
-        Timer*		link;
-        uint64_t	msec;
-        long		id;
-        std::function<void(long, const std::any&)> fn;
-        std::any	aux;
-    };
 } // end namespace jyq
 extern char* argv0;
 #define ARGBEGIN \

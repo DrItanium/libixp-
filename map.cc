@@ -1,4 +1,5 @@
 /* Written by Kris Maglione */
+/* C++ Implementation copyright (c)2019 Joshua Scoggins */
 /* Public domain */
 #include <cstdlib>
 #include "map.h"

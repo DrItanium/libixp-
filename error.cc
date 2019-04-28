@@ -1,3 +1,4 @@
+/* C++ Implementation copyright (c)2019 Joshua Scoggins */
 /* Public Domain --Kris Maglione */
 #include <errno.h>
 #include <stdarg.h>

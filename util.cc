@@ -1,4 +1,5 @@
 /* Written by Kris Maglione <maglione.k at Gmail> */
+/* C++ Implementation copyright (c)2019 Joshua Scoggins */
 /* Public domain */
 #include <cerrno>
 #include <cstdarg>

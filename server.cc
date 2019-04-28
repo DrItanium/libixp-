@@ -1,5 +1,6 @@
 /* Copyright ©2006-2010 Kris Maglione <maglione.k at Gmail>
  * Copyright ©2004-2006 Anselm R. Garbe <garbeam at gmail dot com>
+ * C++ Implementation copyright (c)2019 Joshua Scoggins *
  * See LICENSE file for license details.
  */
 #include <cassert>
