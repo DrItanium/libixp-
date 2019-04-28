@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cstdlib>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -53,35 +54,36 @@ rmkdir(const std::string& path, int mode) {
 
 static std::string
 ns_display() {
-	char *path, *disp;
 	struct stat st;
+    std::string displayVariable;
+    std::string newPath;
 
-	disp = getenv("DISPLAY");
-	if(!disp || disp[0] == '\0') {
+	if (auto disp = std::getenv("DISPLAY"); !disp || disp[0] == '\0') {
 		werrstr("$DISPLAY is unset");
-		return nullptr;
-	}
+        return "";
+	} else {
+        displayVariable = disp;
+        if (auto subComponent = displayVariable.substr(displayVariable.length() - 2); 
+                (displayVariable != subComponent) && 
+                (!std::strcmp(subComponent.c_str(), ".0"))) {
+            // TODO strcmp must be replaced!
+            displayVariable = displayVariable.substr(0, displayVariable.length() - 2);
+        }
+        newPath = smprint("/tmp/ns.", _user(), ".", disp);
+    }
 
-	disp = estrdup(disp);
-	path = &disp[strlen(disp) - 2];
-	if(path > disp && !strcmp(path, ".0"))
-		*path = '\0';
+	if(!rmkdir(newPath.c_str(), 0700)) {
 
-    auto newPath = smprint("/tmp/ns.", _user(), ".", disp);
-	free(disp);
-
-    
-	if(!rmkdir(newPath.c_str(), 0700))
-		;
-	else if(stat(path, &st))
-		werrstr("Can't stat Namespace path '%s': %s", path, errbuf());
-	else if(getuid() != st.st_uid)
-		werrstr("Namespace path '%s' exists but is not owned by you", path);
-	else if((st.st_mode & 077) && chmod(path, st.st_mode & ~077))
-		werrstr("Namespace path '%s' exists, but has wrong permissions: %s", path, errbuf());
-	else
-		return path;
-	return nullptr;
+    } else if(stat(newPath.c_str(), &st)) {
+		werrstr("Can't stat Namespace path '%s': %s", newPath.c_str(), errbuf());
+    } else if(getuid() != st.st_uid) {
+		werrstr("Namespace path '%s' exists but is not owned by you", newPath.c_str());
+    } else if((st.st_mode & 077) && chmod(newPath.c_str(), st.st_mode & ~077)) {
+		werrstr("Namespace path '%s' exists, but has wrong permissions: %s", newPath.c_str(), errbuf());
+    } else {
+		return newPath;
+    }
+    return "";
 }
 
 /**
