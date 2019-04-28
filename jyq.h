@@ -126,17 +126,6 @@ namespace jyq {
     union Fcall;
 
     /* Threading */
-    template<typename T>
-    struct ContainsSizeParameter {
-        ContainsSizeParameter() = default;
-        ~ContainsSizeParameter() = default;
-        constexpr T size() const noexcept { return _value; }
-        constexpr bool empty() const noexcept { return size() == 0; }
-        T& getSizeReference() noexcept { return _value; }
-        void setSize(T value) noexcept { _value = value; }
-        private:
-            T _value;
-    };
 
     struct Msg : public ContainsSizeParameter<uint> {
         enum class Mode {

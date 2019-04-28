@@ -58,6 +58,18 @@ namespace jyq {
     static_assert(min(2,1) == 1);
     static_assert(max(1,2) == 2);
     static_assert(max(2,1) == 2);
+
+    template<typename T>
+    struct ContainsSizeParameter {
+        ContainsSizeParameter() = default;
+        ~ContainsSizeParameter() = default;
+        constexpr T size() const noexcept { return _value; }
+        constexpr bool empty() const noexcept { return size() == 0; }
+        T& getSizeReference() noexcept { return _value; }
+        void setSize(T value) noexcept { _value = value; }
+        private:
+            T _value;
+    };
 } // end namespace jyq
 
 #endif // end LIBJYQ_TYPES_H__
