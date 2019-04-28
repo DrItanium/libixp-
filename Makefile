@@ -67,30 +67,37 @@ clean:
 # generated via g++ -MM -std=c++17 *.cc *.h
 
 
-client.o: client.cc qid.h types.h Msg.h jyq.h PrintFunctions.h thread.h \
- Srv9.h Req9.h Fcall.h stat.h map.h Fid.h util.h
-convert.o: convert.cc qid.h types.h Msg.h jyq.h PrintFunctions.h thread.h \
- Srv9.h Req9.h Fcall.h stat.h map.h Fid.h util.h
+client.o: client.cc Client.h types.h thread.h Msg.h qid.h stat.h Fcall.h \
+ Rpc.h CFid.h util.h PrintFunctions.h socket.h
+convert.o: convert.cc qid.h types.h Msg.h stat.h jyq.h PrintFunctions.h \
+ thread.h Srv9.h Conn9.h Fcall.h map.h Conn.h Req9.h Fid.h util.h \
+ Client.h Rpc.h CFid.h
 error.o: error.cc PrintFunctions.h thread.h types.h
 jyqc.o: jyqc.cc argv.h types.h
 map.o: map.cc map.h types.h thread.h util.h
-message.o: message.cc Msg.h qid.h types.h jyq.h PrintFunctions.h thread.h \
- Srv9.h Req9.h Fcall.h stat.h map.h Fid.h util.h argv.h
-request.o: request.cc Msg.h qid.h types.h jyq.h PrintFunctions.h thread.h \
- Srv9.h Req9.h Fcall.h stat.h map.h Fid.h util.h argv.h
-rpc.o: rpc.cc Msg.h qid.h types.h jyq.h PrintFunctions.h thread.h Srv9.h \
- Req9.h Fcall.h stat.h map.h Fid.h util.h
-server.o: server.cc Msg.h qid.h types.h jyq.h PrintFunctions.h thread.h \
- Srv9.h Req9.h Fcall.h stat.h map.h Fid.h util.h
-socket.o: socket.cc Msg.h qid.h types.h jyq.h PrintFunctions.h thread.h \
- Srv9.h Req9.h Fcall.h stat.h map.h Fid.h util.h
-srv_util.o: srv_util.cc Msg.h qid.h types.h jyq.h PrintFunctions.h \
- thread.h Srv9.h Req9.h Fcall.h stat.h map.h Fid.h util.h jyq_srvutil.h
+message.o: message.cc Msg.h types.h qid.h stat.h jyq.h PrintFunctions.h \
+ thread.h Srv9.h Conn9.h Fcall.h map.h Conn.h Req9.h Fid.h util.h \
+ Client.h Rpc.h CFid.h argv.h
+request.o: request.cc Msg.h types.h qid.h stat.h jyq.h PrintFunctions.h \
+ thread.h Srv9.h Conn9.h Fcall.h map.h Conn.h Req9.h Fid.h util.h \
+ Client.h Rpc.h CFid.h argv.h socket.h Server.h timer.h
+rpc.o: rpc.cc Rpc.h types.h thread.h Fcall.h qid.h stat.h Msg.h Client.h \
+ socket.h util.h PrintFunctions.h
+server.o: server.cc Msg.h types.h qid.h stat.h Server.h Conn.h thread.h \
+ timer.h Fcall.h
+socket.o: socket.cc Msg.h types.h qid.h stat.h jyq.h PrintFunctions.h \
+ thread.h Srv9.h Conn9.h Fcall.h map.h Conn.h Req9.h Fid.h util.h \
+ Client.h Rpc.h CFid.h
+srv_util.o: srv_util.cc Msg.h types.h qid.h stat.h jyq.h PrintFunctions.h \
+ thread.h Srv9.h Conn9.h Fcall.h map.h Conn.h Req9.h Fid.h util.h \
+ Client.h Rpc.h CFid.h jyq_srvutil.h
 thread.o: thread.cc thread.h types.h
 thread_pthread.o: thread_pthread.cc thread_pthread.h thread.h types.h \
  util.h
-timer.o: timer.cc Msg.h qid.h types.h jyq.h PrintFunctions.h thread.h \
- Srv9.h Req9.h Fcall.h stat.h map.h Fid.h util.h timer.h
-transport.o: transport.cc Msg.h qid.h types.h jyq.h PrintFunctions.h \
- thread.h Srv9.h Req9.h Fcall.h stat.h map.h Fid.h util.h
+timer.o: timer.cc Msg.h types.h qid.h stat.h jyq.h PrintFunctions.h \
+ thread.h Srv9.h Conn9.h Fcall.h map.h Conn.h Req9.h Fid.h util.h \
+ Client.h Rpc.h CFid.h timer.h Server.h
+transport.o: transport.cc Msg.h types.h qid.h stat.h jyq.h \
+ PrintFunctions.h thread.h Srv9.h Conn9.h Fcall.h map.h Conn.h Req9.h \
+ Fid.h util.h Client.h Rpc.h CFid.h
 util.o: util.cc PrintFunctions.h util.h types.h
