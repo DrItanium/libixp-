@@ -2,8 +2,8 @@
  * C++ Implementation copyright (c)2019 Joshua Scoggins
  * See LICENSE file for license details.
  */
-#ifndef LIBJYQ_STAT_H__
-#define LIBJYQ_STAT_H__
+#ifndef LIBJYQ_CONN_H__
+#define LIBJYQ_CONN_H__
 #include <any>
 #include <functional>
 #include "types.h"
@@ -21,4 +21,4 @@ namespace jyq {
     };
     void	hangup(Conn*);
 } // end namespace jyq
-#endif // end LIBJYQ_STAT_H__
+#endif // end LIBJYQ_CONN_H__
