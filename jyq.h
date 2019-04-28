@@ -18,10 +18,10 @@
 #include <memory>
 #include <any>
 #include <list>
+#include "types.h"
+#include "util.h"
 
 namespace jyq {
-    using uint = unsigned int;
-    using ulong = unsigned long;
     constexpr auto ApiVersion = 135;
     constexpr auto Version = "9P2000";
     constexpr auto NoTag = uint16_t(~0); 
@@ -893,15 +893,6 @@ namespace jyq {
     uint64_t msec();
 
     /* util.c */
-    void*	emalloc(uint);
-    void*	emallocz(uint);
-    void	eprint(const char*, ...);
-    void*	erealloc(void*, uint);
-    char*	estrdup(const char*);
-    char*	getNamespace();
-    char*	smprint(const char*, ...);
-    uint	tokenize(char**, uint len, char*, char);
-    std::list<std::string> tokenize(const std::string& str, char delim); 
     struct MapEnt;
     using Map = Map;
     using Timer = Timer;
