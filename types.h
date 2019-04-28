@@ -10,6 +10,17 @@
 namespace jyq {
     using uint = unsigned int;
     using ulong = unsigned long;
+    namespace maximum {
+        constexpr auto Version = 32;
+        constexpr auto Msg = 8192;
+        constexpr auto Error = 128;
+        constexpr auto Cache = 32;
+        constexpr auto Flen = 128;
+        constexpr auto Ulen = 32;
+        constexpr auto Welem = 16;
+    } // end namespace maximum
+
+    constexpr auto ErrorMax = maximum::Error;
 
 } // end namespace jyq
 

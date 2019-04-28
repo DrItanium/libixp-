@@ -9,6 +9,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <pwd.h>
+#include <list>
+#include <string>
+#include <sstream>
 #include "PrintFunctions.h"
 #include "util.h"
 //#include "jyq.h"

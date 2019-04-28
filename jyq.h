@@ -20,6 +20,7 @@
 #include <list>
 #include "types.h"
 #include "PrintFunctions.h"
+#include "thread.h"
 #include "util.h"
 
 namespace jyq {
@@ -48,16 +49,6 @@ namespace jyq {
     constexpr T min(T a, T b) noexcept {
         return a < b ? a : b;
     }
-    namespace maximum {
-        constexpr auto Version = 32;
-        constexpr auto Msg = 8192;
-        constexpr auto Error = 128;
-        constexpr auto Cache = 32;
-        constexpr auto Flen = 128;
-        constexpr auto Ulen = 32;
-        constexpr auto Welem = 16;
-    } // end namespace maximum
-
     /* 9P message types */
     enum class FType : uint8_t {
         TVersion = 100,
@@ -162,7 +153,6 @@ namespace jyq {
     union Fcall;
 
     /* Threading */
-    constexpr auto ErrorMax = maximum::Error;
     template<typename T>
     struct ContainsSizeParameter {
         ContainsSizeParameter() = default;
