@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <cstdbool>
+#include <iostream>
 #include <sys/types.h>
 
 namespace jyq {
@@ -24,6 +25,39 @@ namespace jyq {
 
     constexpr auto ErrorMax = maximum::Error;
 
+    constexpr auto ApiVersion = 135;
+    constexpr auto Version = "9P2000";
+    constexpr auto NoTag = uint16_t(~0); 
+    constexpr auto NoFid = ~0u;
+
+    template<typename ... Args>
+        void print(std::ostream& os, Args&& ... args) {
+            (os << ... << args);
+        }
+
+    template<typename ... Args>
+        void errorPrint(Args&& ... args) {
+            jyq::print(std::cerr, args...);
+        }
+
+    template<typename ... Args>
+        void fatalPrint(Args&& ... args) {
+            errorPrint(args...);
+            throw 1;
+        }
+
+    template<typename T>
+    constexpr T min(T a, T b) noexcept {
+        return a < b ? a : b;
+    }
+    template<typename T>
+    constexpr T max(T a, T b) noexcept {
+        return a > b ? a : b;
+    }
+    static_assert(min(1,2) == 1);
+    static_assert(min(2,1) == 1);
+    static_assert(max(1,2) == 2);
+    static_assert(max(2,1) == 2);
 } // end namespace jyq
 
 #endif // end LIBJYQ_TYPES_H__

@@ -22,31 +22,6 @@
 #include "util.h"
 
 namespace jyq {
-    constexpr auto ApiVersion = 135;
-    constexpr auto Version = "9P2000";
-    constexpr auto NoTag = uint16_t(~0); 
-    constexpr auto NoFid = ~0u;
-
-    template<typename ... Args>
-        void print(std::ostream& os, Args&& ... args) {
-            (os << ... << args);
-        }
-
-    template<typename ... Args>
-        void errorPrint(Args&& ... args) {
-            jyq::print(std::cerr, args...);
-        }
-
-    template<typename ... Args>
-        void fatalPrint(Args&& ... args) {
-            errorPrint(args...);
-            throw 1;
-        }
-
-    template<typename T>
-    constexpr T min(T a, T b) noexcept {
-        return a < b ? a : b;
-    }
     /* 9P message types */
     enum class FType : uint8_t {
         TVersion = 100,
@@ -691,24 +666,9 @@ namespace jyq {
     uint recvmsg(int, Msg*);
     uint64_t msec();
 
-    /* util.c */
-    struct MapEnt;
-    using Map = Map;
     using Timer = Timer;
 
 
-    struct Map {
-        MapEnt**	bucket;
-        int		nhash;
-
-        RWLock	lock;
-        void	free(std::function<void(void*)>);
-        void	exec(std::function<void(void*, void*)>, void*);
-        void	init(MapEnt**, int);
-        bool	insert(ulong, void*, bool);
-        void*	get(ulong);
-        void*	rm(ulong);
-    };
 
     struct Timer {
         Timer*		link;
