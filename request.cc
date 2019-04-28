@@ -202,6 +202,17 @@ handlereq(Req9& r) {
 		    srv->open(&r);
         }
     };
+    auto tread = [&p9conn, srv = p9conn.srv](Req9& r) {
+        if (auto newfid = p9conn.fidmap.find(r.ifcall.hdr.fid); newfid == p9conn.fidmap.end()) {
+			r.respond(Enofid);
+        } else if (r.fid = &newfid->second; r.fid->omode == -1 || r.fid->omode == uint8_t(OMode::WRITE)) {
+			r.respond(Enoread);
+		} else if (!srv->read) {
+			r.respond(Enofunc); 
+        } else {
+            srv->read(&r);
+        }
+    };
 	switch(r.ifcall.getType()) {
 	default: r.respond(Enofunc); break;
 	case FType::TVersion: tversion(r); break;
@@ -210,21 +221,7 @@ handlereq(Req9& r) {
 	case FType::TFlush: tflush(r); break;
 	case FType::TCreate: tcreate(r); break;
 	case FType::TOpen: topen(r); break;
-	case FType::TRead:
-        if (r.fid = decltype(r.fid)(p9conn.fidmap.get(r.ifcall.hdr.fid)); !r.fid) {
-			r.respond(Enofid);
-			return;
-		}
-		if(r.fid->omode == -1 || r.fid->omode == uint8_t(OMode::WRITE)) {
-			r.respond(Enoread);
-			return;
-		}
-		if(!p9conn.srv->read) {
-			r.respond(Enofunc);
-			return;
-		}
-		p9conn.srv->read(r);
-		break;
+	case FType::TRead: tread(r); break;
 	case FType::TRemove:
 		if(r.fid = decltype(r.fid)(p9conn.fidmap.get(r.ifcall.hdr.fid)); !r.fid) {
 			r.respond(Enofid);
