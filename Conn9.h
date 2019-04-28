@@ -35,6 +35,9 @@ struct Conn9 {
 	Msg		rmsg;
 	Msg		wmsg;
 	int		ref;
+    Req9* retrieveTag(uint16_t id);
+    Fid* retrieveFid(int id);
+
 };
 } // end namespace jyq
 #endif // end LIBJYQ_CONN9_H__
