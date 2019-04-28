@@ -71,36 +71,7 @@ namespace jyq {
 
 
 
-    struct Req9 {
-        Srv9*	srv;
-        Fid*		fid;    /* Fid structure corresponding to FHdr.fid */
-        Fid*		newfid; /* Corresponds to FTWStat.newfid */
-        Req9*	oldreq; /* For TFlush requests, the original request. */
-        Fcall	ifcall; /* The incoming request fcall. */
-        Fcall	ofcall; /* The response fcall, to be filled by handler. */
-        std::any    aux; // Arbitrary pointer, to be used by handlers. 
 
-        /* Private members */
-        Conn9 *conn;
-        void respond(const char *err);
-        inline void respond(const std::string& err) { respond(err.c_str()); }
-    };
-
-    struct Srv9 {
-        std::any aux;
-        std::function<void(Req9*)> attach,
-                clunk,
-                create,
-                flush,
-                open,
-                read,
-                remove,
-                stat,
-                walk,
-                write,
-                wstat;
-        std::function<void(Fid*)> freefid;
-    };
 
 
 
