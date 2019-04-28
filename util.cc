@@ -15,6 +15,7 @@
 #include <sstream>
 #include "PrintFunctions.h"
 #include "util.h"
+#include "argv.h"
 //#include "jyq.h"
 
 namespace jyq {

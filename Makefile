@@ -100,4 +100,4 @@ timer.o: timer.cc Msg.h types.h qid.h stat.h jyq.h PrintFunctions.h \
 transport.o: transport.cc Msg.h types.h qid.h stat.h jyq.h \
  PrintFunctions.h thread.h Srv9.h Conn9.h Fcall.h map.h Conn.h Req9.h \
  Fid.h util.h Client.h Rpc.h CFid.h
-util.o: util.cc PrintFunctions.h util.h types.h
+util.o: util.cc PrintFunctions.h util.h types.h argv.h
