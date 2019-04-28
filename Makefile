@@ -67,21 +67,21 @@ clean:
 # generated via g++ -MM -std=c++17 *.cc *.h
 
 
-client.o: client.cc jyq.h
-convert.o: convert.cc jyq.h
-error.o: error.cc jyq.h
-jyqc.o: jyqc.cc jyq.h
-map.o: map.cc jyq.h
-message.o: message.cc jyq.h
-request.o: request.cc jyq.h
-rpc.o: rpc.cc jyq.h
-server.o: server.cc jyq.h
-socket.o: socket.cc jyq.h
-srv_util.o: srv_util.cc jyq_srvutil.h jyq.h
-thread.o: thread.cc jyq.h
-thread_pthread.o: thread_pthread.cc thread_pthread.h jyq.h 
-timer.o: timer.cc jyq.h
-transport.o: transport.cc jyq.h
-util.o: util.cc jyq.h
-
-
+client.o: client.cc jyq.h types.h PrintFunctions.h thread.h util.h
+convert.o: convert.cc jyq.h types.h PrintFunctions.h thread.h util.h
+error.o: error.cc PrintFunctions.h thread.h types.h
+jyqc.o: jyqc.cc
+map.o: map.cc jyq.h types.h PrintFunctions.h thread.h util.h
+message.o: message.cc jyq.h types.h PrintFunctions.h thread.h util.h
+request.o: request.cc jyq.h types.h PrintFunctions.h thread.h util.h
+rpc.o: rpc.cc jyq.h types.h PrintFunctions.h thread.h util.h
+server.o: server.cc jyq.h types.h PrintFunctions.h thread.h util.h
+socket.o: socket.cc jyq.h types.h PrintFunctions.h thread.h util.h
+srv_util.o: srv_util.cc jyq.h types.h PrintFunctions.h thread.h util.h \
+ jyq_srvutil.h
+thread.o: thread.cc jyq.h types.h PrintFunctions.h thread.h util.h
+thread_pthread.o: thread_pthread.cc jyq.h types.h PrintFunctions.h \
+ thread.h util.h thread_pthread.h
+timer.o: timer.cc jyq.h types.h PrintFunctions.h thread.h util.h
+transport.o: transport.cc jyq.h types.h PrintFunctions.h thread.h util.h
+util.o: util.cc PrintFunctions.h util.h types.h
