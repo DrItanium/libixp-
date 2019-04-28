@@ -158,25 +158,7 @@ eprint(const char *fmt, ...) {
 /* Can't malloc */
 static void
 mfatal(const char *name, uint size) {
-    static std::string 
-        couldnot = "libjyq: fatal: Could not ",
-        paren = "() ",
-        bytes = " bytes\n";
-        
-	char sizestr[8];
-	
-	int i = sizeof sizestr;
-	do {
-		sizestr[--i] = '0' + (size%10);
-		size /= 10;
-	} while(size > 0);
-
-	::write(1, couldnot.c_str(), couldnot.size());
-	::write(1, name, strlen(name));
-	::write(1, paren.c_str(), paren.size());
-	::write(1, sizestr+i, sizeof(sizestr)-i);
-	::write(1, bytes.c_str(), bytes.size());
-
+    std::cerr << "libjyq: fatal: Could not " << name << "() " << size << " bytes\n";
 	exit(1);
 }
 
