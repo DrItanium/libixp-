@@ -655,10 +655,6 @@ namespace jyq {
     uint recvmsg(int, Msg*);
     uint64_t msec();
 
-    using Timer = Timer;
-
-
-
     struct Timer {
         Timer*		link;
         uint64_t	msec;
