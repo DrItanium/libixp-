@@ -65,17 +65,6 @@ namespace jyq {
     struct FVersion;
 
 
-    struct Conn {
-        ~Conn();
-        Server*	srv;
-        std::any	aux;	/* Arbitrary pointer, to be used by handlers. */
-        int		fd;	/* The file descriptor of the connection. */
-        std::function<void(Conn*)> read, close;
-        bool		closed;	/* Non-zero when P<fd> has been closed. */
-
-        void    serve9conn();
-    };
-    void	hangup(Conn*);
 
     struct Server {
         std::list<std::shared_ptr<Conn>> conns;
