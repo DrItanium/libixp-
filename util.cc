@@ -18,18 +18,20 @@
 //#include "jyq.h"
 
 namespace jyq {
-static char*
+static const std::string&
 _user() {
-	static char *user;
+    static std::string user;
 	struct passwd *pw;
 
-	if(!user) {
+	if(user.empty()) {
 		pw = getpwuid(getuid());
-		if(pw)
+		if(pw) {
 			user = strdup(pw->pw_name);
+        }
 	}
-	if(!user)
+	if(user.empty()) {
 		user = "none";
+    }
 	return user;
 }
 
