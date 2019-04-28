@@ -7,6 +7,7 @@
 #include <any>
 #include <functional>
 #include "types.h"
+#include "Conn9.h"
 #include "Req9.h"
 #include "Fid.h"
 

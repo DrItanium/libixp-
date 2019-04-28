@@ -11,6 +11,7 @@
 #include "jyq.h"
 #include "map.h"
 #include "argv.h"
+#include "Conn.h"
 
 
 namespace jyq {
@@ -43,22 +44,7 @@ static std::string
 	Eintr = "interrupted",
 	Eisdir = "cannot perform operation on a directory";
 
-constexpr auto TAG_BUCKETS = 61;
-constexpr auto FID_BUCKETS = 61;
 
-struct Conn9 {
-	Map		tagmap;
-	Map		fidmap;
-	MapEnt*		taghash[TAG_BUCKETS];
-	MapEnt*		fidhash[FID_BUCKETS];
-	Srv9*	srv;
-	Conn*	conn;
-	Mutex	rlock;
-	Mutex	wlock;
-	Msg		rmsg;
-	Msg		wmsg;
-	int		ref;
-};
 
 static void
 decref_p9conn(Conn9 *p9conn) {
