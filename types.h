@@ -70,6 +70,87 @@ namespace jyq {
         private:
             T _value;
     };
+    /* 9P message types */
+    enum class FType : uint8_t {
+        TVersion = 100,
+        RVersion,
+        TAuth = 102,
+        RAuth,
+        TAttach = 104,
+        RAttach,
+        TError = 106, /* illegal */
+        RError,
+        TFlush = 108,
+        RFlush,
+        TWalk = 110,
+        RWalk,
+        TOpen = 112,
+        ROpen,
+        TCreate = 114,
+        RCreate,
+        TRead = 116,
+        RRead,
+        TWrite = 118,
+        RWrite,
+        TClunk = 120,
+        RClunk,
+        TRemove = 122,
+        RRemove,
+        TStat = 124,
+        RStat,
+        TWStat = 126,
+        RWStat,
+    };
+
+    /* from libc.h in p9p */
+    enum class OMode : uint16_t {
+        READ	= 0,	/* open for read */
+        WRITE	= 1,	/* write */
+        RDWR	= 2,	/* read and write */
+        EXEC	= 3,	/* execute, == read but check execute permission */
+        TRUNC	= 16,	/* or'ed in (except for exec), truncate file first */
+        CEXEC	= 32,	/* or'ed in, close on exec */
+        RCLOSE	= 64,	/* or'ed in, remove on close */
+        DIRECT	= 128,	/* or'ed in, direct access */
+        NONBLOCK	= 256,	/* or'ed in, non-blocking call */
+        EXCL	= 0x1000,	/* or'ed in, exclusive use (create only) */
+        LOCK	= 0x2000,	/* or'ed in, lock after opening */
+        APPEND	= 0x4000	/* or'ed in, append only */
+    };
+
+    /* bits in Qid.type */
+    enum class QType : uint8_t {
+        DIR	= 0x80,	/* type bit for directories */
+        APPEND	= 0x40,	/* type bit for append only files */
+        EXCL	= 0x20,	/* type bit for exclusive use files */
+        MOUNT	= 0x10,	/* type bit for mounted channel */
+        AUTH	= 0x08,	/* type bit for authentication file */
+        TMP	= 0x04,	/* type bit for non-backed-up file */
+        SYMLINK	= 0x02,	/* type bit for symbolic link */
+        FILE	= 0x00	/* type bits for plain file */
+    };
+
+    /* bits in Stat.mode */
+    enum class DMode : uint32_t {
+        EXEC	= 0x1,		/* mode bit for execute permission */
+        WRITE	= 0x2,		/* mode bit for write permission */
+        READ	= 0x4,		/* mode bit for read permission */
+
+        // these were originally macros in this exact location... no clue
+        // why...
+        DIR = 0x8000'0000, /* mode bit for directories */
+        APPEND = 0x4000'0000, /* mode bit for append only files */
+        EXCL = 0x2000'0000, /* mode bit for exclusive use files */
+        MOUNT = 0x1000'0000, /* mode bit for mounted channel */
+        AUTH = 0x0800'0000, /* mode bit for authentication file */
+        TMP = 0x0400'0000, /* mode bit for non-backed-up file */
+        SYMLINK = 0x0200'0000, /* mode bit for symbolic link (Unix, 9P2000.u) */
+        DEVICE = 0x0080'0000, /* mode bit for device file (Unix, 9P2000.u) */
+        NAMEDPIPE = 0x0020'0000, /* mode bit for named pipe (Unix, 9P2000.u) */
+        SOCKET = 0x0010'0000, /* mode bit for socket (Unix, 9P2000.u) */
+        SETUID = 0x0008'0000, /* mode bit for setuid (Unix, 9P2000.u) */
+        SETGID = 0x0004'0000, /* mode bit for setgid (Unix, 9P2000.u) */
+    };
 } // end namespace jyq
 
 #endif // end LIBJYQ_TYPES_H__
