@@ -12,6 +12,7 @@
 #include "Msg.h"
 #include "Server.h"
 #include "stat.h"
+#include "Fcall.h"
 
 namespace jyq {
 /**

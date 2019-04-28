@@ -8,6 +8,7 @@
 #include "Msg.h"
 #include "jyq.h"
 #include "timer.h"
+#include "Server.h"
 
 
 namespace jyq {
