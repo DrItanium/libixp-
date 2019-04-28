@@ -10,5 +10,6 @@
 #include "Srv9.h"
 #include "Req9.h"
 #include "util.h"
-
+#include "Client.h"
+#include "CFid.h"
 #endif
