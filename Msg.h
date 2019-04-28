@@ -5,6 +5,7 @@
 #ifndef LIBJYQ_MSG_H__
 #define LIBJYQ_MSG_H__
 
+#include "qid.h"
 #include "types.h"
 
 namespace jyq {

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "qid.h"
 #include "Msg.h"
 #include "jyq.h"
 

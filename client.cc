@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "qid.h"
 #include "Msg.h"
 #include "jyq.h"
 

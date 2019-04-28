@@ -5,8 +5,8 @@
 #ifndef LIBJYQ_QID_H__
 #define LIBJYQ_QID_H__
 #include "types.h"
-#include "Msg.h"
 namespace jyq {
+    struct Msg;
     struct Qid {
         uint8_t		type;
         uint32_t	version;
