@@ -6,8 +6,13 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+#include "Rpc.h"
 #include "Msg.h"
-#include "jyq.h"
+#include "thread.h"
+#include "Client.h"
+#include "socket.h"
+#include "util.h"
+#include "PrintFunctions.h"
 
 namespace jyq {
 Rpc::Rpc(Client& m) : mux(m) {

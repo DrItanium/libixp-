@@ -5,12 +5,12 @@
 #ifndef LIBJYQ_MSG_H__
 #define LIBJYQ_MSG_H__
 
-#include "qid.h"
 #include "types.h"
+#include "qid.h"
+#include "stat.h"
 
 namespace jyq {
     struct Qid;
-    struct Stat;
     union Fcall;
     struct Msg : public ContainsSizeParameter<uint> {
         enum class Mode {

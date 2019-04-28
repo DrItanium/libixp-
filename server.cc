@@ -10,7 +10,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include "Msg.h"
-#include "jyq.h"
+#include "Server.h"
+#include "stat.h"
 
 namespace jyq {
 /**
