@@ -43,14 +43,6 @@ namespace jyq {
     union Fcall;
 
 
-    struct Qid {
-        uint8_t		type;
-        uint32_t	version;
-        uint64_t	path;
-        /* Private members */
-        uint8_t		dir_type;
-        void packUnpack(Msg& msg);
-    };
 
     /* stat structure */
     struct Stat {
