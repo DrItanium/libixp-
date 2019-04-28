@@ -32,6 +32,9 @@ namespace jyq {
      *	T<Req9>, T<Qid>, T<OMode>
      */
     struct Fid {
+        using Map = std::map<int, Fid>;
+        Fid(uint32_t fid, Map& m, Conn9& c);
+        ~Fid();
         std::string		uid;	/* The uid of the file opener. */
         std::any    aux;    // Arbitrary pointer, to be used by handlers. 
         uint32_t		fid;    /* The ID number of the fid. */
@@ -40,8 +43,8 @@ namespace jyq {
         uint		iounit; /* The maximum size of any IO request. */
 
         /* Private members */
-        Conn9*	conn;
-        Map*		map;
+        Map& map;
+        Conn9& conn;
     };
 } // end namespace jyq
 #endif // end LIBJYQ_FID_H__

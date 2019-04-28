@@ -26,7 +26,7 @@ namespace jyq {
     //    void*	get(ulong);
     //    void*	rm(ulong);
     //};
-    using Map = std::map<std::string, std::any>;
+    using Map = std::map<std::any, std::any>;
 } // end namespace jyq
 
 #endif // end LIBJYQ_MAP_H__

@@ -17,14 +17,17 @@
 #include "map.h"
 #include "Conn.h"
 #include "Srv9.h"
+#include "Fid.h"
+#include "Req9.h"
 
 namespace jyq {
 struct Srv9;
 constexpr auto TAG_BUCKETS = 61;
 constexpr auto FID_BUCKETS = 61;
 struct Conn9 {
-	Map		tagmap;
-	Map		fidmap;
+    using TagMap = std::map<uint16_t, Req9>;
+    TagMap    tagmap;
+    Fid::Map  fidmap;
 	Srv9*	srv;
 	Conn*	conn;
 	Mutex	rlock;

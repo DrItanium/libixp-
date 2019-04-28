@@ -8,7 +8,6 @@ CXXFLAGS += '-DVERSION="$(VERSION)"' \
 LIBJYQ_CORE_OBJS := client.o \
 					convert.o \
 					error.o \
-					map.o \
 					message.o \
 					request.o \
 					rpc.o \
