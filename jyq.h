@@ -67,18 +67,6 @@ namespace jyq {
 
 
 
-    struct Rpc {
-        Rpc(Client& m);
-        ~Rpc() = default;
-        Client&	mux;
-        Rpc*		next;
-        Rpc*		prev;
-        Rendez	r;
-        uint		tag;
-        Fcall*	p;
-        bool waiting;
-        bool async;
-    };
 
     struct Client {
         using DoFcallFunc = std::function<bool(Fcall*)>;
