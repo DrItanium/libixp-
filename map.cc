@@ -2,6 +2,7 @@
 /* Public domain */
 #include <cstdlib>
 #include "map.h"
+#include "util.h"
 
 namespace jyq {
 /* Edit s/^([a-zA-Z].*)\n([a-z].*) {/\1 \2;/g  x/^([^a-zA-Z]|static|$)/-+d  s/ (\*map|val|*str)//g */

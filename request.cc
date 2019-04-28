@@ -7,6 +7,7 @@
 #include <cstring>
 #include <sys/socket.h>
 #include "jyq.h"
+#include "map.h"
 
 
 namespace jyq {

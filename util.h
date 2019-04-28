@@ -5,6 +5,7 @@
  * See LICENSE file for license details.
  */
 #include "types.h"
+#include <list>
 
 namespace jyq {
     void*	emalloc(uint);

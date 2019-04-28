@@ -12,7 +12,6 @@
 
 namespace jyq {
     struct MapEnt;
-    using Map = Map;
     struct Map {
         MapEnt**	bucket;
         int		nhash;
