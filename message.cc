@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstring>
 #include "jyq.h"
+#include "argv.h"
 
 namespace jyq {
 namespace {

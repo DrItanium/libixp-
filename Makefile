@@ -70,7 +70,7 @@ clean:
 client.o: client.cc jyq.h types.h PrintFunctions.h thread.h util.h
 convert.o: convert.cc jyq.h types.h PrintFunctions.h thread.h util.h
 error.o: error.cc PrintFunctions.h thread.h types.h
-jyqc.o: jyqc.cc
+jyqc.o: jyqc.cc argv.h types.h
 map.o: map.cc map.h types.h thread.h util.h
 message.o: message.cc jyq.h types.h PrintFunctions.h thread.h util.h
 request.o: request.cc jyq.h types.h PrintFunctions.h thread.h util.h \
@@ -83,6 +83,6 @@ srv_util.o: srv_util.cc jyq.h types.h PrintFunctions.h thread.h util.h \
 thread.o: thread.cc jyq.h types.h PrintFunctions.h thread.h util.h
 thread_pthread.o: thread_pthread.cc jyq.h types.h PrintFunctions.h \
  thread.h util.h thread_pthread.h
-timer.o: timer.cc jyq.h types.h PrintFunctions.h thread.h util.h
+timer.o: timer.cc jyq.h types.h PrintFunctions.h thread.h util.h timer.h
 transport.o: transport.cc jyq.h types.h PrintFunctions.h thread.h util.h
 util.o: util.cc PrintFunctions.h util.h types.h

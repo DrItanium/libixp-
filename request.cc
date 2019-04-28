@@ -9,6 +9,7 @@
 #include <sys/socket.h>
 #include "jyq.h"
 #include "map.h"
+#include "argv.h"
 
 
 namespace jyq {
