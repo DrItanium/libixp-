@@ -18,7 +18,6 @@
 namespace jyq {
     struct CFid;
     struct Client {
-        using DoFcallFunc = std::function<bool(Fcall*)>;
         static void	unmount(Client*);
         static Client*	mount(const char*);
         static Client*	mountfd(int);

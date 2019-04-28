@@ -6,6 +6,7 @@
 #define LIBJYQ_STAT_H__
 #include <string>
 #include <array>
+#include <functional>
 #include "types.h"
 #include "qid.h"
 #include "stat.h"
@@ -156,5 +157,6 @@ namespace jyq {
             setFid(value);
         }
     };
+    using DoFcallFunc = std::function<bool(Fcall*)>;
 } // end namespace jyq
 #endif // end LIBJYQ_STAT_H__
