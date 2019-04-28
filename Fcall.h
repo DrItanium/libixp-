@@ -10,6 +10,7 @@
 #include "types.h"
 #include "qid.h"
 #include "stat.h"
+#include "Msg.h"
 namespace jyq {
     struct FHdr {
         FType type;
@@ -158,5 +159,7 @@ namespace jyq {
         }
     };
     using DoFcallFunc = std::function<bool(Fcall*)>;
+    uint	msg2fcall(Msg*, Fcall*);
+    uint	fcall2msg(Msg*, Fcall*);
 } // end namespace jyq
 #endif // end LIBJYQ_STAT_H__
