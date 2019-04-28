@@ -48,23 +48,6 @@ rmkdir(const std::string& path, int mode) {
     }
     return true;
 
-#if 0
-	for(char* p = path+1; ; p++) {
-		char c = *p;
-		if((c == '/') || (c == '\0')) {
-			*p = '\0';
-			int ret = mkdir(path, mode);
-			if((ret == -1) && (errno != EEXIST)) {
-				werrstr("Can't create path '%s': %s", path, errbuf());
-				return false;
-			}
-			*p = c;
-		}
-		if(c == '\0')
-			break;
-	}
-	return true;
-#endif 
 }
 
 static std::string
