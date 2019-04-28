@@ -178,41 +178,28 @@ handlereq(Req9& r) {
             srv->flush(&r);
         }
     };
+    auto tcreate = [&p9conn, srv = p9conn.srv](Req9& r) {
+        if (auto newfid = p9conn.fidmap.find(r.ifcall.hdr.fid); newfid == p9conn.fidmap.end()) {
+            r.respond(Enofid);
+        } else if (r.fid = &newfid->second; r.fid->omode != -1) {
+            r.respond(Eopen);
+        } else if(!(r.fid->qid.type&uint8_t(QType::DIR))) {
+            r.respond(Enotdir);
+        } else if(!p9conn.srv->create) {
+            r.respond(Enofunc);
+        } else {
+            srv->create(&r);
+        }
+    };
 	switch(r.ifcall.getType()) {
 	default:
 		r.respond(Enofunc);
 		break;
-	case FType::TVersion:
-        tversion(r);
-		break;
-	case FType::TAttach:
-        tattach(r);
-		break;
-	case FType::TClunk:
-        tclunk(r);
-		break;
-	case FType::TFlush:
-        tflush(r);
-		break;
-	case FType::TCreate:
-        if (r.fid = decltype(r.fid)(p9conn.fidmap.get(r.ifcall.hdr.fid)); !r.fid) {
-			r.respond(Enofid);
-			return;
-		}
-		if(r.fid->omode != -1) {
-			r.respond(Eopen);
-			return;
-		}
-		if(!(r.fid->qid.type&uint8_t(QType::DIR))) {
-			r.respond(Enotdir);
-			return;
-		}
-		if(!p9conn.srv->create) {
-			r.respond(Enofunc);
-			return;
-		}
-		p9conn.srv->create(r);
-		break;
+	case FType::TVersion: tversion(r); break;
+	case FType::TAttach: tattach(r); break;
+	case FType::TClunk: tclunk(r); break;
+	case FType::TFlush: tflush(r); break;
+	case FType::TCreate: tcreate(r); break;
 	case FType::TOpen:
         if (r.fid = decltype(r.fid)(p9conn.fidmap.get(r.ifcall.hdr.fid)); !r.fid) {
 			r.respond(Enofid);
