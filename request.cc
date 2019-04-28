@@ -12,6 +12,8 @@
 #include "map.h"
 #include "argv.h"
 #include "Conn.h"
+#include "socket.h"
+#include "Server.h"
 
 
 namespace jyq {
