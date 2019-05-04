@@ -17,30 +17,6 @@ namespace jyq {
             Pack,
             Unpack,
         };
-        /**
-         * Exploit RAII to save and restore the mode that was in the Msg prior.
-         */
-        class ModePreserver final {
-            public:
-                ModePreserver(Msg& target, Mode newMode) : _target(target), _oldMode(target.getMode()), _writePerformed(target.getMode() != newMode) {
-                    if (_writePerformed) {
-                        _target.setMode(newMode);
-                    }
-                }
-                ~ModePreserver() {
-                    if (_writePerformed) {
-                        _target.setMode(_oldMode);
-                    }
-                }
-                ModePreserver(const ModePreserver&) = delete;
-                ModePreserver(ModePreserver&&) = delete;
-                ModePreserver& operator=(const ModePreserver&) = delete;
-                ModePreserver& operator=(ModePreserver&&) = delete;
-            private:
-                Msg& _target;
-                Mode _oldMode;
-                bool _writePerformed;
-        };
         char*	data; /* Begining of buffer. */
         char*	pos;  /* Current position in buffer. */
         char*	end;  /* End of message. */ 
@@ -95,32 +71,6 @@ namespace jyq {
         void packUnpackMany(Args&& ... fields) noexcept {
             (packUnpack(std::forward<Args>(fields)), ...);
         }
-        template<typename T>
-        void pack(T* value) noexcept {
-            ModePreserver(*this, Mode::Pack);
-            packUnpack(value);
-        }
-        template<typename T>
-        void pack(T& value) noexcept {
-            ModePreserver(*this, Mode::Pack);
-            packUnpack(value);
-        }
-        template<typename T>
-        void unpack(T* value) noexcept {
-            ModePreserver(*this, Mode::Unpack);
-            packUnpack(value);
-        }
-        template<typename T>
-        void unpack(T& value) noexcept {
-            ModePreserver(*this, Mode::Unpack);
-            packUnpack(value);
-        }
-        template<typename T>
-        T unpack() noexcept {
-            T value;
-            unpack(value);
-            return value;
-        }
         constexpr bool unpackRequested() const noexcept {
             return _mode == Mode::Unpack;
         }
@@ -133,7 +83,6 @@ namespace jyq {
         void setMode(Mode mode) noexcept {
             this->_mode = mode;
         }
-
         private:
            void puint(uint, uint32_t*);
            Mode _mode; /* MsgPack or MsgUnpack. */
