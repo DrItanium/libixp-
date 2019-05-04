@@ -39,6 +39,21 @@ struct Conn9 {
     Fid* retrieveFid(int id);
     bool removeTag(uint16_t id);
     bool removeFid(int id);
+    template<typename T, typename M>
+    void applyToEachMapEntry(std::function<void(T&, typename M::iterator)> op, T& context, M& map) {
+        using iterator = typename M::iterator;
+        for (iterator it = map.begin(); it != map.end(); ++it) {
+            op(context, it);
+        }
+    }
+    template<typename T>
+    void applyToEachTag(std::function<void(T&, TagMap::iterator)> op, T& context) {
+        applyToEachMapEntry<T, decltype(tagmap)>(op, context, tagmap);
+    }
+    template<typename T>
+    void applyToEachFid(std::function<void(T&, Fid::Map::iterator)> op, T& context) {
+        applyToEachMapEntry<T, decltype(fidmap)>(op, context, fidmap);
+    }
 
 };
 } // end namespace jyq
