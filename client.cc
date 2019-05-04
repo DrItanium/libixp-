@@ -22,12 +22,12 @@ constexpr auto RootFid = 1;
 
 void
 Client::clunk(std::shared_ptr<CFid> ptr) {
-    ptr->clunk([this](auto* value) { return this->dofcall(value); });
+    ptr->clunk([this](auto* value) { return dofcall(value); });
     putfid(ptr);
 }
 std::shared_ptr<CFid>
 Client::getFid() {
-    concurrency::Locker<Mutex> theLock(this->lk);
+    concurrency::Locker<Mutex> theLock(lk);
     if (freefid.empty()) {
         auto ptr = std::make_shared<CFid>();
         ptr->fid = ++lastfid;
@@ -354,17 +354,17 @@ Client::mount(const char *address) {
 
 Client*
 Client::nsmount(const char *name) {
-    std::string address;
-	Client *c;
-
-	address = getNamespace();
+    std::string address(getNamespace());
 	if(!address.empty()) {
-		address = smprint("unix!%s/%s", address.c_str(), name);
+        std::stringstream builder;
+        builder << "unix!" << address << "/" << name;
+        address = builder.str();
     }
-    if (address.empty()) 
+    if (address.empty()) {
 		return nullptr;
-	c = mount(address);
-	return c;
+    } else {
+        return mount(address);
+    }
 }
 
 
