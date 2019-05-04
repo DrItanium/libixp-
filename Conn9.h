@@ -34,7 +34,10 @@ struct Conn9 {
 	Mutex	wlock;
 	Msg		rmsg;
 	Msg		wmsg;
-	int		ref;
+    auto getReferenceCount() const noexcept { return _ref; }
+    auto referenceCountGreaterThan(int count) const noexcept { return _ref > count; }
+    auto referenceCountIs(int count) const noexcept { return _ref == count; }
+
     Req9* retrieveTag(uint16_t id);
     Fid* retrieveFid(int id);
     bool removeTag(uint16_t id);
@@ -48,6 +51,23 @@ struct Conn9 {
         fidmap.exec<T>(op, context);
     }
 
+    /**
+     * Increment the reference count
+     */
+    Conn9& operator++() {
+        ++_ref;
+        return *this;
+    }
+    /**
+     * decrement the reference count
+     */
+    Conn9& operator--() {
+        --_ref;
+        return *this;
+    }
+
+    private:
+        int		_ref;
 };
 } // end namespace jyq
 #endif // end LIBJYQ_CONN9_H__

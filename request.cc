@@ -52,7 +52,8 @@ static std::string
 static void
 decref_p9conn(Conn9 *p9conn) {
     p9conn->wlock.lock();
-	if(--p9conn->ref > 0) {
+    p9conn->operator--();
+    if (p9conn->referenceCountGreaterThan(0)) {
         p9conn->wlock.unlock();
 		return;
 	}
@@ -68,7 +69,7 @@ decref_p9conn(Conn9 *p9conn) {
 	free(p9conn);
 }
 Fid::Fid(uint32_t f, Fid::Map& m, Conn9& c) : fid(f), omode(-1), map(m), conn(c) {
-    conn.ref++;
+    ++conn;
 }
 
 static Fid* 
@@ -112,7 +113,7 @@ handlefcall(Conn *c) {
     p9conn->rlock.unlock();
 
     Req9 req;
-	p9conn->ref++;
+    p9conn->operator++();
 	req.conn = p9conn;
 	req.srv = p9conn->srv;
 	req.ifcall = fcall;
@@ -454,35 +455,15 @@ Req9::respond(const char *error) {
 	decref_p9conn(p9conn);
 }
 
-/* Flush a pending request */
-static void
-voidrequest(void *context, void *arg) {
-	Req9 *orig_req, *flush_req;
-	Conn9 *conn;
-
-	orig_req = decltype(orig_req)(arg);
-	conn = orig_req->conn;
-	conn->ref++;
-
-	flush_req = (Req9*)jyq::emallocz(sizeof *orig_req);
-	flush_req->ifcall.setType(FType::TFlush);
-	flush_req->ifcall.setNoTag();
-	flush_req->ifcall.tflush.oldtag = orig_req->ifcall.hdr.tag;
-	flush_req->conn = conn;
-
-	flush_req->aux = *(void**)context;
-	*(void**)context = flush_req;
-}
-
 static void
 cleanupconn(Conn *c) {
 
     auto p9conn = std::any_cast<Conn9*>(c->aux);
 	p9conn->conn = nullptr;
     std::list<Req9> collection;
-	if(p9conn->ref > 1) {
+    if (p9conn->referenceCountGreaterThan(1)) {
         p9conn->fidExec<decltype(collection)&>([](decltype(collection)& context, Fid::Map::iterator arg) {
-                arg->second.conn.ref++;
+                ++arg->second.conn;
                 context.emplace_back();
                 context.back().ifcall.setType(FType::TClunk);
                 context.back().ifcall.setNoTag();
@@ -491,7 +472,7 @@ cleanupconn(Conn *c) {
                 context.back().conn = &arg->second.conn;
                 }, collection);
         p9conn->tagExec<decltype(collection)&>([](decltype(collection)& context, Conn9::TagMap::iterator arg) {
-                    arg->second.conn->ref++;
+                    arg->second.conn->operator++();
                     context.emplace_back();
                     context.back().ifcall.setType(FType::TFlush);
                     context.back().ifcall.setNoTag();
@@ -538,7 +519,7 @@ Conn::serve9conn() {
 		return;
     } else {
         Conn9 p9conn;
-        p9conn.ref++;
+        ++p9conn;
         p9conn.srv = std::any_cast<decltype(p9conn.srv)>(this->aux);
         p9conn.rmsg.setSize(1024);
         p9conn.wmsg.setSize(1024);
