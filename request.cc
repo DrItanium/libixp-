@@ -486,15 +486,12 @@ voidrequest(void *context, void *arg) {
 /* Clunk an open Fid */
 static void
 voidfid(void *context, void *arg) {
-	Conn9 *p9conn;
-	Req9 *clunk_req;
-	Fid *fid;
 
-	fid = decltype(fid)(arg);
-	p9conn = fid->conn;
+	auto fid = (Fid*)arg;
+	auto p9conn = &fid->conn;
 	p9conn->ref++;
 
-	clunk_req = (Req9*)jyq::emallocz(sizeof *clunk_req);
+    auto clunk_req = new Req9();
 	clunk_req->ifcall.setType(FType::TClunk);
 	clunk_req->ifcall.setNoTag();
 	clunk_req->ifcall.setFid(fid->fid);
