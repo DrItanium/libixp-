@@ -474,45 +474,34 @@ voidrequest(void *context, void *arg) {
 	*(void**)context = flush_req;
 }
 
-/* Clunk an open Fid */
-template<typename T>
-static void
-voidfid(decltype(Conn9::fidmap)::iterator context, Fid** arg) {
-
-	auto fid = (Fid*)arg;
-	auto p9conn = &fid->conn;
-	p9conn->ref++;
-
-    auto clunk_req = new Req9();
-	clunk_req->ifcall.setType(FType::TClunk);
-	clunk_req->ifcall.setNoTag();
-	clunk_req->ifcall.setFid(fid->fid);
-	clunk_req->fid = fid;
-	clunk_req->conn = p9conn;
-
-	clunk_req->aux = *(void**)context;
-	*(void**)context = clunk_req;
-}
-
 static void
 cleanupconn(Conn *c) {
 
     auto p9conn = std::any_cast<Conn9*>(c->aux);
 	p9conn->conn = nullptr;
-	Req9* req = nullptr;
+    std::list<Req9> collection;
 	if(p9conn->ref > 1) {
-        p9conn->fidExec<decltype(&req)>([](decltype(&req) context, Fid::Map::iterator arg) {
-                    
-                }, &req);
-        //p9conn->fidmap.exec(voidfid, &req);
-		//p9conn->tagmap.exec(voidrequest, &req);
+        p9conn->fidExec<decltype(collection)&>([](decltype(collection)& context, Fid::Map::iterator arg) {
+                arg->second.conn.ref++;
+                context.emplace_back();
+                context.back().ifcall.setType(FType::TClunk);
+                context.back().ifcall.setNoTag();
+                context.back().ifcall.setFid(arg->second.fid);
+                context.back().fid = &arg->second;
+                context.back().conn = &arg->second.conn;
+                }, collection);
+        p9conn->tagExec<decltype(collection)&>([](decltype(collection)& context, Conn9::TagMap::iterator arg) {
+                    arg->second.conn->ref++;
+                    context.emplace_back();
+                    context.back().ifcall.setType(FType::TFlush);
+                    context.back().ifcall.setNoTag();
+                    context.back().ifcall.tflush.oldtag = arg->second.ifcall.hdr.tag;
+                    context.back().conn = arg->second.conn;
+                }, collection);
 	}
-	Req9 *r;
-	while((r = req)) {
-        req = std::any_cast<decltype(req)>(r->aux);
-        r->aux.reset();
-		handlereq(r);
-	}
+    for (auto& req : collection) {
+        handlereq(req);
+    }
 	decref_p9conn(p9conn);
 }
 
