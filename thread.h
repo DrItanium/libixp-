@@ -171,6 +171,13 @@ namespace jyq {
         template<>
         class Locker<RWLock> final {
             public:
+                static Locker<RWLock> readLock(RWLock& lock) {
+                    return Locker(lock, true);
+                }
+                static Locker<RWLock> writeLock(RWLock& lock) {
+                    return Locker(lock, false);
+                }
+            public:
                 Locker(RWLock& lock, bool readLock = false) : _lock(lock), _readLock(readLock) { 
                     if (_readLock) {
                         _lock.readLock();

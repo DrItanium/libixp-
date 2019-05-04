@@ -13,8 +13,11 @@
 #include "Server.h"
 #include "stat.h"
 #include "Fcall.h"
+#include "Conn.h"
 
 namespace jyq {
+Conn::Conn(Server& s, int theFd, std::any a, Conn::Func r, Conn::Func c) : 
+    srv(s), aux(a), fd(theFd), read(r), close(c), closed(false) { }
 /**
  * Function: listen
  * Type: Conn
@@ -42,13 +45,7 @@ std::shared_ptr<Conn>
 Server::listen(int fd, const std::any& aux,
         std::function<void(Conn*)> read,
         std::function<void(Conn*)> close) {
-    conns.emplace_back(std::make_shared<Conn>());
-	conns.back()->fd = fd;
-	conns.back()->aux = aux;
-	conns.back()->srv = this;
-	conns.back()->read = read;
-	conns.back()->close = close;
-    conns.back()->closed = false;
+    conns.emplace_back(std::make_shared<Conn>(*this, fd, aux, read, close));
     return conns.back();
 }
 

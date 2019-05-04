@@ -10,12 +10,14 @@
 namespace jyq {
     struct Server;
     struct Conn {
+        using Func = std::function<void(Conn*)>;
+        Conn(Server& srv, int fd, std::any a, Func read, Func close);
         ~Conn();
-        Server*	srv;
+        Server&	srv;
         std::any	aux;	/* Arbitrary pointer, to be used by handlers. */
         int		fd;	/* The file descriptor of the connection. */
-        std::function<void(Conn*)> read, close;
-        bool		closed;	/* Non-zero when P<fd> has been closed. */
+        Func read, close;
+        bool		closed = false;	/* Non-zero when P<fd> has been closed. */
 
         void    serve9conn();
     };

@@ -562,9 +562,6 @@ Conn::serve9conn() {
         p9conn.rmsg.data = (decltype(p9conn.rmsg.data))jyq::emalloc(p9conn.rmsg.size());
         p9conn.wmsg.data = (decltype(p9conn.wmsg.data))jyq::emalloc(p9conn.wmsg.size());
 
-        concurrency::threadModel->initmutex(&p9conn.rlock);
-        concurrency::threadModel->initmutex(&p9conn.wlock);
-
         this->srv->listen(fd, &p9conn, handlefcall, cleanupconn);
     }
 }

@@ -32,7 +32,7 @@ namespace jyq {
      *	T<Req9>, T<Qid>, T<OMode>
      */
     struct Fid {
-        using Map = std::map<int, Fid>;
+        using Map = jyq::Map<int, Fid>;
         Fid(uint32_t fid, Map& m, Conn9& c);
         ~Fid();
         std::string		uid;	/* The uid of the file opener. */

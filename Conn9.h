@@ -25,7 +25,7 @@ struct Srv9;
 constexpr auto TAG_BUCKETS = 61;
 constexpr auto FID_BUCKETS = 61;
 struct Conn9 {
-    using TagMap = std::map<uint16_t, Req9>;
+    using TagMap = jyq::Map<uint16_t, Req9>;
     TagMap    tagmap;
     Fid::Map  fidmap;
 	Srv9*	srv;
@@ -39,20 +39,13 @@ struct Conn9 {
     Fid* retrieveFid(int id);
     bool removeTag(uint16_t id);
     bool removeFid(int id);
-    template<typename T, typename M>
-    void applyToEachMapEntry(std::function<void(T&, typename M::iterator)> op, T& context, M& map) {
-        using iterator = typename M::iterator;
-        for (iterator it = map.begin(); it != map.end(); ++it) {
-            op(context, it);
-        }
+    template<typename T>
+    void tagExec(std::function<void(T&, TagMap::iterator)> op, T& context) {
+        tagmap.exec(op, context);
     }
     template<typename T>
-    void applyToEachTag(std::function<void(T&, TagMap::iterator)> op, T& context) {
-        applyToEachMapEntry<T, decltype(tagmap)>(op, context, tagmap);
-    }
-    template<typename T>
-    void applyToEachFid(std::function<void(T&, Fid::Map::iterator)> op, T& context) {
-        applyToEachMapEntry<T, decltype(fidmap)>(op, context, fidmap);
+    void fidExec(std::function<void(T&, Fid::Map::iterator)> op, T& context) {
+        fidmap.exec(op, context);
     }
 
 };
