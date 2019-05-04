@@ -40,12 +40,12 @@ struct Conn9 {
     bool removeTag(uint16_t id);
     bool removeFid(int id);
     template<typename T>
-    void tagExec(std::function<void(T&, TagMap::iterator)> op, T& context) {
-        tagmap.exec(op, context);
+    void tagExec(std::function<void(T, TagMap::iterator)> op, T context) {
+        tagmap.exec<T>(op, context);
     }
     template<typename T>
-    void fidExec(std::function<void(T&, Fid::Map::iterator)> op, T& context) {
-        fidmap.exec(op, context);
+    void fidExec(std::function<void(T, Fid::Map::iterator)> op, T context) {
+        fidmap.exec<T>(op, context);
     }
 
 };

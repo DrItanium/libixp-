@@ -8,6 +8,7 @@
 #include <functional>
 #include <map>
 #include <any>
+#include <utility>
 #include "types.h"
 #include "thread.h"
 
@@ -22,20 +23,12 @@ namespace jyq {
         public:
             Map() = default;
             ~Map() = default;
-            std::optional<V&> get(const K& key) {
+            V* get(const K& key) {
                 auto rlock = concurrency::Locker<decltype(_lock)>::readLock(_lock);
                 try {
-                    return std::optional<V&>(_map.at(key));
-                } catch (std::out_of_range) {
-                    return std::optional<V&>(std::nullopt);
-                }
-            }
-            std::optional<const V&> get(const K& key) const {
-                auto rlock = concurrency::Locker<decltype(_lock)>::readLock(_lock);
-                try {
-                    return std::optional<const V&>(_map.at(key));
-                } catch (std::out_of_range) {
-                    return std::optional<const V&>(std::nullopt);
+                    return &_map.at(key);
+                } catch (std::out_of_range&) {
+                    return nullptr;
                 }
             }
             std::optional<V> rm(const K& key) {
@@ -53,15 +46,12 @@ namespace jyq {
             bool insert(const K key, V value) {
                 return _map.insert({key, value});
             }
-            template<typename T>
-            void exec(std::function<void(T&, iterator)> fn, T& context) {
-                auto rlock = concurrency::Locker<decltype(_lock)>::readLock(_lock);
-                for (auto it = _map.begin(); it != _map.end(); ++it) {
-                    fn(context, it);
-                }
+            template<typename ... Args>
+            auto emplace(Args&& ... args) {
+                return _map.emplace(std::forward<Args>(args)...);
             }
             template<typename T>
-            void exec(std::function<void(T&, const_iterator)> fn, T& context) const {
+            void exec(std::function<void(T, iterator)> fn, T context) {
                 auto rlock = concurrency::Locker<decltype(_lock)>::readLock(_lock);
                 for (auto it = _map.begin(); it != _map.end(); ++it) {
                     fn(context, it);

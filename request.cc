@@ -89,7 +89,7 @@ Fid::~Fid() {
 }
 static bool 
 destroyfid(Conn9& p9conn, ulong fid) {
-    return p9conn.fidmap.erase(fid) > 0;
+    return p9conn.removeFid(fid);
 }
 
 static void
@@ -126,25 +126,16 @@ handlefcall(Conn *c) {
 }
 Req9*
 Conn9::retrieveTag(uint16_t id) {
-    if (auto result = this->tagmap.find(id); result != tagmap.end()) {
-        return &result->second;
-    } else {
-        return nullptr;
-    }
+    return tagmap.get(id);
 }
 
 Fid*
 Conn9::retrieveFid(int id) {
-    if (auto result = this->fidmap.find(id); result != fidmap.end()) {
-        return &result->second;
-    } else {
-        return nullptr;
-    }
+    return fidmap.get(id);
 }
 static void
 handlereq(Req9& r) {
 	auto& p9conn = *r.conn;
-	auto srv = p9conn.srv;
 
 	if(printfcall) {
 		printfcall(&r.ifcall);
@@ -484,8 +475,9 @@ voidrequest(void *context, void *arg) {
 }
 
 /* Clunk an open Fid */
+template<typename T>
 static void
-voidfid(void *context, void *arg) {
+voidfid(decltype(Conn9::fidmap)::iterator context, Fid** arg) {
 
 	auto fid = (Fid*)arg;
 	auto p9conn = &fid->conn;
@@ -504,16 +496,18 @@ voidfid(void *context, void *arg) {
 
 static void
 cleanupconn(Conn *c) {
-	Conn9 *p9conn;
-	Req9 *req, *r;
 
-    p9conn = std::any_cast<decltype(p9conn)>(c->aux);
+    auto p9conn = std::any_cast<Conn9*>(c->aux);
 	p9conn->conn = nullptr;
-	req = nullptr;
+	Req9* req = nullptr;
 	if(p9conn->ref > 1) {
-        p9conn->fidmap.exec(voidfid, &req);
-		p9conn->tagmap.exec(voidrequest, &req);
+        p9conn->fidExec<decltype(&req)>([](decltype(&req) context, Fid::Map::iterator arg) {
+                    
+                }, &req);
+        //p9conn->fidmap.exec(voidfid, &req);
+		//p9conn->tagmap.exec(voidrequest, &req);
 	}
+	Req9 *r;
 	while((r = req)) {
         req = std::any_cast<decltype(req)>(r->aux);
         r->aux.reset();
@@ -562,7 +556,7 @@ Conn::serve9conn() {
         p9conn.rmsg.data = (decltype(p9conn.rmsg.data))jyq::emalloc(p9conn.rmsg.size());
         p9conn.wmsg.data = (decltype(p9conn.wmsg.data))jyq::emalloc(p9conn.wmsg.size());
 
-        this->srv->listen(fd, &p9conn, handlefcall, cleanupconn);
+        srv.listen(fd, &p9conn, handlefcall, cleanupconn);
     }
 }
 } // end namespace jyq
