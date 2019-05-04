@@ -457,12 +457,12 @@ Req9::respond(const char *error) {
 
 static void
 cleanupconn(Conn *c) {
-
+    using ReqList = std::list<Req9>;
     auto p9conn = std::any_cast<Conn9*>(c->aux);
 	p9conn->conn = nullptr;
-    std::list<Req9> collection;
+    ReqList collection;
     if (p9conn->referenceCountGreaterThan(1)) {
-        p9conn->fidExec<decltype(collection)&>([](decltype(collection)& context, Fid::Map::iterator arg) {
+        p9conn->fidExec<ReqList&>([](auto context, Fid::Map::iterator arg) {
                 ++arg->second.conn;
                 context.emplace_back();
                 context.back().ifcall.setType(FType::TClunk);
@@ -471,7 +471,7 @@ cleanupconn(Conn *c) {
                 context.back().fid = &arg->second;
                 context.back().conn = &arg->second.conn;
                 }, collection);
-        p9conn->tagExec<decltype(collection)&>([](decltype(collection)& context, Conn9::TagMap::iterator arg) {
+        p9conn->tagExec<ReqList>([](auto context, Conn9::TagMap::iterator arg) {
                     arg->second.conn->operator++();
                     context.emplace_back();
                     context.back().ifcall.setType(FType::TFlush);

@@ -31,6 +31,7 @@ namespace jyq {
 
         /* Private members */
         Conn9 *conn;
+        // methods
         void respond(const char *err);
         inline void respond(const std::string& err) { respond(err.c_str()); }
     };

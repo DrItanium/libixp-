@@ -37,7 +37,8 @@ struct Conn9 {
     auto getReferenceCount() const noexcept { return _ref; }
     auto referenceCountGreaterThan(int count) const noexcept { return _ref > count; }
     auto referenceCountIs(int count) const noexcept { return _ref == count; }
-
+    void incrementReferenceCount() noexcept { ++_ref; }
+    void decrementReferenceCount() noexcept { --_ref; }
     Req9* retrieveTag(uint16_t id);
     Fid* retrieveFid(int id);
     bool removeTag(uint16_t id);
@@ -55,14 +56,14 @@ struct Conn9 {
      * Increment the reference count
      */
     Conn9& operator++() {
-        ++_ref;
+        incrementReferenceCount();
         return *this;
     }
     /**
      * decrement the reference count
      */
     Conn9& operator--() {
-        --_ref;
+        decrementReferenceCount();
         return *this;
     }
 
