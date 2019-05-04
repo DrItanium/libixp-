@@ -362,7 +362,7 @@ Req9::respond(const char *error) {
 		break;
 	case FType::TAttach:
 		if(error) {
-			destroyfid(p9conn, fid->fid);
+            destroyfid(*p9conn, fid->fid);
         }
 		free(ifcall.tattach.uname);
 		free(ifcall.tattach.aname);
@@ -379,8 +379,9 @@ Req9::respond(const char *error) {
 		break;
 	case FType::TWalk:
 		if(error || ofcall.rwalk.size() < ifcall.twalk.size()) {
-			if(ifcall.hdr.fid != ifcall.twalk.newfid && newfid)
-				destroyfid(p9conn, newfid->fid);
+			if(ifcall.hdr.fid != ifcall.twalk.newfid && newfid) {
+				destroyfid(*p9conn, newfid->fid);
+            }
 			if(!error && ofcall.rwalk.empty()) {
 				error = Enofile.c_str();
             }
@@ -397,16 +398,19 @@ Req9::respond(const char *error) {
 		free(ifcall.twrite.data);
 		break;
 	case FType::TRemove:
-		if(fid)
-			destroyfid(p9conn, fid->fid);
+		if(fid) {
+			destroyfid(*p9conn, fid->fid);
+        }
 		break;
 	case FType::TClunk:
-		if(fid)
-			destroyfid(p9conn, fid->fid);
+		if(fid) {
+			destroyfid(*p9conn, fid->fid);
+        }
 		break;
 	case FType::TFlush:
-		if (oldreq = decltype(oldreq)( p9conn->tagmap.get(ifcall.tflush.oldtag)); oldreq) 
+        if (oldreq = p9conn->retrieveTag(ifcall.tflush.oldtag); oldreq) {
             oldreq->respond(Eintr);
+        }
 		break;
 	case FType::TWStat:
 		Stat::free(&ifcall.twstat.stat);
@@ -416,8 +420,9 @@ Req9::respond(const char *error) {
 		break;		
 	/* Still to be implemented: auth */
 	default:
-		if(!error)
+		if(!error) {
 			assert(!"Respond called on unsupported fcall type");
+        }
 		break;
 	}
 
@@ -430,10 +435,11 @@ Req9::respond(const char *error) {
 		ofcall.error.ename = (char*)error;
 	}
 
-	if(printfcall)
+	if(printfcall) {
 		printfcall(&ofcall);
+    }
 
-    p9conn->tagmap.rm(ifcall.hdr.tag);;
+    p9conn->removeTag(ifcall.hdr.tag);
 
 	if(p9conn->conn) {
         concurrency::Locker<Mutex> theLock(p9conn->wlock);

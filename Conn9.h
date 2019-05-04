@@ -37,6 +37,8 @@ struct Conn9 {
 	int		ref;
     Req9* retrieveTag(uint16_t id);
     Fid* retrieveFid(int id);
+    bool removeTag(uint16_t id);
+    bool removeFid(int id);
 
 };
 } // end namespace jyq
