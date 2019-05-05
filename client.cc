@@ -188,14 +188,17 @@ Client::walk(const char *path) {
     //std::string cpy(path);
     //auto separation = tokenize(cpy, '/');
 	auto p = estrdup(path);
-	auto n = tokenize(fcall.twalk.wname, nelem(fcall.twalk.wname), p, '/');
+	int n = tokenize(fcall.twalk.wname, nelem(fcall.twalk.wname), p, '/');
 	auto f = getFid();
     fcall.setFid(RootFid);
 
     fcall.twalk.setSize(n);
 	fcall.twalk.newfid = f->fid;
-	if(!dofcall(&fcall))
+    auto outcome = dofcall(&fcall);
+    std::cout << "outcome: " << outcome << std::endl;
+    if (outcome == 0) {
 		goto fail;
+    }
 	if(fcall.rwalk.size() < n) {
 		werrstr("File does not exist");
 		if(fcall.rwalk.empty())
@@ -203,7 +206,7 @@ Client::walk(const char *path) {
 		goto fail;
 	}
 
-	f->qid = fcall.rwalk.wqid[n-1];
+	f->qid = fcall.rwalk.wqid[n-1]; // gross... so gross, this is taken from teh c code...so gross
 
 	Fcall::free(&fcall);
 	free(p);
