@@ -5,6 +5,8 @@
 #ifndef LIBJYQ_SOCKET_H__
 #define LIBJYQ_SOCKET_H__
 #include <string>
+#include <functional>
+#include <map>
 #include "types.h"
 #include "Msg.h"
 
@@ -18,8 +20,23 @@ namespace jyq {
      */
     class Connection {
         public:
+            class Creator {
+                public:
+                    using Action = std::function<int(const std::string&)>;
+                    Creator(const std::string& name, Action dial, Action announce);
+                    ~Creator() = default;
+                    int dial(const std::string&);
+                    int announce(const std::string&);
+                    std::string getName() const noexcept { return _name; }
+                private:
+                    std::string _name;
+                    Action _dial, _announce;
+            };
             static Connection dial(const std::string&);
             static Connection announce(const std::string&);
+            static void registerCreator(const std::string& name, Creator::Action dial, Creator::Action announce);
+        private:
+            static std::map<std::string, Creator> _ctab;
         public:
             explicit Connection(int fid);
             ~Connection() = default;
