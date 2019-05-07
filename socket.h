@@ -52,7 +52,6 @@ namespace jyq {
         public:
             explicit Connection(int fid);
             ~Connection() = default;
-            int getFid() const noexcept { return _fid; }
             ssize_t write(const std::string& msg);
             ssize_t write(char* c, size_t count);
             ssize_t write(const std::string& msg, size_t count);
@@ -73,6 +72,8 @@ namespace jyq {
             bool shutdown(int how);
             bool close();
             operator int() const;
+            constexpr bool isLegal() const noexcept { return _fid >= 0; }
+            constexpr int getFid() const noexcept { return _fid; }
         private:
             int mread(Msg& msg, size_t count);
             int readn(Msg& msg, size_t count);
