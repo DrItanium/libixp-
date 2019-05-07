@@ -198,8 +198,6 @@ announce_tcp(const std::string& host) {
 }
 
 } // end namespace
-static Connection::CreatorRegistrar unixConnection("unix", dial_unix, announce_unix);
-static Connection::CreatorRegistrar tcpConnection("tcp", dial_tcp, announce_tcp);
 
 std::tuple<std::string, std::string>
 Connection::decompose(const std::string& address) {
@@ -320,5 +318,16 @@ Connection::CreatorRegistrar::CreatorRegistrar(const std::string& name, Action d
     Connection::registerCreator(name, dial, announce);
 }
 
+static Connection::CreatorRegistrar unixConnection("unix", dial_unix, announce_unix);
+static Connection::CreatorRegistrar tcpConnection("tcp", dial_tcp, announce_tcp);
+static Connection::CreatorRegistrar debugConnection("debug", 
+        [](const auto& address) {
+            std::cout << "Dial address: " << address << std::endl;
+            return -1;
+        },
+        [](const auto& address) {
+            std::cout << "Announce address: " << address << std::endl;
+            return -1;
+        });
 
 } // end namespace jyq

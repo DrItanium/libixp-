@@ -320,20 +320,25 @@ main(int argc, char *argv[]) {
 
     std::string cmd = EARGF(usage());
 
-	if(!address) {
-		jyq::fatalPrint("$JYQ_ADDRESS not set\n");
-    }
-
-    if (client = jyq::Client::mount(address); !client) {
-        jyq::fatalPrint(jyq::errbuf(), "\n");
-    } else {
-        if (auto result = etab.find(cmd); result != etab.end()) {
-            auto ret = result->second(argc, argv);
-            jyq::Client::unmount(client);
-            return ret;
-        } else {
-            usage();
-            return 99;
+    try {
+        if(!address) {
+            throw jyq::Exception ("$JYQ_ADDRESS not set\n");
         }
+
+        if (client = jyq::Client::mount(address); !client) {
+            throw jyq::Exception("Could not mount ", address, " because: ", jyq::errbuf());
+        } else {
+            if (auto result = etab.find(cmd); result != etab.end()) {
+                auto ret = result->second(argc, argv);
+                jyq::Client::unmount(client);
+                return ret;
+            } else {
+                usage();
+                return 99;
+            }
+        }
+    } catch(jyq::Exception& e) {
+        std::cerr << "Error happened: " << e.message() << std::endl;
+        return 1;
     }
 }

@@ -42,11 +42,6 @@ namespace jyq {
             jyq::print(std::cerr, args...);
         }
 
-    template<typename ... Args>
-        void fatalPrint(Args&& ... args) {
-            errorPrint(args...);
-            throw 1;
-        }
 
     template<typename T>
     constexpr T min(T a, T b) noexcept {
@@ -169,6 +164,10 @@ namespace jyq {
         private:
             std::string _message;
     };
+    template<typename ... Args>
+    void fatalPrint(Args&& ... args) {
+        throw Exception(args...);
+    }
 } // end namespace jyq
 
 #endif // end LIBJYQ_TYPES_H__
