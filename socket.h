@@ -20,6 +20,8 @@ namespace jyq {
      */
     class Connection {
         public:
+            using Action = std::function<int(const std::string&)>;
+        private:
             class Creator {
                 public:
                     using Action = std::function<int(const std::string&)>;
@@ -32,11 +34,20 @@ namespace jyq {
                     std::string _name;
                     Action _dial, _announce;
             };
+        public:
+            struct CreatorRegistrar final {
+                CreatorRegistrar(const std::string& name, Action dial, Action announce);
+                ~CreatorRegistrar() = default;
+                CreatorRegistrar(const CreatorRegistrar&) = delete;
+                CreatorRegistrar(CreatorRegistrar&&) = delete;
+                CreatorRegistrar& operator=(const CreatorRegistrar&) = delete;
+                CreatorRegistrar& operator=(CreatorRegistrar&&) = delete;
+            };
             static Connection dial(const std::string&);
             static Connection announce(const std::string&);
-            static void registerCreator(const std::string& name, Creator::Action dial, Creator::Action announce);
+            static void registerCreator(const std::string& name, Action dial, Action announce);
         private:
-            static std::map<std::string, Creator> _ctab;
+            static std::map<std::string, Creator>& getCtab() noexcept;
         public:
             explicit Connection(int fid);
             ~Connection() = default;

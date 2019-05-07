@@ -227,7 +227,8 @@ lookup(const std::string& address, AddressTab& _tab) {
 }
 
 } // end namespace
-
+static Connection::CreatorRegistrar unixConnection("unix", dial_unix, announce_unix);
+static Connection::CreatorRegistrar tcpConnection("tcp", dial_tcp, announce_tcp);
 
 
 /**
@@ -307,4 +308,34 @@ Connection::close() {
 Connection::operator int() const {
     return _fid;
 }
+
+std::map<std::string, Connection::Creator>&
+Connection::getCtab() noexcept {
+    static std::map<std::string, Connection::Creator> _map;
+    return _map;
+}
+
+void
+Connection::registerCreator(const std::string& name, Connection::Action dial, Connection::Action announce) {
+    if (auto result = getCtab().emplace(name, Creator(name, dial, announce)); !result.second) {
+        throw Exception(name, " already registered as a creator kind!");
+    }
+}
+Connection::Creator::Creator(const std::string& name, Action dial, Action announce) : _name(name), _dial(dial), _announce(announce) { }
+
+int
+Connection::Creator::dial(const std::string& address) {
+    return _dial(address);
+}
+
+int
+Connection::Creator::announce(const std::string& address) {
+    return _announce(address);
+}
+
+Connection::CreatorRegistrar::CreatorRegistrar(const std::string& name, Action dial, Action announce) {
+    Connection::registerCreator(name, dial, announce);
+}
+
+
 } // end namespace jyq
