@@ -164,10 +164,6 @@ namespace jyq {
         private:
             std::string _message;
     };
-    template<typename ... Args>
-    void fatalPrint(Args&& ... args) {
-        throw Exception(args...);
-    }
 } // end namespace jyq
 
 #endif // end LIBJYQ_TYPES_H__
