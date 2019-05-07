@@ -130,6 +130,9 @@ FVersion::packUnpack(Msg& msg) {
 }
 void
 FAttach::packUnpack(Msg& msg) {
+    if (getType() == FType::TAttach) {
+        hdr.packUnpackFid(msg);
+    }
     msg.pu32(&afid);
     msg.pstring(&uname);
     msg.pstring(&aname);
@@ -154,6 +157,14 @@ FTWalk::packUnpack(Msg& msg) {
     msg.pstrings(&getSizeReference(), wname, nelem(wname));
 }
 void
+FTFlush::packUnpack(Msg& msg) {
+    msg.pu16(&oldtag);
+}
+void
+FError::packUnpack(Msg& msg) {
+    msg.pstring(&ename);
+}
+void
 Fcall::packUnpack(Msg& msg) noexcept {
     hdr.packUnpack(msg);
 
@@ -172,14 +183,13 @@ Fcall::packUnpack(Msg& msg) noexcept {
         rattach.packUnpack(msg);
 		break;
 	case FType::TAttach:
-        hdr.packUnpackFid(msg);
         tattach.packUnpack(msg);
 		break;
 	case FType::RError:
-		msg.pstring(&error.ename);
+        error.packUnpack(msg);
 		break;
 	case FType::TFlush:
-		msg.pu16(&tflush.oldtag);
+        tflush.packUnpack(msg);
 		break;
 	case FType::TWalk:
         twalk.packUnpack(msg);

@@ -34,9 +34,11 @@ namespace jyq {
     struct FTFlush : public QueryHeader {
         uint16_t	oldtag;
         constexpr auto getOldTag() const noexcept { return oldtag; }
+        void packUnpack(Msg& msg);
     };
     struct FError : public QueryHeader {
         char*		ename;
+        void packUnpack(Msg& msg);
     };
     struct FROpen : public QueryHeader {
         Qid		qid; /* +Rattach */
