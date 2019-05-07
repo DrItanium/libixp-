@@ -39,7 +39,7 @@ write_data(std::shared_ptr<jyq::CFid> fid, char *name) {
 	do {
 		len = read(0, buf, fid->iounit);
 		if(len >= 0 && fid->write(buf, len, client->getDoFcallLambda()) != len) {
-            jyq::fatalPrint("cannot write file '", name, "': ", jyq::errbuf(), "\n");
+            throw jyq::Exception("cannot write file '", name, "': ", jyq::errbuf(), "\n");
         }
 	} while(len > 0);
 
@@ -98,7 +98,7 @@ xappend(int argc, char *argv[]) {
 	auto file = EARGF(usage());
     auto fid = client->open(file, jyq::OMode::WRITE);
     if (!fid) {
-        jyq::fatalPrint("Can't open file '", file, "': ", jyq::errbuf(), "\n");
+        throw jyq::Exception("Can't open file '", file, "': ", jyq::errbuf(), "\n");
     }
 	
 	auto stat = client->stat(file);
@@ -118,7 +118,7 @@ xwrite(int argc, char *argv[]) {
 	auto file = EARGF(usage());
     auto fid = client->open(file, jyq::OMode::WRITE);
     if (!fid) {
-        jyq::fatalPrint("Can't open file '", file, "': ", jyq::errbuf(), "\n");
+        throw jyq::Exception("Can't open file '", file, "': ", jyq::errbuf(), "\n");
     }
 
 	write_data(fid, file);
@@ -135,7 +135,7 @@ xawrite(int argc, char *argv[]) {
 	auto file = EARGF(usage());
     auto fid = client->open(file, jyq::OMode::WRITE);
     if (!fid) {
-        jyq::fatalPrint("Can't open file '", file, "': ", jyq::errbuf(), "\n");
+        throw jyq::Exception("Can't open file '", file, "': ", jyq::errbuf(), "\n");
     }
 
 	auto nbuf = 0;
@@ -155,7 +155,7 @@ xawrite(int argc, char *argv[]) {
 	}
 
 	if(fid->write(buf, nbuf, client->getDoFcallLambda()) == -1) {
-        jyq::fatalPrint("cannot write file '", file, "': ", jyq::errbuf(), "\n");
+        throw jyq::Exception("cannot write file '", file, "': ", jyq::errbuf(), "\n");
     }
     delete[] buf;
 	return 0;
@@ -171,7 +171,7 @@ xcreate(int argc, char *argv[]) {
 	auto file = EARGF(usage());
     auto fid = client->create(file, 0777, jyq::OMode::WRITE);
     if (!fid) {
-        jyq::fatalPrint("Can't create file '", file, "': ", jyq::errbuf(), "\n");
+        throw jyq::Exception("Can't create file '", file, "': ", jyq::errbuf(), "\n");
     }
 
 	if((fid->qid.type&(uint32_t)jyq::DMode::DIR) == 0)
@@ -188,7 +188,7 @@ xremove(int argc, char *argv[]) {
 	}ARGEND;
 
     if (auto file = EARGF(usage()); !client->remove(file)) {
-        jyq::fatalPrint("Can't remove file '", file, "': ", jyq::errbuf(), "\n");
+        throw jyq::Exception("Can't remove file '", file, "': ", jyq::errbuf(), "\n");
     }
 	return 0;
 }
@@ -203,7 +203,7 @@ xread(int argc, char *argv[]) {
 	auto file = EARGF(usage());
     auto fid = client->open(file, jyq::OMode::READ);
     if (!fid) {
-        jyq::fatalPrint("Can't open file '", file, "': ", jyq::errbuf(), "\n");
+        throw jyq::Exception("Can't open file '", file, "': ", jyq::errbuf(), "\n");
     }
 
     int count = 0;
@@ -213,7 +213,7 @@ xread(int argc, char *argv[]) {
     }
 
 	if(count == -1) {
-        jyq::fatalPrint("cannot read file/directory '", file, "': ", jyq::errbuf(), "\n");
+        throw jyq::Exception("cannot read file/directory '", file, "': ", jyq::errbuf(), "\n");
     }
 
     delete[] buf;
@@ -245,7 +245,7 @@ xls(int argc, char *argv[]) {
 
     auto stat = client->stat(file);
     if (!stat) {
-        jyq::fatalPrint("Can't stat file '", file, "': ", jyq::errbuf(), "\n");
+        throw jyq::Exception("Can't stat file '", file, "': ", jyq::errbuf());
     }
 
 	if(dflag || (stat->mode&static_cast<uint32_t>(jyq::DMode::DIR)) == 0) {
@@ -257,7 +257,7 @@ xls(int argc, char *argv[]) {
 
     auto fid = client->open(file, jyq::OMode::READ);
 	if(!fid) {
-        jyq::fatalPrint("Can't open file '", file, "': ", jyq::errbuf(), "\n");
+        throw jyq::Exception("Can't open file '", file, "': ", jyq::errbuf());
     }
 
     std::vector<std::shared_ptr<jyq::Stat>> stats;
@@ -272,16 +272,15 @@ xls(int argc, char *argv[]) {
     delete[] buf;
 
     // TODO implement sorting in the future
-	//qsort(stats, nstat, sizeof(*stat), comp_stat);
     for (auto& stat : stats) {
         print_stat(stat, lflag);
         jyq::Stat::free(stat.get());
     }
-	//free(stat);
-
-	if(count == -1)
-        jyq::fatalPrint("Can't read directory '", file, "': ", jyq::errbuf(), "\n");
-	return 0;
+	if(count == -1) {
+        throw jyq::Exception("Can't read directory '", file, "': ", jyq::errbuf());
+    } else {
+	    return 0;
+    }
 }
 
 std::map<std::string, ServiceFunction> etab = {
