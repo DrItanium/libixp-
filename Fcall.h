@@ -46,34 +46,17 @@ namespace jyq {
         char*		uname;
         char*		aname;
     };
-    struct FAttachCxx : public QueryHeader {
-        uint32_t     afid;
-        std::string  uname;
-        std::string  aname;
-    };
     struct FTCreate : public QueryHeader {
         uint32_t	perm;
         char*		name;
         uint8_t		mode; /* +Topen */
     };
-    struct FTCreateCxx : public QueryHeader {
-        uint32_t     perm;
-        std::string  name;
-        uint8_t      mode; /* +Topen */
-    };
     struct FTWalk : public QueryHeader, public ContainsSizeParameter<uint16_t>  {
         uint32_t	newfid;
         char*		wname[maximum::Welem];
     };
-    struct FTWalkCxx : public QueryHeader, public ContainsSizeParameter<uint16_t>  {
-        uint32_t	newfid;
-        std::array<std::string, maximum::Welem> wname;
-    };
     struct FRWalk : public QueryHeader, public ContainsSizeParameter<uint16_t> {
         Qid		wqid[maximum::Welem];
-    };
-    struct FRWalkCxx : public QueryHeader, public ContainsSizeParameter<uint16_t> {
-        std::array<Qid, maximum::Welem> wqid;
     };
     struct FIO : public QueryHeader, public ContainsSizeParameter<uint32_t> {
         uint64_t	offset; /* Tread, Twrite */
