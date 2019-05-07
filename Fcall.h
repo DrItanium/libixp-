@@ -30,6 +30,7 @@ namespace jyq {
     };
     struct FTFlush : public QueryHeader {
         uint16_t	oldtag;
+        constexpr auto getOldTag() const noexcept { return oldtag; }
     };
     struct FError : public QueryHeader {
         char*		ename;
@@ -37,12 +38,14 @@ namespace jyq {
     struct FROpen : public QueryHeader {
         Qid		qid; /* +Rattach */
         uint32_t	iounit;
+        constexpr auto getIoUnit() const noexcept { return iounit; }
     };
     struct FRAuth : public QueryHeader {
         Qid		aqid;
     };
     struct FAttach : public QueryHeader {
         uint32_t	afid;
+        constexpr auto getAfid() const noexcept { return afid; }
         char*		uname;
         char*		aname;
     };
@@ -50,10 +53,13 @@ namespace jyq {
         uint32_t	perm;
         char*		name;
         uint8_t		mode; /* +Topen */
+        constexpr auto getPerm() const noexcept { return perm; }
+        constexpr auto getMode() const noexcept { return mode; }
     };
     struct FTWalk : public QueryHeader, public ContainsSizeParameter<uint16_t>  {
         uint32_t	newfid;
         char*		wname[maximum::Welem];
+        constexpr auto getNewFid() const noexcept { return newfid; }
     };
     struct FRWalk : public QueryHeader, public ContainsSizeParameter<uint16_t> {
         Qid		wqid[maximum::Welem];

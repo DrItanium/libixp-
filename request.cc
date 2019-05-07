@@ -100,7 +100,7 @@ handlefcall(Conn *c) {
 	auto p9conn = std::any_cast<Conn9*>(c->aux);
 
     p9conn->rlock.lock();
-    if (c->_fd.recvmsg(p9conn->rmsg) == 0) {
+    if (c->getConnection().recvmsg(p9conn->rmsg) == 0) {
         p9conn->rlock.unlock();
         hangup(c);
         return;
@@ -261,8 +261,8 @@ handlereq(Req9& r) {
                     r.respond(Enotdir);
                     return;
                 }
-                if((r.ifcall.hdr.fid != r.ifcall.twalk.newfid)) {
-                    if (r.newfid = createfid(p9conn.fidmap, r.ifcall.twalk.newfid, p9conn); !r.newfid) {
+                if((r.ifcall.hdr.fid != r.ifcall.twalk.getNewFid())) {
+                    if (r.newfid = createfid(p9conn.fidmap, r.ifcall.twalk.getNewFid(), p9conn); !r.newfid) {
                         r.respond(Edupfid);
                         return;
                     }
@@ -436,7 +436,7 @@ Req9::respond(const char *error) {
 	if(p9conn->conn) {
         concurrency::Locker<Mutex> theLock(p9conn->wlock);
 		msize = fcall2msg(&p9conn->wmsg, &ofcall);
-        if (p9conn->conn->_fd.sendmsg(p9conn->wmsg) != msize) {
+        if (p9conn->conn->getConnection().sendmsg(p9conn->wmsg) != msize) {
 			hangup(p9conn->conn);
         }
 	}

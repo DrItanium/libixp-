@@ -14,13 +14,20 @@ namespace jyq {
         using Func = std::function<void(Conn*)>;
         Conn(Server& srv, int fd, std::any a, Func read, Func close);
         ~Conn();
-        Server&	srv;
-        std::any	aux;	/* Arbitrary pointer, to be used by handlers. */
-        Connection _fd; /* The file descriptor of the connection. */
-        Func read, close;
-        bool		closed = false;	/* Non-zero when P<fd> has been closed. */
 
         void    serve9conn();
+        /**
+         * Returns a reference to the connection underlying this conn object
+         * @return the connection object stored in this class
+         */
+        Connection& getConnection() noexcept { return _fd; }
+        public:
+            Server&	srv;
+            std::any	aux;	/* Arbitrary pointer, to be used by handlers. */
+            Func read, close;
+            bool		closed = false;	/* Non-zero when P<fd> has been closed. */
+        private:
+            Connection _fd;
     };
     void	hangup(Conn*);
 } // end namespace jyq

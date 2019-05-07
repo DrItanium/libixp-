@@ -22,8 +22,8 @@ namespace jyq {
     struct Conn9;
     struct Req9 {
         Srv9*	srv;
-        Fid*		fid;    /* Fid structure corresponding to FHdr.fid */
-        Fid*		newfid; /* Corresponds to FTWStat.newfid */
+        Fid*	fid;    /* Fid structure corresponding to FHdr.fid */
+        Fid*	newfid; /* Corresponds to FTWStat.newfid */
         Req9*	oldreq; /* For TFlush requests, the original request. */
         Fcall	ifcall; /* The incoming request fcall. */
         Fcall	ofcall; /* The response fcall, to be filled by handler. */
