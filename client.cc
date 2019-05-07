@@ -302,8 +302,7 @@ Client::mountfd(int fd) {
 	Fcall fcall;
 
     fcall.setType(FType::TVersion);
-    auto c = new Client();
-	c->fd = fd;
+    auto c = new Client(fd);
     c->muxinit();
 
 	allocmsg(c, 256);
@@ -648,6 +647,6 @@ CFid::clunk(DoFcallFunc fn) {
     return performClunk(fn);
 }
 
-Client::Client() : sleep(*this) { }
+Client::Client(int _fd) : fd(_fd), sleep(*this) { }
 } // end namespace jyq
 

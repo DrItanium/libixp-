@@ -14,6 +14,7 @@
 #include "Fcall.h"
 #include "Rpc.h"
 #include "stat.h"
+#include "socket.h"
 
 namespace jyq {
     struct CFid;
@@ -25,9 +26,10 @@ namespace jyq {
 
         static inline Client* mount(const std::string& str) { return mount(str.c_str()); }
         static inline Client* nsmount(const std::string& str) { return nsmount(str.c_str()); }
-        Client();
+        Client(int fd);
         ~Client();
-        int     fd;
+        //int     fd;
+        Connection fd;
         uint    msize;
         uint    lastfid;
 
