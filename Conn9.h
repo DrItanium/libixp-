@@ -22,8 +22,6 @@
 
 namespace jyq {
 struct Srv9;
-constexpr auto TAG_BUCKETS = 61;
-constexpr auto FID_BUCKETS = 61;
 struct Conn9 {
     using TagMap = jyq::Map<uint16_t, Req9>;
     TagMap    tagmap;
