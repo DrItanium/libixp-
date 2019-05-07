@@ -263,8 +263,8 @@ void
 Client::unmount(Client *client) {
     // TODO migrate this to the client destructor eventually
 
-	shutdown(client->fd, SHUT_RDWR);
-	::close(client->fd);
+    client->fd.shutdown(SHUT_RDWR);
+    client->fd.close();
 
     client->muxfree();
 

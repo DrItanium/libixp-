@@ -17,7 +17,7 @@
 
 namespace jyq {
 Conn::Conn(Server& s, int theFd, std::any a, Conn::Func r, Conn::Func c) : 
-    srv(s), aux(a), fd(theFd), read(r), close(c), closed(false) { }
+    srv(s), aux(a), _fd(theFd), read(r), close(c), closed(false) { }
 /**
  * Function: listen
  * Type: Conn
@@ -83,9 +83,9 @@ Conn::~Conn() {
     if (close) {
         close(this);
     } else {
-        shutdown(fd, SHUT_RDWR);
+        _fd.shutdown(SHUT_RDWR);
     }
-    ::close(fd);
+    _fd.close();
 }
 
 void
@@ -98,10 +98,10 @@ Server::prepareSelect() {
 	FD_ZERO(&this->rd);
     for (auto& c : conns) {
         if (c->read) {
-            if (maxfd < c->fd) {
-                maxfd = c->fd;
+            if (maxfd < c->_fd) {
+                maxfd = c->_fd;
             }
-            FD_SET(c->fd, &rd);
+            FD_SET(c->_fd, &rd);
         }
     }
 }
@@ -109,7 +109,7 @@ Server::prepareSelect() {
 void
 Server::handleConns() {
     for (auto& c : conns) {
-        if (FD_ISSET(c->fd, &rd)) {
+        if (FD_ISSET(c->_fd, &rd)) {
             c->read(c.get());
         }
     }

@@ -7,6 +7,7 @@
 #include <any>
 #include <functional>
 #include "types.h"
+#include "socket.h"
 namespace jyq {
     struct Server;
     struct Conn {
@@ -15,7 +16,7 @@ namespace jyq {
         ~Conn();
         Server&	srv;
         std::any	aux;	/* Arbitrary pointer, to be used by handlers. */
-        int		fd;	/* The file descriptor of the connection. */
+        Connection _fd; /* The file descriptor of the connection. */
         Func read, close;
         bool		closed = false;	/* Non-zero when P<fd> has been closed. */
 
