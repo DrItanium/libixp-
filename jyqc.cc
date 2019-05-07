@@ -46,14 +46,6 @@ write_data(std::shared_ptr<jyq::CFid> fid, char *name) {
     delete [] buf;
 }
 
-int
-comp_stat(const void *s1, const void *s2) {
-	auto st1 = (jyq::Stat*)s1;
-	auto st2 = (jyq::Stat*)s2;
-	return strcmp(st1->name, st2->name);
-}
-
-
 std::string
 str_of_mode(uint mode) {
     static std::vector<std::string> modes = {
