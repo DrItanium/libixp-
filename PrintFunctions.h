@@ -20,7 +20,7 @@ namespace jyq {
     template<typename ... Args>
     void wErrorString(Args&& ... args) {
         std::ostringstream ss;
-        print(ss, std::forward(args)...);
+        print(ss, args...);
         auto str = ss.str();
         werrstr(str);
     }
