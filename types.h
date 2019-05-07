@@ -33,14 +33,9 @@ namespace jyq {
     constexpr auto NoFid = ~0u;
 
     template<typename ... Args>
-        void print(std::ostream& os, Args&& ... args) {
-            (os << ... << args);
-        }
-
-    template<typename ... Args>
-        void errorPrint(Args&& ... args) {
-            jyq::print(std::cerr, args...);
-        }
+    void print(std::ostream& os, Args&& ... args) {
+        (os << ... << args);
+    }
 
 
     template<typename T>

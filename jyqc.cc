@@ -24,7 +24,8 @@ jyq::Client *client;
 
 void
 usage(int errorCode = 1) {
-    jyq::errorPrint("usage: ", argv0, " [-a <address>] {create | read | ls [-ld] | remove | write | append} <file>\n"
+    jyq::print(std::cerr, 
+                "usage: ", argv0, " [-a <address>] {create | read | ls [-ld] | remove | write | append} <file>\n"
                 "       ", argv0, " [-a <address>] xwrite <file> <data>\n"
                 "       ", argv0, " -v\n");
 	exit(errorCode);
