@@ -27,7 +27,7 @@ muxrecv(Client *mux)
 {
 	Fcall *f = nullptr;
     mux->rlock.lock();
-	if(recvmsg(mux->fd, &mux->rmsg) == 0) {
+    if (mux->fd.recvmsg(mux->rmsg) == 0) {
         mux->rlock.unlock();
         return f;
     }
@@ -139,7 +139,7 @@ sendrpc(Rpc *r, Fcall *f)
 
     {
         concurrency::Locker<Mutex> a(mux->wlock);
-        if(!fcall2msg(&mux->wmsg, f) || !sendmsg(mux->fd, &mux->wmsg)) {
+        if(!fcall2msg(&mux->wmsg, f) || !mux->fd.sendmsg(mux->wmsg)) {
             /* werrstr("settag/send tag %d: %r", tag); fprint(2, "%r\n"); */
             concurrency::Locker<Mutex> lk(mux->lk);
             dequeue(mux, r);

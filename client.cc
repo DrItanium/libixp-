@@ -296,9 +296,8 @@ Client::unmount(Client *client) {
  * See also:
  *	F<open>, F<create>, F<remove>, F<unmount>
  */
-
 Client*
-Client::mountfd(int fd) {
+Client::mountfd(const Connection& fd) {
 	Fcall fcall;
 
     fcall.setType(FType::TVersion);
@@ -347,7 +346,7 @@ Client::mountfd(int fd) {
 
 Client*
 Client::mount(const char *address) {
-	if (auto fd = dial(address); fd < 0) {
+    if (Connection fd = Connection::dial(address); fd.getFid() < 0) {
         return nullptr;
     } else {
         return mountfd(fd);

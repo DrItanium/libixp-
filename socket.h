@@ -9,10 +9,10 @@
 #include "Msg.h"
 
 namespace jyq {
-    int dial(const std::string&);
-    int announce(const std::string&);
-    uint sendmsg(int, Msg*);
-    uint recvmsg(int, Msg*);
+    //int dial(const std::string&);
+    //int announce(const std::string&);
+    //uint sendmsg(int, Msg*);
+    //uint recvmsg(int, Msg*);
     /**
      * Generic connection to a file of some kind!
      */

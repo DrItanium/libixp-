@@ -100,7 +100,7 @@ handlefcall(Conn *c) {
 	auto p9conn = std::any_cast<Conn9*>(c->aux);
 
     p9conn->rlock.lock();
-	if(recvmsg(c->_fd, &p9conn->rmsg) == 0) {
+    if (c->_fd.recvmsg(p9conn->rmsg) == 0) {
         p9conn->rlock.unlock();
         hangup(c);
         return;
@@ -436,7 +436,7 @@ Req9::respond(const char *error) {
 	if(p9conn->conn) {
         concurrency::Locker<Mutex> theLock(p9conn->wlock);
 		msize = fcall2msg(&p9conn->wmsg, &ofcall);
-		if(sendmsg(p9conn->conn->_fd, &p9conn->wmsg) != msize) {
+        if (p9conn->conn->_fd.sendmsg(p9conn->wmsg) != msize) {
 			hangup(p9conn->conn);
         }
 	}
