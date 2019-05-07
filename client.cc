@@ -145,12 +145,12 @@ Client::dofcall(Fcall *fcall) {
 		return false;
     }
 	if(ret->hdr.type == FType::RError) {
-		werrstr("%s", ret->error.ename);
+        wErrorString(ret->error.ename);
 		goto fail;
 	}
     if (auto hdrVal = uint8_t(ret->hdr.type), fhdrVal = uint8_t(fcall->getType()); hdrVal != (fhdrVal^1)) {
         std::cout << "hdrVal: " << hdrVal << std::endl;
-		werrstr("received mismatched fcall");
+        wErrorString("received mismatched fcall");
 		goto fail;
 	}
 	memcpy(fcall, ret, sizeof *fcall);
@@ -173,7 +173,7 @@ Client::walkdir(char *path, const char **rest) {
 	while((p > path) && (*p != '/'))
 		p--;
 	if(*p != '/') {
-		werrstr("bad path");
+        wErrorString("bad path");
 		return nullptr;
 	}
 
@@ -200,9 +200,9 @@ Client::walk(const char *path) {
 		goto fail;
     }
 	if(fcall.rwalk.size() < n) {
-		werrstr("File does not exist");
+        wErrorString("File does not exist");
 		if(fcall.rwalk.empty())
-			werrstr("Protocol botch");
+			wErrorString("Protocol botch");
 		goto fail;
 	}
 
@@ -320,7 +320,7 @@ Client::mountfd(const Connection& fd) {
 
 	if(strcmp(fcall.version.version, Version)
 	|| fcall.version.size() > maximum::Msg) {
-		werrstr("bad 9P version response");
+		wErrorString("bad 9P version response");
 		unmount(c);
 		return nullptr;
 	}

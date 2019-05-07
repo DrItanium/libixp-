@@ -59,7 +59,7 @@ ns_display() {
     std::string newPath;
 
 	if (auto disp = std::getenv("DISPLAY"); !disp || disp[0] == '\0') {
-		werrstr("$DISPLAY is unset");
+        wErrorString("$DISPLAY is unset");
         return "";
 	} else {
         displayVariable = disp;
@@ -75,11 +75,11 @@ ns_display() {
 	if(!rmkdir(newPath.c_str(), 0700)) {
 
     } else if(stat(newPath.c_str(), &st)) {
-		werrstr("Can't stat Namespace path '%s': %s", newPath.c_str(), errbuf());
+        wErrorString("Can't stat Namespace path '", newPath, "': ", errbuf());
     } else if(getuid() != st.st_uid) {
-		werrstr("Namespace path '%s' exists but is not owned by you", newPath.c_str());
+        wErrorString("Namespace path '", newPath, "' exists but is not owned by you");
     } else if((st.st_mode & 077) && chmod(newPath.c_str(), st.st_mode & ~077)) {
-		werrstr("Namespace path '%s' exists, but has wrong permissions: %s", newPath.c_str(), errbuf());
+        wErrorString("Namespace path '", newPath, "' exists, but has wrong permissions: ", errbuf());
     } else {
 		return newPath;
     }

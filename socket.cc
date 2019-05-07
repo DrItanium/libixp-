@@ -37,7 +37,7 @@ namespace {
 std::string
 get_port(const std::string& addr) {
     if (auto spos = addr.find('!'); spos == std::string::npos) {
-        werrstr("no port provided");
+        wErrorString("no port provided");
         return std::string();
     } else {
         return addr.substr(spos);
@@ -128,7 +128,7 @@ alookup(const std::string& host) {
         }
 
         if (int err = getaddrinfo(useHost ? host.c_str() : nullptr, port.c_str(), &hints, &ret); err) {
-            werrstr("getaddrinfo: %s", gai_strerror(err));
+            wErrorString("getaddrinfo: ", gai_strerror(err));
             return nullptr;
         } else {
             return ret;
@@ -150,14 +150,14 @@ dial_tcp(const std::string& host) {
         for(auto ai = aip; ai; ai = ai->ai_next) {
             fd = ai_socket(ai);
             if(fd == -1) {
-                werrstr("socket: %s", strerror(errno));
+                wErrorString("socket: ", strerror(errno));
                 continue;
             }
 
             if(connect(fd, ai->ai_addr, ai->ai_addrlen) == 0)
                 break;
 
-            werrstr("connect: %s", strerror(errno));
+            wErrorString("connect: ", strerror(errno));
             ::close(fd);
             fd = -1;
         }
@@ -213,7 +213,7 @@ int
 lookup(const std::string& address, AddressTab& _tab) {
     std::string _address(address);
 	if (auto addrPos = _address.find('!'); addrPos == std::string::npos) {
-		werrstr("no address type defined");
+        wErrorString("no address type defined");
         return -1;
     } else {
         std::string type(_address.substr(0, addrPos));

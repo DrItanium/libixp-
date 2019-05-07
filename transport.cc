@@ -94,7 +94,6 @@ Connection::sendmsg(Msg& msg) {
 uint
 Connection::recvmsg(Msg& msg) {
     static constexpr auto SSize = 4;
-	uint32_t msize;
 
     msg.setMode(Msg::Mode::Unpack);
 	msg.pos = msg.data;
@@ -104,6 +103,7 @@ Connection::recvmsg(Msg& msg) {
     }
 
 	msg.pos = msg.data;
+    uint32_t msize;
     msg.pu32(&msize);
 
 	uint32_t size = msize - SSize;
