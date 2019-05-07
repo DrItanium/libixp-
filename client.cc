@@ -647,5 +647,6 @@ CFid::clunk(DoFcallFunc fn) {
 }
 
 Client::Client(int _fd) : fd(_fd), sleep(*this) { }
+Client::Client(const Connection& c) : fd(c), sleep(*this) { }
 } // end namespace jyq
 

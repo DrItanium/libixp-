@@ -15,40 +15,40 @@
 #include "socket.h"
 
 namespace jyq {
-namespace {
-auto 
-mread(int fd, Msg *msg, uint count) {
-	auto n = msg->end - msg->pos;
-	if (n <= 0) {
-		werrstr("buffer full");
-		return -1;
-	}
-	if(n > count) {
-		n = count;
-    }
-
-	int r = concurrency::threadModel->read(fd, msg->pos, n);
-	if(r > 0)
-		msg->pos += r;
-	return r;
-}
-
-int
-readn(int fd, Msg *msg, uint count) {
-	auto num = count;
-	while(num > 0) {
-		auto r = mread(fd, msg, num);
-		if(r == -1 && errno == EINTR)
-			continue;
-		if(r == 0) {
-			werrstr("broken pipe: %s", errbuf());
-			return count - num;
-		}
-		num -= r;
-	}
-	return count - num;
-}
-} // end namespace
+//namespace {
+//auto 
+//mread(int fd, Msg *msg, uint count) {
+//	auto n = msg->end - msg->pos;
+//	if (n <= 0) {
+//		werrstr("buffer full");
+//		return -1;
+//	}
+//	if(n > count) {
+//		n = count;
+//    }
+//
+//	int r = concurrency::threadModel->read(fd, msg->pos, n);
+//	if(r > 0)
+//		msg->pos += r;
+//	return r;
+//}
+//
+//int
+//readn(int fd, Msg *msg, uint count) {
+//	auto num = count;
+//	while(num > 0) {
+//		auto r = mread(fd, msg, num);
+//		if(r == -1 && errno == EINTR)
+//			continue;
+//		if(r == 0) {
+//			werrstr("broken pipe: %s", errbuf());
+//			return count - num;
+//		}
+//		num -= r;
+//	}
+//	return count - num;
+//}
+//} // end namespace
 
 
 /**
@@ -72,50 +72,50 @@ readn(int fd, Msg *msg, uint count) {
  *	written, or 0 on error. Errors are stored in
  *	F<errbuf>.
  */
-uint
-sendmsg(int fd, Msg *msg) {
-	msg->pos = msg->data;
-	while(msg->pos < msg->end) {
-		if (auto r = concurrency::threadModel->write(fd, msg->pos, msg->end - msg->pos); r < 1) {
-			if(errno == EINTR) {
-				continue;
-            }
-			werrstr("broken pipe: %s", errbuf());
-			return 0;
-		} else {
-		    msg->pos += r;
-        }
-	}
-	return msg->pos - msg->data;
-}
-
-uint
-recvmsg(int fd, Msg *msg) {
-    static constexpr auto SSize = 4;
-	uint32_t msize;
-
-    msg->setMode(Msg::Mode::Unpack);
-	msg->pos = msg->data;
-	msg->end = msg->data + msg->size();
-	if(jyq::readn(fd, msg, SSize) != SSize)
-		return 0;
-
-	msg->pos = msg->data;
-    msg->pu32(&msize);
-
-	uint32_t size = msize - SSize;
-	if(size >= msg->end - msg->pos) {
-		werrstr("message too large");
-		return 0;
-	}
-	if(jyq::readn(fd, msg, size) != size) {
-		werrstr("message incomplete");
-		return 0;
-	}
-
-	msg->end = msg->pos;
-	return msize;
-}
+//uint
+//sendmsg(int fd, Msg *msg) {
+//	msg->pos = msg->data;
+//	while(msg->pos < msg->end) {
+//		if (auto r = concurrency::threadModel->write(fd, msg->pos, msg->end - msg->pos); r < 1) {
+//			if(errno == EINTR) {
+//				continue;
+//            }
+//			werrstr("broken pipe: %s", errbuf());
+//			return 0;
+//		} else {
+//		    msg->pos += r;
+//        }
+//	}
+//	return msg->pos - msg->data;
+//}
+//
+//uint
+//recvmsg(int fd, Msg *msg) {
+//    static constexpr auto SSize = 4;
+//	uint32_t msize;
+//
+//    msg->setMode(Msg::Mode::Unpack);
+//	msg->pos = msg->data;
+//	msg->end = msg->data + msg->size();
+//	if(jyq::readn(fd, msg, SSize) != SSize)
+//		return 0;
+//
+//	msg->pos = msg->data;
+//    msg->pu32(&msize);
+//
+//	uint32_t size = msize - SSize;
+//	if(size >= msg->end - msg->pos) {
+//		werrstr("message too large");
+//		return 0;
+//	}
+//	if(jyq::readn(fd, msg, size) != size) {
+//		werrstr("message incomplete");
+//		return 0;
+//	}
+//
+//	msg->end = msg->pos;
+//	return msize;
+//}
 int
 Connection::readn(Msg& msg, size_t count) {
     auto num = count;

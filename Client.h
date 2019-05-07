@@ -20,15 +20,15 @@ namespace jyq {
     struct CFid;
     struct Client {
         static void	unmount(Client*);
-        static Client*	mount(const char*);
-        static Client*	mountfd(int fd) { return mountfd(Connection(fd)); }
+        static Client* mount(const char*);
+        inline static Client* mountfd(int fd) { return mountfd(Connection(fd)); }
         static Client*  mountfd(const Connection& c);
         static Client*	nsmount(const char*);
 
         static inline Client* mount(const std::string& str) { return mount(str.c_str()); }
         static inline Client* nsmount(const std::string& str) { return nsmount(str.c_str()); }
         Client(int fd);
-        Client(const Connection& c) : Client(c.getFid()) { }
+        Client(const Connection& c);
         ~Client();
         //int     fd;
         Connection fd;
