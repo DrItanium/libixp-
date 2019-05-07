@@ -48,6 +48,7 @@ namespace jyq {
             static void registerCreator(const std::string& name, Action dial, Action announce);
         private:
             static std::map<std::string, Creator>& getCtab() noexcept;
+            static std::tuple<std::string, std::string> decompose(const std::string&);
         public:
             explicit Connection(int fid);
             ~Connection() = default;

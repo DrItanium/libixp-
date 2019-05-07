@@ -197,39 +197,20 @@ announce_tcp(const std::string& host) {
 	return fd;
 }
 
-using AddressTab = std::map<std::string, std::function<int(const std::string&)>>;
-AddressTab dtab = {
-    { "tcp", dial_tcp },
-    { "unix", dial_unix },
-};
-
-
-AddressTab atab = {
-    { "tcp", announce_tcp },
-    { "unix", announce_unix },
-};
-
-int
-lookup(const std::string& address, AddressTab& _tab) {
-    std::string _address(address);
-	if (auto addrPos = _address.find('!'); addrPos == std::string::npos) {
-        wErrorString("no address type defined");
-        return -1;
-    } else {
-        std::string type(_address.substr(0, addrPos));
-        if (auto result = _tab.find(type); result != _tab.end()) {
-            std::string addr(_address.substr(addrPos+1));
-            return result->second(addr);
-        } else {
-            return -1;
-        }
-	}
-}
-
 } // end namespace
 static Connection::CreatorRegistrar unixConnection("unix", dial_unix, announce_unix);
 static Connection::CreatorRegistrar tcpConnection("tcp", dial_tcp, announce_tcp);
 
+std::tuple<std::string, std::string>
+Connection::decompose(const std::string& address) {
+    std::string _address(address);
+	if (auto addrPos = _address.find('!'); addrPos == std::string::npos) {
+        throw Exception("no address type defined!");
+    } else {
+        std::string type(_address.substr(0, addrPos));
+        return std::make_tuple(_address.substr(0, addrPos), _address.substr(addrPos+1));
+	}
+}
 
 /**
  * Function: dial
@@ -251,22 +232,24 @@ static Connection::CreatorRegistrar tcpConnection("tcp", dial_tcp, announce_tcp)
  * See also:
  *	socket(2)
  */
-int
-dial(const std::string& address) {
-    return lookup(address, dtab);
-}
-int
-announce(const std::string& address) {
-    return lookup(address, atab);
-}
 Connection
 Connection::dial(const std::string& address) {
-    return Connection(jyq::dial(address));
+    auto [kind, path] = decompose(address);
+    if (auto target = getCtab().find(kind); target != getCtab().end()) {
+        return Connection(target->second.dial(path));
+    } else {
+        throw Exception("Given kind '", kind, "' is not a registered connection creator type!");
+    }
 }
 
 Connection
 Connection::announce(const std::string& address) {
-    return Connection(jyq::announce_unix(address));
+    auto [kind, path] = decompose(address);
+    if (auto target = getCtab().find(kind); target != getCtab().end()) {
+        return Connection(target->second.announce(path));
+    } else {
+        throw Exception("Given kind '", kind, "' is not a registered connection creator type!");
+    }
 }
 
 Connection::Connection(int fid) : _fid(fid) { }
