@@ -32,9 +32,9 @@ struct Conn9 {
 	Mutex	wlock;
 	Msg		rmsg;
 	Msg		wmsg;
-    auto getReferenceCount() const noexcept { return _ref; }
-    auto referenceCountGreaterThan(int count) const noexcept { return _ref > count; }
-    auto referenceCountIs(int count) const noexcept { return _ref == count; }
+    constexpr auto getReferenceCount() const noexcept { return _ref; }
+    constexpr auto referenceCountGreaterThan(int count) const noexcept { return _ref > count; }
+    constexpr auto referenceCountIs(int count) const noexcept { return _ref == count; }
     void incrementReferenceCount() noexcept { ++_ref; }
     void decrementReferenceCount() noexcept { --_ref; }
     Req9* retrieveTag(uint16_t id);
@@ -66,7 +66,7 @@ struct Conn9 {
     }
 
     private:
-        int		_ref;
+        int _ref;
 };
 } // end namespace jyq
 #endif // end LIBJYQ_CONN9_H__
