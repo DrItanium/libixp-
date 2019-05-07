@@ -148,6 +148,12 @@ FROpen::packUnpack(Msg& msg) {
     }
 }
 void
+FTWalk::packUnpack(Msg& msg) {
+    hdr.packUnpackFid(msg);
+    msg.pu32(&newfid);
+    msg.pstrings(&getSizeReference(), wname, nelem(wname));
+}
+void
 Fcall::packUnpack(Msg& msg) noexcept {
     hdr.packUnpack(msg);
 
@@ -176,9 +182,7 @@ Fcall::packUnpack(Msg& msg) noexcept {
 		msg.pu16(&tflush.oldtag);
 		break;
 	case FType::TWalk:
-        hdr.packUnpackFid(msg);
-		msg.pu32(&twalk.newfid);
-		msg.pstrings(&twalk.getSizeReference(), twalk.wname, nelem(twalk.wname));
+        twalk.packUnpack(msg);
 		break;
 	case FType::RWalk:
 		msg.pqids(&rwalk.getSizeReference(), rwalk.wqid, nelem(rwalk.wqid));

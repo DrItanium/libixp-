@@ -66,6 +66,7 @@ namespace jyq {
         uint32_t	newfid;
         char*		wname[maximum::Welem];
         constexpr auto getNewFid() const noexcept { return newfid; }
+        void packUnpack(Msg& msg);
     };
     struct FRWalk : public QueryHeader, public ContainsSizeParameter<uint16_t> {
         Qid		wqid[maximum::Welem];
