@@ -19,6 +19,7 @@
 #include <string>
 #include "Msg.h"
 #include "jyq.h"
+#include "socket.h"
 
 
 /* Note: These functions modify the strings that they are passed.
@@ -256,5 +257,54 @@ dial(const std::string& address) {
 int
 announce(const std::string& address) {
     return lookup(address, atab);
+}
+Connection
+Connection::dial(const std::string& address) {
+    return Connection(jyq::dial(address));
+}
+
+Connection
+Connection::announce(const std::string& address) {
+    return Connection(jyq::announce_unix(address));
+}
+
+Connection::Connection(int fid) : _fid(fid) { }
+
+ssize_t 
+Connection::write(const std::string& msg, size_t count) {
+    return concurrency::threadModel->write(_fid, msg.c_str(), count);
+}
+ssize_t
+Connection::write(const std::string& msg) {
+    return write(msg, msg.length());
+}
+
+ssize_t
+Connection::read(std::string& msg, size_t count) {
+    msg.reserve(count);
+    return concurrency::threadModel->read(_fid, msg.data(), count);
+}
+
+ssize_t
+Connection::write(char* c, size_t count) {
+    return concurrency::threadModel->write(_fid, c, count);
+}
+ssize_t
+Connection::read(char* c, size_t count) {
+    return concurrency::threadModel->read(_fid, c, count);
+}
+
+bool
+Connection::shutdown(int how) {
+    return ::shutdown(_fid, how) == 0;
+}
+
+bool
+Connection::close() {
+    return ::close(_fid) == 0;
+}
+
+Connection::operator int() const {
+    return _fid;
 }
 } // end namespace jyq
