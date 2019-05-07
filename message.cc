@@ -113,11 +113,19 @@ Stat::size() noexcept {
 		+ SString(gid)
 		+ SString(muid);
 }
-
+void
+FHdr::packUnpack(Msg& msg) 
+{
+    msg.pu8((uint8_t*)&type);
+    msg.pu16(&tag);
+}
+void
+FHdr::packUnpackFid(Msg& msg) {
+    msg.pu32(&fid);
+}
 void
 Fcall::packUnpack(Msg& msg) noexcept {
-	msg.pu8((uint8_t*)&hdr.type);
-	msg.pu16(&hdr.tag);
+    hdr.packUnpack(msg);
 
 	switch (getType()) {
 	case FType::TVersion:
@@ -137,7 +145,7 @@ Fcall::packUnpack(Msg& msg) noexcept {
 		msg.pqid(&rattach.qid);
 		break;
 	case FType::TAttach:
-		msg.pu32(&hdr.fid);
+        hdr.packUnpackFid(msg);
 		msg.pu32(&tattach.afid);
 		msg.pstring(&tattach.uname);
 		msg.pstring(&tattach.aname);
@@ -149,7 +157,7 @@ Fcall::packUnpack(Msg& msg) noexcept {
 		msg.pu16(&tflush.oldtag);
 		break;
 	case FType::TWalk:
-		msg.pu32(&hdr.fid);
+        hdr.packUnpackFid(msg);
 		msg.pu32(&twalk.newfid);
 		msg.pstrings(&twalk.getSizeReference(), twalk.wname, nelem(twalk.wname));
 		break;
@@ -157,7 +165,7 @@ Fcall::packUnpack(Msg& msg) noexcept {
 		msg.pqids(&rwalk.getSizeReference(), rwalk.wqid, nelem(rwalk.wqid));
 		break;
 	case FType::TOpen:
-		msg.pu32(&hdr.fid);
+        hdr.packUnpackFid(msg);
 		msg.pu8(&topen.mode);
 		break;
 	case FType::ROpen:
@@ -166,13 +174,13 @@ Fcall::packUnpack(Msg& msg) noexcept {
 		msg.pu32(&ropen.iounit);
 		break;
 	case FType::TCreate:
-		msg.pu32(&hdr.fid);
+        hdr.packUnpackFid(msg);
 		msg.pstring(&tcreate.name);
 		msg.pu32(&tcreate.perm);
 		msg.pu8(&tcreate.mode);
 		break;
 	case FType::TRead:
-		msg.pu32(&hdr.fid);
+        hdr.packUnpackFid(msg);
 		msg.pu64(&tread.offset);
 		msg.pu32(&tread.getSizeReference());
 		break;
@@ -181,7 +189,7 @@ Fcall::packUnpack(Msg& msg) noexcept {
 		msg.pdata(&rread.data, rread.size());
 		break;
 	case FType::TWrite:
-		msg.pu32(&hdr.fid);
+        hdr.packUnpackFid(msg);
 		msg.pu64(&twrite.offset);
 		msg.pu32(&twrite.getSizeReference());
 		msg.pdata(&twrite.data, twrite.size());
@@ -192,7 +200,7 @@ Fcall::packUnpack(Msg& msg) noexcept {
 	case FType::TClunk:
 	case FType::TRemove:
 	case FType::TStat:
-		msg.pu32(&hdr.fid);
+        hdr.packUnpackFid(msg);
 		break;
     case FType::RStat:
 		msg.pu16(&rstat.getSizeReference());
@@ -200,7 +208,7 @@ Fcall::packUnpack(Msg& msg) noexcept {
 		break;
     case FType::TWStat: {
 		uint16_t size;
-		msg.pu32(&hdr.fid);
+        hdr.packUnpackFid(msg);
 		msg.pu16(&size);
         msg.packUnpack(&twstat.stat);
 		break;
@@ -226,8 +234,6 @@ Fcall::packUnpack(Msg& msg) noexcept {
  */
 uint
 fcall2msg(Msg *msg, Fcall *fcall) {
-	uint32_t size;
-
 	msg->end = msg->data + msg->size();
 	msg->pos = msg->data + SDWord;
     msg->setMode(Msg::Mode::Pack);
@@ -237,7 +243,7 @@ fcall2msg(Msg *msg, Fcall *fcall) {
 		return 0;
 
 	msg->end = msg->pos;
-	size = msg->end - msg->data;
+	uint32_t size = msg->end - msg->data;
 
 	msg->pos = msg->data;
     msg->pu32(&size);

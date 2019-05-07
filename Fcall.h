@@ -16,6 +16,8 @@ namespace jyq {
         FType type;
         uint16_t	tag;
         uint32_t	fid;
+        void packUnpack(Msg& msg);
+        void packUnpackFid(Msg& msg);
     };
     struct QueryHeader {
         QueryHeader() = default;
