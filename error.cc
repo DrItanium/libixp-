@@ -110,4 +110,17 @@ werrstr(const char *fmt, ...) {
 	errno = EPLAN9;
 }
 
+void
+werrstr(const std::string& msg) {
+    msg.copy(concurrency::threadModel->errbuf(), ErrorMax);
+    errno = EPLAN9;
+}
+
+Exception::~Exception() noexcept { }
+
+const char*
+Exception::what() const noexcept {
+    return _message.c_str();
+}
+
 } // end namespace jyq

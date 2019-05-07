@@ -5,6 +5,8 @@
  * See LICENSE file for license details.
  */
 #include <functional>
+#include <sstream>
+#include "types.h"
 namespace jyq {
     union Fcall;
     extern std::function<int(char*, int, const char*, va_list)> vsnprint;
@@ -14,6 +16,14 @@ namespace jyq {
     void	errstr(char*, int);
     void	rerrstr(char*, int);
     void	werrstr(const char*, ...);
+    void    werrstr(const std::string& msg);
+    template<typename ... Args>
+    void wErrorString(Args&& ... args) {
+        std::ostringstream ss;
+        print(ss, std::forward(args)...);
+        auto str = ss.str();
+        werrstr(str);
+    }
 } // end namespace jyq
 
 

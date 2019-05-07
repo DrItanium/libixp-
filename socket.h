@@ -29,7 +29,17 @@ namespace jyq {
             ssize_t write(const std::string& msg, size_t count);
             ssize_t read(std::string& msg, size_t count);
             ssize_t read(char* c, size_t count);
+            /**
+             * Write a message to this connection. 
+             * @param msg the message to write to the connection
+             * @return number of bytes written, zero means error with error messages being stored in errbuf
+             */
             uint sendmsg(Msg& msg);
+            /**
+             * Read a message from this connection
+             * @param msg the message container to write the result to
+             * @return the number of bytes received, zero means error happened, use errbuf to get message
+             */
             uint recvmsg(Msg& msg);
             bool shutdown(int how);
             bool close();

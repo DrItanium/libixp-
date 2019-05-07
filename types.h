@@ -9,6 +9,8 @@
 #include <cstdbool>
 #include <iostream>
 #include <sys/types.h>
+#include <exception>
+#include <sstream>
 
 namespace jyq {
     using uint = unsigned int;
@@ -150,6 +152,22 @@ namespace jyq {
         SOCKET = 0x0010'0000, /* mode bit for socket (Unix, 9P2000.u) */
         SETUID = 0x0008'0000, /* mode bit for setuid (Unix, 9P2000.u) */
         SETGID = 0x0004'0000, /* mode bit for setgid (Unix, 9P2000.u) */
+    };
+
+    class Exception : public std::exception {
+        public:
+            template<typename ... Args>
+            explicit Exception(Args&& ... args) noexcept {
+                std::ostringstream os;
+                print(os, args...);
+                _message = os.str();
+            }
+            virtual ~Exception() noexcept;
+            std::string message() const noexcept { return _message; }
+            virtual const char* what() const noexcept final;
+            Exception& operator=(const Exception&) = delete;
+        private:
+            std::string _message;
     };
 } // end namespace jyq
 
