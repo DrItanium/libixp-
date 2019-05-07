@@ -346,7 +346,7 @@ Client::mountfd(const Connection& fd) {
 
 Client*
 Client::mount(const char *address) {
-    if (Connection fd = Connection::dial(address); fd.isLegal()) {
+    if (Connection fd = Connection::dial(address); !fd.isLegal()) {
         return nullptr;
     } else {
         return mountfd(fd);

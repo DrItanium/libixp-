@@ -29,6 +29,7 @@ namespace jyq {
     };
     struct FVersion : public QueryHeader, public ContainsSizeParameter<uint32_t> {
         char*		version;
+        void packUnpack(Msg& msg);
     };
     struct FTFlush : public QueryHeader {
         uint16_t	oldtag;
@@ -41,15 +42,18 @@ namespace jyq {
         Qid		qid; /* +Rattach */
         uint32_t	iounit;
         constexpr auto getIoUnit() const noexcept { return iounit; }
+        void packUnpack(Msg& msg);
     };
     struct FRAuth : public QueryHeader {
         Qid		aqid;
+        void packUnpack(Msg& msg);
     };
     struct FAttach : public QueryHeader {
         uint32_t	afid;
         constexpr auto getAfid() const noexcept { return afid; }
         char*		uname;
         char*		aname;
+        void packUnpack(Msg& msg);
     };
     struct FTCreate : public QueryHeader {
         uint32_t	perm;

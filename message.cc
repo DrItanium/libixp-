@@ -124,31 +124,50 @@ FHdr::packUnpackFid(Msg& msg) {
     msg.pu32(&fid);
 }
 void
+FVersion::packUnpack(Msg& msg) {
+    msg.pu32(&getSizeReference());
+    msg.pstring(&version);
+}
+void
+FAttach::packUnpack(Msg& msg) {
+    msg.pu32(&afid);
+    msg.pstring(&uname);
+    msg.pstring(&aname);
+}
+
+void
+FRAuth::packUnpack(Msg& msg) {
+    aqid.packUnpack(msg);
+    msg.pqid(&aqid);
+}
+void
+FROpen::packUnpack(Msg& msg) {
+    msg.pqid(&qid);
+    if (getType() != FType::RAttach) {
+        msg.pu32(&iounit);
+    }
+}
+void
 Fcall::packUnpack(Msg& msg) noexcept {
     hdr.packUnpack(msg);
 
 	switch (getType()) {
 	case FType::TVersion:
 	case FType::RVersion:
-		msg.pu32(&version.getSizeReference());
-		msg.pstring(&version.version);
+        version.packUnpack(msg);
 		break;
 	case FType::TAuth:
-		msg.pu32(&tauth.afid);
-		msg.pstring(&tauth.uname);
-		msg.pstring(&tauth.aname);
+        tauth.packUnpack(msg);
 		break;
 	case FType::RAuth:
-		msg.pqid(&rauth.aqid);
+        rauth.packUnpack(msg);
 		break;
 	case FType::RAttach:
-		msg.pqid(&rattach.qid);
+        rattach.packUnpack(msg);
 		break;
 	case FType::TAttach:
         hdr.packUnpackFid(msg);
-		msg.pu32(&tattach.afid);
-		msg.pstring(&tattach.uname);
-		msg.pstring(&tattach.aname);
+        tattach.packUnpack(msg);
 		break;
 	case FType::RError:
 		msg.pstring(&error.ename);
@@ -170,8 +189,7 @@ Fcall::packUnpack(Msg& msg) noexcept {
 		break;
 	case FType::ROpen:
 	case FType::RCreate:
-		msg.pqid(&ropen.qid);
-		msg.pu32(&ropen.iounit);
+        ropen.packUnpack(msg);
 		break;
 	case FType::TCreate:
         hdr.packUnpackFid(msg);
