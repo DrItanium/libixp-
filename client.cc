@@ -414,13 +414,11 @@ Client::nsmount(const char *name) {
 std::shared_ptr<CFid>
 Client::create(const char *path, uint perm, uint8_t mode) {
 	Fcall fcall;
-	char *tpath;;
 
-	tpath = estrdup(path);
+    std::string tpath(path);
 
-    auto f = walkdir(tpath, &path);
+    auto f = walkdir(tpath.data(), &path);
     if (!f)  {
-        free(tpath);
         return f;
     }
 
@@ -431,7 +429,6 @@ Client::create(const char *path, uint perm, uint8_t mode) {
 
 	if(!dofcall(&fcall)) {
         clunk(f);
-        free(tpath);
         return nullptr;
 	}
 
@@ -444,7 +441,6 @@ Client::create(const char *path, uint perm, uint8_t mode) {
 
 	Fcall::free(&fcall);
 
-	free(tpath);
 	return f;
 }
 
