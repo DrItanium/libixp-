@@ -54,7 +54,7 @@ namespace jyq {
         std::shared_ptr<CFid> create(const char*, uint perm, uint8_t mode);
         std::shared_ptr<CFid> open(const char*, uint8_t);
         std::shared_ptr<Stat> stat(const char*);
-        bool  remove(const std::string& str) noexcept { return remove(str.c_str()); }
+        bool remove(const std::string& str) noexcept { return remove(str.c_str()); }
         auto create(const std::string& str, uint perm, uint8_t mode) { return create(str.c_str(), perm, mode); }
         auto create(const std::string& str, uint perm, OMode mode) { return create(str.c_str(), perm, uint8_t(mode)); }
         auto create(const char* str, uint perm, OMode mode) { return create(str, perm, uint8_t(mode)); }
