@@ -198,20 +198,6 @@ estrdup(const char *str) {
     }
 }
 
-uint
-tokenize(char *res[], uint reslen, char *str, char delim) {
-	uint i = 0;
-	char* s = str;
-	while(i < reslen && *s) {
-		while(*s == delim)
-			*(s++) = '\0';
-		if(*s)
-			res[i++] = s;
-		while(*s && *s != delim)
-			s++;
-	}
-	return i;
-}
 std::list<std::string>
 tokenize(const std::string& input, char delim) {
     std::list<std::string> tokens;

@@ -23,7 +23,6 @@ namespace jyq {
         auto str = ss.str();
         return str;
     }
-    uint	tokenize(char**, uint len, char*, char);
     std::list<std::string> tokenize(const std::string& str, char delim); 
 } // end namespace jyq
 
