@@ -345,10 +345,8 @@ Req9::respond(const char *error) {
             concurrency::Locker<Mutex> theRlock(p9conn->rlock);
             concurrency::Locker<Mutex> theWlock(p9conn->wlock);
 		    msize = jyq::min<int>(ofcall.version.size(), maximum::Msg);
-		    p9conn->rmsg.data = (decltype(p9conn->rmsg.data))jyq::erealloc(p9conn->rmsg.data, msize);
-		    p9conn->wmsg.data = (decltype(p9conn->wmsg.data))jyq::erealloc(p9conn->wmsg.data, msize);
-		    p9conn->rmsg.setSize(msize);
-		    p9conn->wmsg.setSize(msize);
+            p9conn->rmsg.alloc(msize);
+            p9conn->wmsg.alloc(msize);
         }
         ofcall.version.setSize(msize);
 		break;
