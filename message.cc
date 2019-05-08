@@ -46,14 +46,15 @@ constexpr auto SQid = SByte + SDWord + SQWord;
  */
 Msg
 Msg::message(char *data, uint length, Mode mode) {
-	Msg m;
+    return Msg(data, length, mode);
+}
+Msg::Msg(char* _data, uint _length, Mode _mode) {
 
-	m.data = data;
-	m.pos = data;
-	m.end = data + length;
-    m.setSize(length);
-    m.setMode(mode);
-	return m;
+	data = _data;
+	pos = _data;
+	end = _data + _length;
+    setSize(_length);
+    setMode(_mode);
 }
 
 /**

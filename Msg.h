@@ -35,6 +35,8 @@ namespace jyq {
         void pfcall(Fcall* value) { packUnpack(value); }
         void pfcall(Fcall& value) { packUnpack(value); }
         static Msg message(char*, uint len, Mode mode);
+        Msg() = default;
+        Msg(char*, uint, Mode);
         template<typename T>
         void packUnpack(T& value) noexcept {
             using K = std::decay_t<T>;
