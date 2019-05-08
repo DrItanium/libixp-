@@ -183,41 +183,39 @@ Client::walkdir(char *path, const char **rest) {
 }
 std::shared_ptr<CFid>
 Client::walk(const char *path) {
-	Fcall fcall(FType::TWalk);
-    // TODO use the new tokenize method
-    //std::string cpy(path);
-    auto separation = tokenize(path, '/');
-    if (separation.size() > maximum::Welem) {
+    Fcall fcall(FType::TWalk);
+    if (auto separation = tokenize(path, '/'); separation.size() > maximum::Welem) {
         throw Exception("Path: '", path, "' is split into more than ", int(maximum::Welem), " components!");
-    } 
-    int n = separation.size();
-    int count = 0;
-    for (auto& sep : separation) {
-        fcall.twalk.wname[count] = sep.data();
-        ++count;
+    } else {
+        int n = separation.size();
+        int count = 0;
+        for (auto& sep : separation) {
+            fcall.twalk.wname[count] = sep.data();
+            ++count;
+        }
+        auto f = getFid();
+        fcall.setFid(RootFid);
+
+        fcall.twalk.setSize(n);
+        fcall.twalk.newfid = f->fid;
+        if (dofcall(&fcall) == 0) {
+            putfid(f);
+            return nullptr;
+        }
+        if(fcall.rwalk.size() < n) {
+            wErrorString("File does not exist");
+            if(fcall.rwalk.empty()) {
+                wErrorString("Protocol botch");
+            }
+            putfid(f);
+            return nullptr;
+        }
+
+        f->qid = fcall.rwalk.wqid[n-1]; // gross... so gross, this is taken from teh c code...so gross
+
+        Fcall::free(&fcall);
+        return f;
     }
-	auto f = getFid();
-    fcall.setFid(RootFid);
-
-    fcall.twalk.setSize(n);
-	fcall.twalk.newfid = f->fid;
-    if (dofcall(&fcall) == 0) {
-		goto fail;
-    }
-	if(fcall.rwalk.size() < n) {
-        wErrorString("File does not exist");
-		if(fcall.rwalk.empty())
-			wErrorString("Protocol botch");
-		goto fail;
-	}
-
-	f->qid = fcall.rwalk.wqid[n-1]; // gross... so gross, this is taken from teh c code...so gross
-
-	Fcall::free(&fcall);
-	return f;
-fail:
-	putfid(f);
-	return nullptr;
 }
 
 /**
