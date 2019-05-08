@@ -194,9 +194,7 @@ Client::walk(const char *path) {
 
     fcall.twalk.setSize(n);
 	fcall.twalk.newfid = f->fid;
-    auto outcome = dofcall(&fcall);
-    std::cout << "outcome: " << outcome << std::endl;
-    if (outcome == 0) {
+    if (dofcall(&fcall) == 0) {
 		goto fail;
     }
 	if(fcall.rwalk.size() < n) {
