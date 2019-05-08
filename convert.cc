@@ -101,8 +101,8 @@ Msg::pu32(uint32_t *val) {
 }
 void
 Msg::pu64(uint64_t *val) {
-	uint32_t vl = (uint)*val;
-	uint32_t vb = (uint)(*val>>32);
+	uint32_t vl = (uint32_t)*val;
+	uint32_t vb = (uint32_t)(*val>>32);
 	puint(SDWord, &vl);
 	puint(SDWord, &vb);
 	*val = vl | ((uint64_t)vb<<32);
@@ -271,7 +271,7 @@ Msg::pdata(char **data, uint len) {
  */
 void
 Qid::packUnpack(Msg& msg) {
-    msg.packUnpackMany(type, version, path);
+    msg.packUnpackMany(&type, &version, &path);
 	//msg.pu8(&type);
 	//msg.pu32(&version);
 	//msg.pu64(&path);
