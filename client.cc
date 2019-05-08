@@ -418,7 +418,7 @@ Client::create(const char *path, uint perm, uint8_t mode) {
     std::string tpath(path);
 
     auto f = walkdir(tpath.data(), &path);
-    if (!f)  {
+    if (!f) {
         return f;
     }
 
@@ -449,8 +449,9 @@ Client::open(const char *path, uint8_t mode) {
 	Fcall fcall;
 
 	auto f = walk(path);
-    if (!f) 
+    if (!f) {
 		return nullptr;
+    }
 
     fcall.setTypeAndFid(FType::TOpen, f->fid);
 	fcall.topen.mode = mode;
@@ -553,8 +554,9 @@ long
 CFid::read(void *buf, long count, DoFcallFunc dofcall) {
     concurrency::Locker<Mutex> theLock(iolock);
 	int n = _pread(this, (char*)buf, count, offset, dofcall);
-	if(n > 0)
+	if(n > 0) {
 		offset += n;
+    }
 	return n;
 }
 
