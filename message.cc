@@ -190,6 +190,18 @@ FIO::packUnpack(Msg& msg) {
     }
 }
 void
+FRStat::packUnpack(Msg& msg) {
+    msg.pu16(&getSizeReference());
+    msg.pdata((char**)&stat, size());
+}
+void
+FTWStat::packUnpack(Msg& msg) {
+    uint16_t size;
+    hdr.packUnpackFid(msg);
+	msg.pu16(&size);
+    msg.packUnpack(&stat);
+}
+void
 Fcall::packUnpack(Msg& msg) noexcept {
     hdr.packUnpack(msg);
 
@@ -244,16 +256,11 @@ Fcall::packUnpack(Msg& msg) noexcept {
         hdr.packUnpackFid(msg);
 		break;
     case FType::RStat:
-		msg.pu16(&rstat.getSizeReference());
-		msg.pdata((char**)&rstat.stat, rstat.size());
+        rstat.packUnpack(msg);
 		break;
-    case FType::TWStat: {
-		uint16_t size;
-        hdr.packUnpackFid(msg);
-		msg.pu16(&size);
-        msg.packUnpack(&twstat.stat);
+    case FType::TWStat: 
+        twstat.packUnpack(msg);
 		break;
-		}
     default:
         break;
 	}

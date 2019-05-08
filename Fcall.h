@@ -82,9 +82,11 @@ namespace jyq {
     };
     struct FRStat : public QueryHeader, public ContainsSizeParameter<uint16_t> {
         uint8_t*	stat;
+        void packUnpack(Msg& msg);
     };
     struct FTWStat : public QueryHeader {
         Stat		stat;
+        void packUnpack(Msg& msg);
     };
 
     /**
