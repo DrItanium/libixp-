@@ -199,19 +199,11 @@ Client::muxinit()
 	tagrend.mutex = &lk;
 	sleep.next = &sleep;
 	sleep.prev = &sleep;
-	concurrency::threadModel->initmutex(&lk);
-	concurrency::threadModel->initmutex(&rlock);
-	concurrency::threadModel->initmutex(&wlock);
-	concurrency::threadModel->initrendez(&tagrend);
 }
 
 void
 Client::muxfree()
 {
-	concurrency::threadModel->mdestroy(&lk);
-	concurrency::threadModel->mdestroy(&rlock);
-	concurrency::threadModel->mdestroy(&wlock);
-	concurrency::threadModel->rdestroy(&tagrend);
 	free(wait);
 }
 
