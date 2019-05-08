@@ -132,7 +132,7 @@ FVersion::packUnpack(Msg& msg) {
 void
 FAttach::packUnpack(Msg& msg) {
     if (getType() == FType::TAttach) {
-        hdr.packUnpackFid(msg);
+        packUnpackFid(msg);
     }
     msg.pu32(&afid);
     msg.pstring(&uname);
@@ -153,7 +153,7 @@ FROpen::packUnpack(Msg& msg) {
 }
 void
 FTWalk::packUnpack(Msg& msg) {
-    hdr.packUnpackFid(msg);
+    packUnpackFid(msg);
     msg.pu32(&newfid);
     msg.pstrings(&getSizeReference(), wname, nelem(wname));
 }
@@ -171,7 +171,7 @@ FRWalk::packUnpack(Msg& msg) {
 }
 void
 FTCreate::packUnpack(Msg& msg) {
-    hdr.packUnpackFid(msg);
+    packUnpackFid(msg);
     if (getType() == FType::TCreate) {
         msg.pstring(&name);
         msg.pu32(&perm);
@@ -182,7 +182,7 @@ void
 FIO::packUnpack(Msg& msg) {
     auto type = getType();
     if (type == FType::TRead || type == FType::TWrite) {
-        hdr.packUnpackFid(msg);
+        packUnpackFid(msg);
         msg.pu64(&offset);
     }
     msg.pu32(&getSizeReference());
@@ -198,7 +198,7 @@ FRStat::packUnpack(Msg& msg) {
 void
 FTWStat::packUnpack(Msg& msg) {
     uint16_t size;
-    hdr.packUnpackFid(msg);
+    packUnpackFid(msg);
 	msg.pu16(&size);
     msg.packUnpack(&stat);
 }
