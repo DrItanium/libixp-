@@ -270,7 +270,7 @@ Client::~Client() {
     fd.shutdown(SHUT_RDWR);
     fd.close();
 
-    muxfree();
+    free(wait);
 
     if (rmsg.data) {
         delete [] rmsg.data;

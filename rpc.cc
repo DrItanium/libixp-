@@ -25,15 +25,16 @@ namespace {
 Fcall*
 muxrecv(Client *mux)
 {
-	Fcall *f = nullptr;
+	//Fcall *f = nullptr;
     mux->rlock.lock();
     if (mux->fd.recvmsg(mux->rmsg) == 0) {
         mux->rlock.unlock();
-        return f;
+        return nullptr;
     }
-	f = (decltype(f))jyq::emallocz(sizeof *f);
+    auto f = new Fcall();
+	//f = (decltype(f))jyq::emallocz(sizeof *f);
 	if(msg2fcall(&mux->rmsg, f) == 0) {
-		free(f);
+        delete f;
 		f = nullptr;
 	}
     mux->rlock.unlock();
@@ -160,14 +161,14 @@ dispatchandqlock(Client *mux, Fcall *f)
 	if(tag < 0 || tag >= mux->mwait) {
 		fprintf(stderr, "libjyq: received unfeasible tag: %d (min: %d, max: %d)\n", f->hdr.tag, mux->mintag, mux->mintag+mux->mwait);
         Fcall::free(f);
-        free(f);
+        delete f;
         return;
 	}
 	auto r2 = mux->wait[tag];
     if (!r2 || !(r2->prev)) {
 		fprintf(stderr, "libjyq: received message with bad tag\n");
         Fcall::free(f);
-        free(f);
+        delete f;
         return;
 	}
 	r2->p = f;
@@ -200,13 +201,6 @@ Client::muxinit()
 	sleep.next = &sleep;
 	sleep.prev = &sleep;
 }
-
-void
-Client::muxfree()
-{
-	free(wait);
-}
-
 
 Fcall*
 Client::muxrpc(Fcall *tx)

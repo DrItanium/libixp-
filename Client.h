@@ -62,7 +62,6 @@ namespace jyq {
         auto open(const std::string& str, OMode mode) { return open(str, uint8_t(mode)); }
         auto open(const char* str, OMode mode) { return open(str, uint8_t(mode)); }
         auto stat(const std::string& str) { return stat(str.c_str()); }
-        void muxfree();
         void muxinit();
         Fcall* muxrpc(Fcall*);
         std::shared_ptr<CFid> getFid();
