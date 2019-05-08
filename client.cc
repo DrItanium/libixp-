@@ -194,10 +194,8 @@ Client::walk(const char *path) {
     int count = 0;
     for (auto& sep : separation) {
         fcall.twalk.wname[count] = sep.data();
+        ++count;
     }
-    std::cout << "separated into " << n << " elements" << std::endl;
-	//auto p = estrdup(path);
-	//int n = tokenize(fcall.twalk.wname, nelem(fcall.twalk.wname), p, '/');
 	auto f = getFid();
     fcall.setFid(RootFid);
 
@@ -216,11 +214,9 @@ Client::walk(const char *path) {
 	f->qid = fcall.rwalk.wqid[n-1]; // gross... so gross, this is taken from teh c code...so gross
 
 	Fcall::free(&fcall);
-	//free(p);
 	return f;
 fail:
 	putfid(f);
-	//free(p);
 	return nullptr;
 }
 
