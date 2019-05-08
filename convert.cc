@@ -257,4 +257,15 @@ Stat::packUnpack(Msg& msg) noexcept {
 	msg.pstring(&gid);
 	msg.pstring(&muid);
 }
+
+void
+Msg::packUnpack(Msg::Action pack, Msg::Action unpack) {
+    if (packRequested()) {
+        pack(*this);
+    } else if (unpackRequested()) {
+        unpack(*this);
+    } else {
+        throw Exception("Unknown mode defined! Nothing done!");
+    }
+}
 } // end namespace jyq

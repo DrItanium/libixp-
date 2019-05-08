@@ -5,6 +5,7 @@
 #ifndef LIBJYQ_MSG_H__
 #define LIBJYQ_MSG_H__
 
+#include <functional>
 #include "types.h"
 #include "qid.h"
 #include "stat.h"
@@ -37,6 +38,8 @@ namespace jyq {
         static Msg message(char*, uint len, Mode mode);
         Msg() = default;
         Msg(char*, uint, Mode);
+        using Action = std::function<void(Msg&)>;
+        void packUnpack(Action pack, Action unpack);
         template<typename T>
         void packUnpack(T& value) noexcept {
             using K = std::decay_t<T>;
