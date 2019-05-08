@@ -63,6 +63,7 @@ namespace jyq {
         uint8_t		mode; /* +Topen */
         constexpr auto getPerm() const noexcept { return perm; }
         constexpr auto getMode() const noexcept { return mode; }
+        void packUnpack(Msg& msg);
     };
     struct FTWalk : public QueryHeader, public ContainsSizeParameter<uint16_t>  {
         uint32_t	newfid;
@@ -72,6 +73,7 @@ namespace jyq {
     };
     struct FRWalk : public QueryHeader, public ContainsSizeParameter<uint16_t> {
         Qid		wqid[maximum::Welem];
+        void packUnpack(Msg& msg);
     };
     struct FIO : public QueryHeader, public ContainsSizeParameter<uint32_t> {
         uint64_t	offset; /* Tread, Twrite */

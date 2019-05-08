@@ -164,6 +164,19 @@ void
 FError::packUnpack(Msg& msg) {
     msg.pstring(&ename);
 }
+void 
+FRWalk::packUnpack(Msg& msg) {
+    msg.pqids(&getSizeReference(), wqid, nelem(wqid));
+}
+void
+FTCreate::packUnpack(Msg& msg) {
+    hdr.packUnpackFid(msg);
+    if (getType() == FType::TCreate) {
+        msg.pstring(&name);
+        msg.pu32(&perm);
+    }
+    msg.pu8(&mode);
+}
 void
 Fcall::packUnpack(Msg& msg) noexcept {
     hdr.packUnpack(msg);
@@ -195,21 +208,17 @@ Fcall::packUnpack(Msg& msg) noexcept {
         twalk.packUnpack(msg);
 		break;
 	case FType::RWalk:
-		msg.pqids(&rwalk.getSizeReference(), rwalk.wqid, nelem(rwalk.wqid));
+        rwalk.packUnpack(msg);
 		break;
 	case FType::TOpen:
-        hdr.packUnpackFid(msg);
-		msg.pu8(&topen.mode);
+        topen.packUnpack(msg);
 		break;
 	case FType::ROpen:
 	case FType::RCreate:
         ropen.packUnpack(msg);
 		break;
 	case FType::TCreate:
-        hdr.packUnpackFid(msg);
-		msg.pstring(&tcreate.name);
-		msg.pu32(&tcreate.perm);
-		msg.pu8(&tcreate.mode);
+        tcreate.packUnpack(msg);
 		break;
 	case FType::TRead:
         hdr.packUnpackFid(msg);
