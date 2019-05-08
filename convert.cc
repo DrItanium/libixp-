@@ -12,56 +12,6 @@
 
 
 namespace jyq {
-namespace {
-constexpr auto SByte = 1;
-constexpr auto SWord = 2;
-constexpr auto SDWord = 4;
-constexpr auto SQWord = 8;
-} // end namespace
-
-void
-Msg::puint(uint size, uint32_t *val) {
-	if ((this->pos + size) <= end) {
-		auto pos = (uint8_t*)this->pos;
-        auto performPack = [pos, size, val]() {
-                int v = *val;
-                switch(size) {
-                    case SDWord:
-                        pos[3] = v>>24;
-                        pos[2] = v>>16;
-                    case SWord:
-                        pos[1] = v>>8;
-                    case SByte:
-                        pos[0] = v;
-                        break;
-                }
-        };
-        auto performUnpack = [pos, size]() {
-            auto v = 0;
-            switch(size) {
-                case SDWord:
-                    v |= pos[3]<<24;
-                    v |= pos[2]<<16;
-                case SWord:
-                    v |= pos[1]<<8;
-                case SByte:
-                    v |= pos[0];
-                    break;
-            }
-            return v;
-        };
-        switch(getMode()) {
-            case Msg::Mode::Pack: 
-                performPack(); 
-                break;
-            case Msg::Mode::Unpack: {
-                *val = performUnpack();
-                break;
-            }
-        }
-	}
-    pos += size;
-}
 
 /**
  * Function: pu8
@@ -86,25 +36,25 @@ Msg::puint(uint size, uint32_t *val) {
 void
 Msg::pu8(uint8_t *val) {
 	uint32_t v = *val;
-	puint(SByte, &v);
+    puint<NumberSize::SByte>(&v);
 	*val = (uint8_t)v;
 }
 void
 Msg::pu16(uint16_t *val) {
 	uint32_t v = *val;
-	puint(SWord, &v);
+	puint<NumberSize::SWord>(&v);
 	*val = (uint16_t)v;
 }
 void
 Msg::pu32(uint32_t *val) {
-	puint(SDWord, val);
+    puint<NumberSize::SDWord>(val);
 }
 void
 Msg::pu64(uint64_t *val) {
 	uint32_t vl = (uint32_t)*val;
 	uint32_t vb = (uint32_t)(*val>>32);
-	puint(SDWord, &vl);
-	puint(SDWord, &vb);
+    puint<NumberSize::SDWord>(&vl);
+    puint<NumberSize::SDWord>(&vb);
 	*val = vl | ((uint64_t)vb<<32);
 }
 

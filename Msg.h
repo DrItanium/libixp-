@@ -86,7 +86,6 @@ namespace jyq {
             this->_mode = mode;
         }
         private:
-           void puint(uint, uint32_t*);
            enum class NumberSize : uint {
                 SByte = 1,
                 SWord = 2,
