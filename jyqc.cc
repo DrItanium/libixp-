@@ -314,7 +314,7 @@ main(int argc, char *argv[]) {
         } else {
             if (auto result = etab.find(cmd); result != etab.end()) {
                 auto ret = result->second(argc, argv);
-                jyq::Client::unmount(client);
+                delete client;
                 return ret;
             } else {
                 usage();

@@ -267,22 +267,16 @@ Client::remove(const char *path) {
  *	F<mount>
  */
 Client::~Client() {
-    unmount(this);
-}
-void
-Client::unmount(Client *client) {
-    // TODO migrate this to the client destructor eventually
+    fd.shutdown(SHUT_RDWR);
+    fd.close();
 
-    client->fd.shutdown(SHUT_RDWR);
-    client->fd.close();
+    muxfree();
 
-    client->muxfree();
-
-    if (client->rmsg.data) {
-        delete [] client->rmsg.data;
+    if (rmsg.data) {
+        delete [] rmsg.data;
     }
-    if (client->wmsg.data) {
-        delete [] client->wmsg.data;
+    if (wmsg.data) {
+        delete [] wmsg.data;
     }
 }
 
@@ -328,14 +322,14 @@ Client::mountfd(const Connection& fd) {
 	fcall.version.version = (char*)Version;
 
 	if(!c->dofcall(&fcall)) {
-		unmount(c);
+        delete c;
 		return nullptr;
 	}
 
 	if(strcmp(fcall.version.version, Version)
 	|| fcall.version.size() > maximum::Msg) {
 		wErrorString("bad 9P version response");
-		unmount(c);
+        delete c;
 		return nullptr;
 	}
 
@@ -351,7 +345,7 @@ Client::mountfd(const Connection& fd) {
 	fcall.tattach.uname = getenv("USER");
 	fcall.tattach.aname = (char*)"";
 	if(!c->dofcall(&fcall)) {
-		unmount(c);
+        delete c;
 		return nullptr;
 	}
 
