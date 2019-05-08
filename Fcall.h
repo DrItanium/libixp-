@@ -52,10 +52,10 @@ namespace jyq {
     };
     struct FAttach : public QueryHeader {
         uint32_t	afid;
-        constexpr auto getAfid() const noexcept { return afid; }
         char*		uname;
         char*		aname;
         void packUnpack(Msg& msg);
+        constexpr auto getAfid() const noexcept { return afid; }
     };
     struct FTCreate : public QueryHeader {
         uint32_t	perm;
@@ -79,6 +79,7 @@ namespace jyq {
         uint64_t	offset; /* Tread, Twrite */
         char*		data; /* Twrite, Rread */
         void packUnpack(Msg& msg);
+        constexpr auto getOffset() const noexcept { return offset; }
     };
     struct FRStat : public QueryHeader, public ContainsSizeParameter<uint16_t> {
         uint8_t*	stat;
@@ -141,9 +142,8 @@ namespace jyq {
         FIO      twrite, rwrite, 
                  tread, rread,
                  io;
-        void packUnpack(Msg& msg) noexcept;
         static void free(Fcall*);
-        FType getType() const noexcept { return hdr.type; }
+        constexpr FType getType() const noexcept { return hdr.type; }
         decltype(FHdr::fid) getFid() const noexcept { return hdr.fid; }
         void setType(FType type) noexcept { hdr.type = type; }
         void setFid(decltype(FHdr::fid) value) noexcept { hdr.fid = value; }
@@ -160,6 +160,7 @@ namespace jyq {
         Fcall(FType type, decltype(FHdr::fid) value) : Fcall(type) {
             setFid(value);
         }
+        void packUnpack(Msg& msg) noexcept;
     };
     using DoFcallFunc = std::function<bool(Fcall*)>;
     uint	msg2fcall(Msg*, Fcall*);
