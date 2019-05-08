@@ -82,13 +82,15 @@ gettag(Client *mux, Rpc *r)
 		while(mux->nwait == mux->mwait){
 			if(mux->mwait < mux->maxtag-mux->mintag){
 				mw = mux->mwait;
-				if(mw == 0)
+				if(mw == 0) {
 					mw = 1;
-				else
+                } else {
 					mw <<= 1;
+                }
 				w = (decltype(w))realloc(mux->wait, mw * sizeof *w);
-                if (!w)
+                if (!w) {
 					return -1;
+                }
 				memset(w+mux->mwait, 0, (mw-mux->mwait) * sizeof *w);
 				mux->wait = w;
 				mux->freetag = mux->mwait;

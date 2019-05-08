@@ -157,8 +157,9 @@ srv_writebuf(Req9 *req, char **buf, uint *len, uint max) {
 		count = max - offset;
 
 	*len = offset + count;
-	if(max == 0)
+	if(max == 0) {
 		*buf = (char*)jyq::erealloc(*buf, *len + 1);
+    }
 	p = *buf;
 
 	memcpy(p+offset, req->ifcall.io.data, count);
@@ -182,8 +183,9 @@ srv_data2cstring(Req9 *req) {
 
     i = req->ifcall.io.size();
 	p = req->ifcall.io.data;
-	if(i && p[i - 1] == '\n')
+	if(i && p[i - 1] == '\n') {
 		i--;
+    }
 	q = (decltype(q))memchr(p, '\0', i);
 	if(q)
 		i = q - p;
