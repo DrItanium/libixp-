@@ -19,7 +19,6 @@
 namespace jyq {
     struct CFid;
     struct Client {
-        static void	unmount(Client*);
         static Client* mount(const char*);
         inline static Client* mountfd(int fd) { return mountfd(Connection(fd)); }
         static Client*  mountfd(const Connection& c);
