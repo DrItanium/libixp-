@@ -78,6 +78,7 @@ namespace jyq {
     struct FIO : public QueryHeader, public ContainsSizeParameter<uint32_t> {
         uint64_t	offset; /* Tread, Twrite */
         char*		data; /* Twrite, Rread */
+        void packUnpack(Msg& msg);
     };
     struct FRStat : public QueryHeader, public ContainsSizeParameter<uint16_t> {
         uint8_t*	stat;

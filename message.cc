@@ -178,6 +178,18 @@ FTCreate::packUnpack(Msg& msg) {
     msg.pu8(&mode);
 }
 void
+FIO::packUnpack(Msg& msg) {
+    auto type = getType();
+    if (type == FType::TRead || type == FType::TWrite) {
+        hdr.packUnpackFid(msg);
+        msg.pu64(&offset);
+    }
+    msg.pu32(&getSizeReference());
+    if (type == FType::RRead || type == FType::TWrite) {
+        msg.pdata(&data, size());
+    }
+}
+void
 Fcall::packUnpack(Msg& msg) noexcept {
     hdr.packUnpack(msg);
 
@@ -221,22 +233,10 @@ Fcall::packUnpack(Msg& msg) noexcept {
         tcreate.packUnpack(msg);
 		break;
 	case FType::TRead:
-        hdr.packUnpackFid(msg);
-		msg.pu64(&tread.offset);
-		msg.pu32(&tread.getSizeReference());
-		break;
 	case FType::RRead:
-		msg.pu32(&rread.getSizeReference());
-		msg.pdata(&rread.data, rread.size());
-		break;
 	case FType::TWrite:
-        hdr.packUnpackFid(msg);
-		msg.pu64(&twrite.offset);
-		msg.pu32(&twrite.getSizeReference());
-		msg.pdata(&twrite.data, twrite.size());
-		break;
 	case FType::RWrite:
-		msg.pu32(&rwrite.getSizeReference());
+        io.packUnpack(msg);
 		break;
 	case FType::TClunk:
 	case FType::TRemove:
