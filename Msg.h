@@ -36,7 +36,7 @@ namespace jyq {
         void pfcall(Fcall* value) { packUnpack(value); }
         void pfcall(Fcall& value) { packUnpack(value); }
         static Msg message(char*, uint len, Mode mode);
-        Msg() = default;
+        Msg();
         Msg(char*, uint, Mode);
         using Action = std::function<void(Msg&)>;
         void packUnpack(Action pack, Action unpack);
@@ -88,6 +88,8 @@ namespace jyq {
         void setMode(Mode mode) noexcept {
             this->_mode = mode;
         }
+        public:
+            void alloc(int n);
         private:
            enum class NumberSize : uint {
                 SByte = 1,

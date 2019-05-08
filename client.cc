@@ -48,16 +48,25 @@ Client::putfid(std::shared_ptr<CFid> f) {
         freefid.emplace_front(f);
 	}
 }
+void
+Msg::alloc(int n) {
+    setSize(n);
+    if (data) {
+        delete[] data;
+    }
+    data = new char[n];
+    end = data + n;
+    pos = data;
+}
 namespace {
 
 
 void
 allocmsg(Client *c, int n) {
-    c->rmsg.setSize(n);
-    c->wmsg.setSize(n);
-	c->rmsg.data = (char*)erealloc(c->rmsg.data, n);
-	c->wmsg.data = (char*)erealloc(c->wmsg.data, n);
+    c->rmsg.alloc(n);
+    c->wmsg.alloc(n);
 }
+
 
 
 void
@@ -269,8 +278,12 @@ Client::unmount(Client *client) {
 
     client->muxfree();
 
-	free(client->rmsg.data);
-	free(client->wmsg.data);
+    if (client->rmsg.data) {
+        delete [] client->rmsg.data;
+    }
+    if (client->wmsg.data) {
+        delete [] client->wmsg.data;
+    }
 }
 
 

@@ -521,11 +521,8 @@ Conn::serve9conn() {
         Conn9 p9conn;
         ++p9conn;
         p9conn.srv = std::any_cast<decltype(p9conn.srv)>(this->aux);
-        p9conn.rmsg.setSize(1024);
-        p9conn.wmsg.setSize(1024);
-        p9conn.rmsg.data = (decltype(p9conn.rmsg.data))jyq::emalloc(p9conn.rmsg.size());
-        p9conn.wmsg.data = (decltype(p9conn.wmsg.data))jyq::emalloc(p9conn.wmsg.size());
-
+        p9conn.rmsg.alloc(1024);
+        p9conn.wmsg.alloc(1024);
         srv.listen(fd, &p9conn, handlefcall, cleanupconn);
     }
 }

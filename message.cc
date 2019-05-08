@@ -57,6 +57,11 @@ Msg::Msg(char* _data, uint _length, Mode _mode) {
     setMode(_mode);
 }
 
+Msg::Msg() : data(nullptr), pos(nullptr), end(nullptr), _mode(Mode::Pack) { 
+    setSize(0);
+}
+
+
 /**
  * Function: freestat
  * Function: freefcall
