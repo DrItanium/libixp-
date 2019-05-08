@@ -87,6 +87,53 @@ namespace jyq {
         }
         private:
            void puint(uint, uint32_t*);
+           enum class NumberSize : uint {
+                SByte = 1,
+                SWord = 2,
+                SDWord = 4,
+           };
+           template<NumberSize size>
+           void puint(uint32_t* val) {
+               if ((this->pos + uint(size)) <= end) {
+                   auto pos = (uint8_t*)this->pos;
+                   auto performPack = [pos, val]() {
+                       int v = *val;
+                       switch(size) {
+                           case NumberSize::SDWord:
+                               pos[3] = v>>24;
+                               pos[2] = v>>16;
+                           case NumberSize::SWord:
+                               pos[1] = v>>8;
+                           case NumberSize::SByte:
+                               pos[0] = v;
+                               break;
+                       }
+                   };
+                   auto performUnpack = [pos]() {
+                       auto v = 0;
+                       switch(size) {
+                           case NumberSize::SDWord:
+                               v |= pos[3]<<24;
+                               v |= pos[2]<<16;
+                           case NumberSize::SWord:
+                               v |= pos[1]<<8;
+                           case NumberSize::SByte:
+                               v |= pos[0];
+                               break;
+                       }
+                       return v;
+                   };
+                   switch(getMode()) {
+                       case Msg::Mode::Pack: 
+                           performPack(); 
+                           break;
+                       case Msg::Mode::Unpack: 
+                           *val = performUnpack();
+                           break;
+                   }
+               }
+               pos += uint(size);
+           }
            Mode _mode; /* MsgPack or MsgUnpack. */
     };
 } // end namespace jyq
