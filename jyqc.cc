@@ -139,26 +139,18 @@ xawrite(int argc, char *argv[]) {
         throw jyq::Exception("Can't open file '", file, "': ", jyq::errbuf(), "\n");
     }
 
-	auto nbuf = 0;
-	auto mbuf = 128;
-    auto buf = new char[mbuf];
+    std::stringstream buf;
 	while(argc) {
-		auto arg = ARGF();
-		int len = strlen(arg);
-		if(nbuf + len > mbuf) {
-			mbuf <<= 1;
-			buf = (decltype(buf))jyq::erealloc(buf, mbuf);
-		}
-		memcpy(buf+nbuf, arg, len);
-		nbuf += len;
-		if(argc)
-			buf[nbuf++] = ' ';
+        auto arg = ARGF();
+        buf << arg;
+		if(argc) {
+            buf << " ";
+        }
 	}
-
-	if(fid->write(buf, nbuf, client->getDoFcallLambda()) == -1) {
+    auto str = buf.str();
+    if (fid->write(str.c_str(), str.length(), client->getDoFcallLambda()) == -1) {
         throw jyq::Exception("cannot write file '", file, "': ", jyq::errbuf(), "\n");
     }
-    delete[] buf;
 	return 0;
 }
 
