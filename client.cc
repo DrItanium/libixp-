@@ -49,7 +49,7 @@ Client::putfid(std::shared_ptr<CFid> f) {
 	}
 }
 void
-Msg::alloc(int n) {
+Msg::alloc(uint n) {
     setSize(n);
     if (data) {
         delete[] data;
@@ -82,15 +82,15 @@ _stat(ulong fid, std::function<bool(Fcall*)> dofcall) {
 	if(!dofcall(&fcall))
 		return nullptr;
 
-	auto msg = Msg::message((char*)fcall.rstat.stat, fcall.rstat.size(), Msg::Mode::Unpack);
-
+    Msg msg((char*)fcall.rstat.stat, fcall.rstat.size(), Msg::Mode::Unpack);
     auto stat = std::make_shared<Stat>();
     msg.pstat(*stat);
 	Fcall::free(&fcall); // TODO eliminate this eventually
 	if(msg.pos > msg.end) {
-        stat = nullptr;
-	}
-	return stat;
+        return nullptr;
+	} else {
+	    return stat;
+    }
 }
 
 long
@@ -106,8 +106,9 @@ _pread(CFid *f, char *buf, long count, int64_t offset, std::function<bool(Fcall*
         if (!dofcall(&fcall)) {
 			return -1;
         }
-		if(fcall.rread.size() > n)
-			return -1;
+		if(fcall.rread.size() > n) {
+            return -1;
+        }
 
 		memcpy(buf+len, fcall.rread.data, fcall.rread.size());
 		offset += fcall.rread.size();
@@ -258,14 +259,6 @@ Client::remove(const char *path) {
 }
 
 
-/**
- * Function: unmount
- *
- * Unmounts the client P<client> and frees its data structures.
- *
- * See also:
- *	F<mount>
- */
 Client::~Client() {
     fd.shutdown(SHUT_RDWR);
     fd.close();

@@ -26,19 +26,16 @@ Fcall*
 muxrecv(Client *mux)
 {
 	//Fcall *f = nullptr;
-    mux->rlock.lock();
+    concurrency::Locker<Mutex> theRlock(mux->rlock);
     if (mux->fd.recvmsg(mux->rmsg) == 0) {
-        mux->rlock.unlock();
         return nullptr;
     }
-    auto f = new Fcall();
-	//f = (decltype(f))jyq::emallocz(sizeof *f);
-	if(msg2fcall(&mux->rmsg, f) == 0) {
+	if(auto f = new Fcall(); msg2fcall(&mux->rmsg, f) == 0) {
         delete f;
-		f = nullptr;
-	}
-    mux->rlock.unlock();
-	return f;
+        return nullptr;
+	} else {
+        return f;
+    }
 }
 
 
@@ -174,7 +171,6 @@ dispatchandqlock(Client *mux, Fcall *f)
 	r2->p = f;
 	dequeue(mux, r2);
     r2->r.wake();
-	return;
 }
 } // end namespace
 void

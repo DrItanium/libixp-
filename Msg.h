@@ -89,7 +89,7 @@ namespace jyq {
             this->_mode = mode;
         }
         public:
-            void alloc(int n);
+            void alloc(uint n);
         private:
            enum class NumberSize : uint {
                 SByte = 1,
