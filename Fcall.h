@@ -18,46 +18,43 @@ namespace jyq {
         uint32_t	fid;
         void packUnpack(Msg& msg);
         void packUnpackFid(Msg& msg);
+        constexpr auto getType() const noexcept { return type; }
+        constexpr auto getTag() const noexcept { return tag; }
+        constexpr auto getFid() const noexcept { return fid; }
+        FHdr() = default;
+        ~FHdr() = default;
     };
-    struct QueryHeader {
-        QueryHeader() = default;
-        ~QueryHeader() = default;
-        FHdr hdr;
-        constexpr auto getType() const noexcept { return hdr.type; }
-        constexpr auto getFid() const noexcept { return hdr.fid; }
-        constexpr auto getTag() const noexcept { return hdr.tag; }
-    };
-    struct FVersion : public QueryHeader, public ContainsSizeParameter<uint32_t> {
+    struct FVersion : public FHdr, public ContainsSizeParameter<uint32_t> {
         char*		version;
         void packUnpack(Msg& msg);
     };
-    struct FTFlush : public QueryHeader {
+    struct FTFlush : public FHdr {
         uint16_t	oldtag;
         constexpr auto getOldTag() const noexcept { return oldtag; }
         void packUnpack(Msg& msg);
     };
-    struct FError : public QueryHeader {
+    struct FError : public FHdr {
         char*		ename;
         void packUnpack(Msg& msg);
     };
-    struct FROpen : public QueryHeader {
+    struct FROpen : public FHdr {
         Qid		qid; /* +Rattach */
         uint32_t	iounit;
         constexpr auto getIoUnit() const noexcept { return iounit; }
         void packUnpack(Msg& msg);
     };
-    struct FRAuth : public QueryHeader {
+    struct FRAuth : public FHdr {
         Qid		aqid;
         void packUnpack(Msg& msg);
     };
-    struct FAttach : public QueryHeader {
+    struct FAttach : public FHdr {
         uint32_t	afid;
         char*		uname;
         char*		aname;
         void packUnpack(Msg& msg);
         constexpr auto getAfid() const noexcept { return afid; }
     };
-    struct FTCreate : public QueryHeader {
+    struct FTCreate : public FHdr {
         uint32_t	perm;
         char*		name;
         uint8_t		mode; /* +Topen */
@@ -65,27 +62,27 @@ namespace jyq {
         constexpr auto getMode() const noexcept { return mode; }
         void packUnpack(Msg& msg);
     };
-    struct FTWalk : public QueryHeader, public ContainsSizeParameter<uint16_t>  {
+    struct FTWalk : public FHdr, public ContainsSizeParameter<uint16_t>  {
         uint32_t	newfid;
         char*		wname[maximum::Welem];
         constexpr auto getNewFid() const noexcept { return newfid; }
         void packUnpack(Msg& msg);
     };
-    struct FRWalk : public QueryHeader, public ContainsSizeParameter<uint16_t> {
+    struct FRWalk : public FHdr, public ContainsSizeParameter<uint16_t> {
         Qid		wqid[maximum::Welem];
         void packUnpack(Msg& msg);
     };
-    struct FIO : public QueryHeader, public ContainsSizeParameter<uint32_t> {
+    struct FIO : public FHdr, public ContainsSizeParameter<uint32_t> {
         uint64_t	offset; /* Tread, Twrite */
         char*		data; /* Twrite, Rread */
         void packUnpack(Msg& msg);
         constexpr auto getOffset() const noexcept { return offset; }
     };
-    struct FRStat : public QueryHeader, public ContainsSizeParameter<uint16_t> {
+    struct FRStat : public FHdr, public ContainsSizeParameter<uint16_t> {
         uint8_t*	stat;
         void packUnpack(Msg& msg);
     };
-    struct FTWStat : public QueryHeader {
+    struct FTWStat : public FHdr {
         Stat		stat;
         void packUnpack(Msg& msg);
     };
