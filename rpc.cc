@@ -194,14 +194,6 @@ Client::dequeue(Rpc* r) {
 
 }
 
-void
-Client::muxinit()
-{
-	tagrend.mutex = &lk;
-	sleep.next = &sleep;
-	sleep.prev = &sleep;
-}
-
 Fcall*
 Client::muxrpc(Fcall *tx)
 {

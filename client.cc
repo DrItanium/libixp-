@@ -310,8 +310,6 @@ Client::mountfd(const Connection& fd) {
 
     fcall.setType(FType::TVersion);
     auto c = new Client(fd);
-    c->muxinit();
-
 	allocmsg(c, 256);
 	c->lastfid = RootFid;
 	/* Override tag matching on TVersion */
@@ -653,6 +651,10 @@ CFid::clunk(DoFcallFunc fn) {
 }
 
 Client::Client(int _fd) : fd(_fd), sleep(*this) { }
-Client::Client(const Connection& c) : fd(c), sleep(*this) { }
+Client::Client(const Connection& c) : fd(c), sleep(*this) { 
+    sleep.next = &sleep;
+    sleep.prev = &sleep;
+	tagrend.mutex = &lk;
+}
 } // end namespace jyq
 
