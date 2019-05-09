@@ -58,18 +58,29 @@ decref_p9conn(Conn9 *p9conn) {
             return;
         }
     }
-	assert(p9conn->conn == nullptr);
+    // this is dumb, leave the code disabled for now. What needs to happen is that
+    // the reference count associated with the connection needs to cause destruction
+    // once the reference count equals zero. Right now, this is done manually, it should
+    // be done through C++ destructors for maximum cleanliness
+    //
+    // Right now, the fid object holds onto a reference instead of a pointer. Thus
+    // we could replace it with a std::shared_ptr if we desired. That way the destruction of the
+    // final shared_ptr would yield destruction
+    
 
-	concurrency::threadModel->mdestroy(&p9conn->rlock);
-	concurrency::threadModel->mdestroy(&p9conn->wlock);
 
-    if (p9conn->rmsg.data) {
-        delete[] p9conn->rmsg.data;
-    }
-    if (p9conn->wmsg.data) {
-        delete[] p9conn->wmsg.data;
-    }
-	free(p9conn); // don't like this at all :(
+	//assert(p9conn->conn == nullptr);
+
+	//concurrency::threadModel->mdestroy(&p9conn->rlock);
+	//concurrency::threadModel->mdestroy(&p9conn->wlock);
+
+    //if (p9conn->rmsg.data) {
+    //    delete[] p9conn->rmsg.data;
+    //}
+    //if (p9conn->wmsg.data) {
+    //    delete[] p9conn->wmsg.data;
+    //}
+	//free(p9conn); // don't like this at all :(
 }
 Fid::Fid(uint32_t f, Fid::Map& m, Conn9& c) : fid(f), omode(-1), map(m), conn(c) {
     ++conn;
@@ -89,7 +100,7 @@ Fid::~Fid() {
            srv->freefid(this);
        }
     }
-    decref_p9conn(&this->conn);
+    decref_p9conn(&this->conn); // this should not be done like this
 }
 static bool 
 destroyfid(Conn9& p9conn, ulong fid) {
