@@ -51,22 +51,25 @@ static std::string
 
 static void
 decref_p9conn(Conn9 *p9conn) {
-    p9conn->wlock.lock();
-    p9conn->operator--();
-    if (p9conn->referenceCountGreaterThan(0)) {
-        p9conn->wlock.unlock();
-		return;
-	}
-    p9conn->wlock.unlock();
-
+    {
+        concurrency::Locker<Mutex> theLock(p9conn->wlock);
+        p9conn->operator--();
+        if (p9conn->referenceCountGreaterThan(0)) {
+            return;
+        }
+    }
 	assert(p9conn->conn == nullptr);
 
 	concurrency::threadModel->mdestroy(&p9conn->rlock);
 	concurrency::threadModel->mdestroy(&p9conn->wlock);
 
-	free(p9conn->rmsg.data);
-	free(p9conn->wmsg.data);
-	free(p9conn);
+    if (p9conn->rmsg.data) {
+        delete[] p9conn->rmsg.data;
+    }
+    if (p9conn->wmsg.data) {
+        delete[] p9conn->wmsg.data;
+    }
+	free(p9conn); // don't like this at all :(
 }
 Fid::Fid(uint32_t f, Fid::Map& m, Conn9& c) : fid(f), omode(-1), map(m), conn(c) {
     ++conn;
