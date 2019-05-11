@@ -25,8 +25,12 @@ namespace jyq {
         ~FHdr() = default;
     };
     struct FVersion : public FHdr, public ContainsSizeParameter<uint32_t> {
-        char*		version;
         void packUnpack(Msg& msg);
+        char* getVersion() noexcept { return _version; }
+        const char* getVersion() const noexcept { return _version; }
+        void setVersion(char* value) noexcept { _version = value; }
+        private:
+            char* _version;
     };
     struct FTFlush : public FHdr {
         constexpr auto getOldTag() const noexcept { return _oldtag; }
@@ -100,7 +104,8 @@ namespace jyq {
         void packUnpack(Msg& msg);
         constexpr auto getOffset() const noexcept { return _offset; }
         void setOffset(uint64_t value) noexcept { _offset = value; }
-        char* getData() const noexcept { return _data; }
+        const char* getData() const noexcept { return _data; }
+        char* getData() noexcept { return _data; }
         void setData(char* value) noexcept { _data = value; }
         private: 
             uint64_t  _offset; /* Tread, Twrite */
@@ -108,7 +113,8 @@ namespace jyq {
     };
     struct FRStat : public FHdr, public ContainsSizeParameter<uint16_t> {
         void packUnpack(Msg& msg);
-        uint8_t* getStat() const noexcept { return _stat; }
+        const uint8_t* getStat() const noexcept { return _stat; }
+        uint8_t* getStat() noexcept { return _stat; }
         void setStat(uint8_t* value) noexcept { _stat = value; }
         private:
             uint8_t* _stat;

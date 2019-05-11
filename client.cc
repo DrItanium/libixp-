@@ -307,14 +307,14 @@ Client::mountfd(const Connection& fd) {
 	c->maxtag = NoTag+1;
 
     fcall.version.setSize(maximum::Msg);
-	fcall.version.version = (char*)Version;
+	fcall.version.setVersion((char*)Version);
 
 	if(!c->dofcall(&fcall)) {
         delete c;
 		return nullptr;
 	}
 
-	if(strcmp(fcall.version.version, Version)
+	if(strcmp(fcall.version.getVersion(), Version)
 	|| fcall.version.size() > maximum::Msg) {
 		wErrorString("bad 9P version response");
         delete c;

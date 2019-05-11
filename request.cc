@@ -158,13 +158,13 @@ Req9::handle() {
     static std::map<FType, std::function<void()>> dispatchTable = {
         { FType::TVersion, 
             [this]() {
-                std::string ver(ifcall.version.version);
+                std::string ver(ifcall.version.getVersion());
                 if(!strcmp(ver.c_str(), "9P")) {
-                    ofcall.version.version = "9P";
+                    ofcall.version.setVersion("9P");
                 } else if(!strcmp(ver.c_str(), "9P2000")) {
-                    ofcall.version.version = "9P2000";
+                    ofcall.version.setVersion("9P2000");
                 } else {
-                    ofcall.version.version = "unknown";
+                    ofcall.version.setVersion("unknown");
                 }
                 ofcall.version.setSize(ifcall.version.size());
                 respond(nullptr);
@@ -355,7 +355,7 @@ Req9::respond(const char *error) {
 	switch(ifcall.hdr.type) {
 	case FType::TVersion:
 		assert(error == nullptr);
-		free(ifcall.version.version);
+		free(ifcall.version.getVersion());
         {
             concurrency::Locker<Mutex> theRlock(p9conn->rlock);
             concurrency::Locker<Mutex> theWlock(p9conn->wlock);
