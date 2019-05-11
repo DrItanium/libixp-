@@ -29,9 +29,11 @@ namespace jyq {
         void packUnpack(Msg& msg);
     };
     struct FTFlush : public FHdr {
-        uint16_t	oldtag;
-        constexpr auto getOldTag() const noexcept { return oldtag; }
+        constexpr auto getOldTag() const noexcept { return _oldtag; }
+        void setOldTag(uint16_t oldtag) noexcept { _oldtag = oldtag; }
         void packUnpack(Msg& msg);
+        private:
+            uint16_t _oldtag;
     };
     struct FError : public FHdr {
         void packUnpack(Msg& msg);

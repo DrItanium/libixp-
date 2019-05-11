@@ -166,7 +166,7 @@ FTWalk::packUnpack(Msg& msg) {
 }
 void
 FTFlush::packUnpack(Msg& msg) {
-    msg.pu16(&oldtag);
+    msg.pu16(&_oldtag);
 }
 void
 FError::packUnpack(Msg& msg) {

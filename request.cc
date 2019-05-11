@@ -194,7 +194,7 @@ Req9::handle() {
             } },
         { FType::TFlush, 
             [&p9conn, srv = p9conn.srv, this]() {
-                if (oldreq = p9conn.retrieveTag(ifcall.tflush.oldtag); !oldreq) {
+                if (oldreq = p9conn.retrieveTag(ifcall.tflush.getOldTag()); !oldreq) {
                     respond(Enotag);
                 } else {
                     if(!srv->flush) {
@@ -413,7 +413,7 @@ Req9::respond(const char *error) {
         }
 		break;
 	case FType::TFlush:
-        if (oldreq = p9conn->retrieveTag(ifcall.tflush.oldtag); oldreq) {
+        if (oldreq = p9conn->retrieveTag(ifcall.tflush.getOldTag()); oldreq) {
             oldreq->respond(Eintr);
         }
 		break;
@@ -489,7 +489,7 @@ cleanupconn(Conn *c) {
                     context.emplace_back();
                     context.back().ifcall.setType(FType::TFlush);
                     context.back().ifcall.setNoTag();
-                    context.back().ifcall.tflush.oldtag = arg->second.ifcall.hdr.tag;
+                    context.back().ifcall.tflush.setOldTag(arg->second.ifcall.hdr.tag);
                     context.back().conn = arg->second.conn;
                 }, collection);
 	}
