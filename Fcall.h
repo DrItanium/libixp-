@@ -55,12 +55,18 @@ namespace jyq {
         constexpr auto getAfid() const noexcept { return afid; }
     };
     struct FTCreate : public FHdr {
-        uint32_t	perm;
-        char*		name;
-        uint8_t		mode; /* +Topen */
-        constexpr auto getPerm() const noexcept { return perm; }
-        constexpr auto getMode() const noexcept { return mode; }
+        constexpr auto getPerm() const noexcept { return _perm; }
+        void setPerm(uint32_t perm) noexcept { _perm = perm; }
+        constexpr auto getMode() const noexcept { return _mode; }
+        void setMode(uint8_t value) noexcept { _mode = value; }
+        const char* getName() const noexcept { return _name; }
+        char* getName() noexcept { return _name; }
+        void setName(char* value) noexcept { _name = value; }
         void packUnpack(Msg& msg);
+        private:
+            uint32_t	_perm;
+            char*		_name;
+            uint8_t		_mode; /* +Topen */
     };
     struct FTWalk : public FHdr, public ContainsSizeParameter<uint16_t>  {
         char*		wname[maximum::Welem];

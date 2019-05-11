@@ -181,10 +181,10 @@ void
 FTCreate::packUnpack(Msg& msg) {
     packUnpackFid(msg);
     if (getType() == FType::TCreate) {
-        msg.pstring(&name);
-        msg.pu32(&perm);
+        msg.pstring(&_name);
+        msg.pu32(&_perm);
     }
-    msg.pu8(&mode);
+    msg.pu8(&_mode);
 }
 void
 FIO::packUnpack(Msg& msg) {

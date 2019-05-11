@@ -405,9 +405,9 @@ Client::create(const char *path, uint perm, uint8_t mode) {
     }
 
     fcall.setTypeAndFid(FType::TCreate, f->fid);
-	fcall.tcreate.name = (char*)(uintptr_t)path;
-	fcall.tcreate.perm = perm;
-	fcall.tcreate.mode = mode;
+    fcall.tcreate.setName((char*)(uintptr_t)path);
+    fcall.tcreate.setPerm(perm);
+    fcall.tcreate.setMode(mode);
 
 	if(!dofcall(&fcall)) {
         clunk(f);
@@ -436,7 +436,7 @@ Client::open(const char *path, uint8_t mode) {
     }
 
     fcall.setTypeAndFid(FType::TOpen, f->fid);
-	fcall.topen.mode = mode;
+    fcall.topen.setMode(mode);
 
 	if(!dofcall(&fcall)) {
 		clunk(f);
