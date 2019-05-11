@@ -34,6 +34,8 @@ namespace jyq {
         // methods
         void respond(const char *err);
         inline void respond(const std::string& err) { respond(err.c_str()); }
+        void handle();
+
     };
 } // end namespace jyq
 #endif // end LIBJYQ_REQ9_H__
