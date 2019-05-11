@@ -162,31 +162,6 @@ Client::dofcall(Fcall& fcall) {
 	}
     return ret;
 }
-#if 0
-bool 
-Client::dofcall(Fcall *fcall) {
-
-    auto ret = this->muxrpc(fcall);
-    if (!ret) {
-		return false;
-    }
-	if(ret->getType()== FType::RError) {
-        wErrorString(ret->error.getEname());
-		goto fail;
-	}
-    if (auto hdrVal = uint8_t(ret->getType()), fhdrVal = uint8_t(fcall->getType()); hdrVal != (fhdrVal^1)) {
-        wErrorString("received mismatched fcall");
-		goto fail;
-	}
-    *fcall = *ret;
-	free(ret);
-	return true;
-fail:
-    fcall->reset();
-	free(ret);
-	return false;
-}
-#endif
 std::shared_ptr<CFid>
 Client::walkdir(char *path, const char **rest) {
 	char *p;

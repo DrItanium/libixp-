@@ -158,31 +158,6 @@ Rpc::sendrpc(Fcall *f)
     }
     return ret;
 }
-#if 0
-void
-Client::dispatchandqlock(Fcall *f)
-{
-	int tag = f->getTag() - mintag;
-    lk.lock();
-	/* hand packet to correct sleeper */
-	if(tag < 0 || tag >= mwait) {
-		fprintf(stderr, "libjyq: received unfeasible tag: %d (min: %d, max: %d)\n", f->getTag(), mintag, mintag+mwait);
-        //Fcall::free(f);
-        delete f;
-        return;
-	}
-	auto r2 = wait[tag];
-    if (!r2 || !(r2->prev)) {
-		fprintf(stderr, "libjyq: received message with bad tag\n");
-        //Fcall::free(f);
-        delete f;
-        return;
-	}
-	r2->p = f;
-    dequeue(r2);
-    r2->r.wake();
-}
-#endif
 
 void
 Client::dispatchandqlock(std::shared_ptr<Fcall> f)
@@ -257,49 +232,6 @@ Client::muxrpc(Fcall& tx)
     }
 	return p;
 }
-#if 0
-Fcall*
-Client::muxrpc(Fcall *tx)
-{
-	Rpc r(*this);
-	Fcall *p = nullptr;
-
-    if (r.sendrpc(tx) < 0) {
-		return nullptr;
-    }
-
-    lk.lock();
-	/* wait for our packet */
-	while(muxer && muxer != &r && !r.p) {
-        r.getRendez().sleep();
-    }
-
-	/* if not done, there's no muxer; start muxing */
-	if(!r.p){
-		assert(muxer == nullptr || muxer == &r);
-		muxer = &r;
-		while(!r.p){
-            lk.unlock();
-			p = muxrecv();
-            if (!p) {
-				/* eof -- just give up and pass the buck */
-                lk.lock();
-                dequeue(&r);
-				break;
-			}
-			dispatchandqlock(p);
-		}
-		electmuxer();
-	}
-	p = r.p;
-	puttag(&r);
-    lk.unlock();
-    if (!p) {
-        wErrorString("unexpected eof");
-    }
-	return p;
-}
-#endif 
 } // end namespace jyq
 
 
