@@ -83,12 +83,19 @@ namespace jyq {
             char*     _data; /* Twrite, Rread */
     };
     struct FRStat : public FHdr, public ContainsSizeParameter<uint16_t> {
-        uint8_t*	stat;
         void packUnpack(Msg& msg);
+        uint8_t* getStat() const noexcept { return _stat; }
+        void setStat(uint8_t* value) noexcept { _stat = value; }
+        private:
+            uint8_t* _stat;
     };
     struct FTWStat : public FHdr {
-        Stat		stat;
         void packUnpack(Msg& msg);
+        Stat& getStat() noexcept { return _stat; }
+        const Stat& getStat() const noexcept { return _stat; }
+        void setStat(const Stat& stat) noexcept { _stat = stat; }
+        private:
+            Stat _stat;
     };
 
     /**

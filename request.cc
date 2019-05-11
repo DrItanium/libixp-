@@ -308,15 +308,15 @@ Req9::handle() {
             [&p9conn, srv = p9conn.srv, this]() {
                 if (fid = p9conn.retrieveFid(ifcall.getFid()); !fid) {
                     respond(Enofid);
-                } else if(~ifcall.twstat.stat.type) {
+                } else if(~ifcall.twstat.getStat().type) {
                     respond("wstat of type");
-                } else if(~ifcall.twstat.stat.dev) {
+                } else if(~ifcall.twstat.getStat().dev) {
                     respond("wstat of dev");
-                } else if(~ifcall.twstat.stat.qid.type || (ulong)~ifcall.twstat.stat.qid.version || ~ifcall.twstat.stat.qid.path) {
+                } else if(~ifcall.twstat.getStat().qid.type || (ulong)~ifcall.twstat.getStat().qid.version || ~ifcall.twstat.getStat().qid.path) {
                     respond("wstat of qid");
-                } else if(ifcall.twstat.stat.muid && ifcall.twstat.stat.muid[0]) {
+                } else if(ifcall.twstat.getStat().muid && ifcall.twstat.getStat().muid[0]) {
                     respond("wstat of muid");
-                } else if(~ifcall.twstat.stat.mode && ((ifcall.twstat.stat.mode&(uint32_t)(DMode::DIR))>>24) != (fid->qid.type&uint8_t(QType::DIR))) {
+                } else if(~ifcall.twstat.getStat().mode && ((ifcall.twstat.getStat().mode&(uint32_t)(DMode::DIR))>>24) != (fid->qid.type&uint8_t(QType::DIR))) {
                     respond("wstat on DMDIR bit");
                 } else if(!srv->wstat) {
                     respond(Enofunc);
@@ -418,7 +418,7 @@ Req9::respond(const char *error) {
         }
 		break;
 	case FType::TWStat:
-		Stat::free(&ifcall.twstat.stat);
+		Stat::free(&ifcall.twstat.getStat());
 		break;
 	case FType::TRead:
 	case FType::TStat:
@@ -456,7 +456,7 @@ Req9::respond(const char *error) {
 
 	switch(ofcall.hdr.type) {
 	case FType::RStat:
-		free(ofcall.rstat.stat);
+		free(ofcall.rstat.getStat());
 		break;
 	case FType::RRead:
 		free(ofcall.rread.getData());

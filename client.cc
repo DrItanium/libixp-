@@ -79,7 +79,7 @@ _stat(ulong fid, std::function<bool(Fcall*)> dofcall) {
 		return nullptr;
     }
 
-    Msg msg((char*)fcall.rstat.stat, fcall.rstat.size(), Msg::Mode::Unpack);
+    Msg msg((char*)fcall.rstat.getStat(), fcall.rstat.size(), Msg::Mode::Unpack);
     auto stat = std::make_shared<Stat>();
     msg.pstat(*stat);
 	Fcall::free(&fcall); // TODO eliminate this eventually

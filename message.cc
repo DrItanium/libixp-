@@ -89,8 +89,8 @@ void
 Fcall::free(Fcall *fcall) {
     switch(fcall->getType()) {
     case FType::RStat:
-		::free(fcall->rstat.stat);
-		fcall->rstat.stat = nullptr;
+        ::free(fcall->rstat.getStat());
+        fcall->rstat.setStat(nullptr);
 		break;
     case FType::RRead:
 		::free(fcall->rread.getData());
@@ -201,14 +201,14 @@ FIO::packUnpack(Msg& msg) {
 void
 FRStat::packUnpack(Msg& msg) {
     msg.pu16(&getSizeReference());
-    msg.pdata((char**)&stat, size());
+    msg.pdata((char**)&_stat, size());
 }
 void
 FTWStat::packUnpack(Msg& msg) {
     uint16_t size;
     packUnpackFid(msg);
 	msg.pu16(&size);
-    msg.packUnpack(&stat);
+    msg.packUnpack(&_stat);
 }
 void
 Fcall::packUnpack(Msg& msg) noexcept {
