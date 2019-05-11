@@ -125,12 +125,12 @@ Stat::size() noexcept {
 void
 FHdr::packUnpack(Msg& msg) 
 {
-    msg.pu8((uint8_t*)&type);
-    msg.pu16(&tag);
+    msg.pu8((uint8_t*)&_type);
+    msg.pu16(&_tag);
 }
 void
 FHdr::packUnpackFid(Msg& msg) {
-    msg.pu32(&fid);
+    msg.pu32(&_fid);
 }
 void
 FVersion::packUnpack(Msg& msg) {

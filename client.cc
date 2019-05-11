@@ -151,11 +151,11 @@ Client::dofcall(Fcall *fcall) {
     if (!ret) {
 		return false;
     }
-	if(ret->hdr.type == FType::RError) {
+	if(ret->hdr.getType()== FType::RError) {
         wErrorString(ret->error.getEname());
 		goto fail;
 	}
-    if (auto hdrVal = uint8_t(ret->hdr.type), fhdrVal = uint8_t(fcall->getType()); hdrVal != (fhdrVal^1)) {
+    if (auto hdrVal = uint8_t(ret->hdr.getType()), fhdrVal = uint8_t(fcall->getType()); hdrVal != (fhdrVal^1)) {
         std::cout << "hdrVal: " << hdrVal << std::endl;
         wErrorString("received mismatched fcall");
 		goto fail;

@@ -13,16 +13,21 @@
 #include "Msg.h"
 namespace jyq {
     struct FHdr {
-        FType type;
-        uint16_t	tag;
-        uint32_t	fid;
         void packUnpack(Msg& msg);
         void packUnpackFid(Msg& msg);
-        constexpr auto getType() const noexcept { return type; }
-        constexpr auto getTag() const noexcept { return tag; }
-        constexpr auto getFid() const noexcept { return fid; }
+        constexpr auto getType() const noexcept { return _type; }
+        constexpr auto getTag() const noexcept { return _tag; }
+        constexpr auto getFid() const noexcept { return _fid; }
+        void setType(FType value) noexcept { _type = value; }
+        void setTag(uint16_t value) noexcept { _tag = value; }
+        void setFid(uint32_t value) noexcept { _fid = value; }
         FHdr() = default;
         ~FHdr() = default;
+        private:
+            FType _type;
+            uint16_t _tag;
+            uint32_t _fid;
+
     };
     struct FVersion : public FHdr, public ContainsSizeParameter<uint32_t> {
         void packUnpack(Msg& msg);
@@ -181,22 +186,23 @@ namespace jyq {
                  tread, rread,
                  io;
         static void free(Fcall*);
-        constexpr FType getType() const noexcept { return hdr.type; }
-        decltype(FHdr::fid) getFid() const noexcept { return hdr.fid; }
-        void setType(FType type) noexcept { hdr.type = type; }
-        void setFid(decltype(FHdr::fid) value) noexcept { hdr.fid = value; }
-        void setTypeAndFid(FType type, decltype(FHdr::fid) value) noexcept {
-            setType(type);
-            setFid(value);
+        constexpr auto getType() const noexcept { return hdr.getType(); }
+        constexpr auto getFid() const noexcept { return hdr.getFid(); }
+        constexpr auto getTag() const noexcept { return hdr.getTag(); }
+        void setType(FType type) noexcept { hdr.setType(type); }
+        void setFid(uint32_t value) noexcept { hdr.setFid(value); }
+        void setTypeAndFid(FType t, uint32_t fid) noexcept {
+            setType(t);
+            setFid(fid);
         }
-        void setTag(decltype(FHdr::tag) value) noexcept { hdr.tag = value; }
+        void setTag(uint16_t value) noexcept { hdr.setTag(value); }
         void setNoTag() noexcept { setTag(NoTag); }
         Fcall() = default;
         Fcall(FType type) {
             setType(type);
         }
-        Fcall(FType type, decltype(FHdr::fid) value) : Fcall(type) {
-            setFid(value);
+        Fcall(FType type, uint32_t fid) : Fcall(type) {
+            setFid(fid);
         }
         void packUnpack(Msg& msg) noexcept;
     };

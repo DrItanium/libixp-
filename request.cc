@@ -133,7 +133,7 @@ handlefcall(Conn *c) {
 	req.ifcall = fcall;
 	p9conn->conn = c;
 
-    if (auto result = p9conn->tagmap.emplace(fcall.hdr.tag, req); result.second) {
+    if (auto result = p9conn->tagmap.emplace(fcall.getTag(), req); result.second) {
         result.first->second.handle();
     } else {
         req.respond(Eduptag);
@@ -352,7 +352,7 @@ Req9::respond(const char *error) {
 
 	p9conn = conn;
 
-	switch(ifcall.hdr.type) {
+	switch(ifcall.getType()) {
 	case FType::TVersion:
 		assert(error == nullptr);
 		free(ifcall.version.getVersion());
@@ -384,7 +384,7 @@ Req9::respond(const char *error) {
 		break;
 	case FType::TWalk:
 		if(error || ofcall.rwalk.size() < ifcall.twalk.size()) {
-			if(ifcall.hdr.fid != ifcall.twalk.getNewFid() && newfid) {
+			if(ifcall.getFid() != ifcall.twalk.getNewFid() && newfid) {
 				destroyfid(*p9conn, newfid->fid);
             }
 			if(!error && ofcall.rwalk.empty()) {
@@ -431,7 +431,7 @@ Req9::respond(const char *error) {
 		break;
 	}
 
-	ofcall.hdr.tag = ifcall.hdr.tag;
+    ofcall.setTag(ifcall.getTag());
 
     if (!error) {
         ofcall.setType(FType(((uint8_t)ifcall.getType()) + 1));
@@ -444,7 +444,7 @@ Req9::respond(const char *error) {
 		printfcall(&ofcall);
     }
 
-    p9conn->removeTag(ifcall.hdr.tag);
+    p9conn->removeTag(ifcall.getTag());
 
 	if(p9conn->conn) {
         concurrency::Locker<Mutex> theLock(p9conn->wlock);
@@ -454,7 +454,7 @@ Req9::respond(const char *error) {
         }
 	}
 
-	switch(ofcall.hdr.type) {
+	switch(ofcall.getType()) {
 	case FType::RStat:
 		free(ofcall.rstat.getStat());
 		break;
@@ -489,7 +489,7 @@ cleanupconn(Conn *c) {
                     context.emplace_back();
                     context.back().ifcall.setType(FType::TFlush);
                     context.back().ifcall.setNoTag();
-                    context.back().ifcall.tflush.setOldTag(arg->second.ifcall.hdr.tag);
+                    context.back().ifcall.tflush.setOldTag(arg->second.ifcall.getTag());
                     context.back().conn = arg->second.conn;
                 }, collection);
 	}

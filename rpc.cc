@@ -124,7 +124,7 @@ Rpc::sendrpc(Fcall *f)
     {
         concurrency::Locker<Mutex> lk(mux.lk);
         tag = mux.gettag(this);
-        f->hdr.tag = tag;
+        f->setTag(tag);
         mux.enqueue(this);
     }
 
@@ -142,11 +142,11 @@ Rpc::sendrpc(Fcall *f)
 void
 Client::dispatchandqlock(Fcall *f)
 {
-	int tag = f->hdr.tag - mintag;
+	int tag = f->getTag() - mintag;
     lk.lock();
 	/* hand packet to correct sleeper */
 	if(tag < 0 || tag >= mwait) {
-		fprintf(stderr, "libjyq: received unfeasible tag: %d (min: %d, max: %d)\n", f->hdr.tag, mintag, mintag+mwait);
+		fprintf(stderr, "libjyq: received unfeasible tag: %d (min: %d, max: %d)\n", f->getTag(), mintag, mintag+mwait);
         Fcall::free(f);
         delete f;
         return;
