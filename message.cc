@@ -9,15 +9,18 @@
 #include "argv.h"
 
 namespace jyq {
-namespace {
 constexpr auto SByte = 1;
 constexpr auto SWord = 2;
 constexpr auto SDWord = 4;
 constexpr auto SQWord = 8;
 
-#define SString(s) (SWord + strlen(s))
+auto computeStringSize(const char* str) {
+    return SWord + strlen(str);
+}
+auto computeStringSize(const std::string& str) {
+    return SWord + str.length();
+}
 constexpr auto SQid = SByte + SDWord + SQWord;
-} // end namespace 
 
 /**
  * Type: Msg
@@ -114,10 +117,10 @@ Stat::size() noexcept {
 		+ SQid /* qid */
 		+ (3 * SDWord) /* mode, atime, mtime */
 		+ SQWord /* length */
-		+ SString(name)
-		+ SString(uid)
-		+ SString(gid)
-		+ SString(muid);
+        + computeStringSize(name)
+        + computeStringSize(uid)
+        + computeStringSize(gid)
+        + computeStringSize(muid);
 }
 void
 FHdr::packUnpack(Msg& msg) 
