@@ -38,15 +38,20 @@ namespace jyq {
         void packUnpack(Msg& msg);
     };
     struct FROpen : public FHdr {
-        Qid		qid; /* +Rattach */
-        uint32_t	iounit;
-        constexpr auto getIoUnit() const noexcept { return iounit; }
+        constexpr auto getIoUnit() const noexcept { return _iounit; }
+        void setIoUnit(uint32_t value) noexcept { _iounit = value; }
         void packUnpack(Msg& msg);
+        const Qid& getQid() const noexcept { return _qid; }
+        Qid& getQid() noexcept { return _qid; }
+        void setQid(const Qid& value) noexcept { _qid = value; }
+        private: 
+            Qid		_qid; /* +Rattach */
+            uint32_t	_iounit;
     };
     struct FRAuth : public FHdr {
         const Qid& getAQid() const noexcept { return _aqid; }
         Qid& getAQid() noexcept { return _aqid; }
-        void setAQid(const Qid aq) noexcept { _aqid = aq; }
+        void setAQid(const Qid& aq) noexcept { _aqid = aq; }
         void packUnpack(Msg& msg);
         private:
             Qid		_aqid;

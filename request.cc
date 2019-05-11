@@ -224,7 +224,7 @@ Req9::handle() {
                     respond(Enofid);
                 } else if ((fid->qid.type&uint8_t(QType::DIR)) && (ifcall.topen.getMode()|uint8_t(OMode::RCLOSE)) != (uint8_t(OMode::READ)|uint8_t(OMode::RCLOSE))) {
                     respond(Eisdir);
-                } else if (ofcall.ropen.qid = fid->qid; !p9conn.srv->open) {
+                } else if (ofcall.ropen.setQid(fid->qid); !p9conn.srv->open) {
                     respond(Enofunc);
                 } else {
                     srv->open(this);
@@ -375,10 +375,10 @@ Req9::respond(const char *error) {
 	case FType::TOpen:
 	case FType::TCreate:
 		if(!error) {
-			ofcall.ropen.iounit = p9conn->rmsg.size() - 24;
-			fid->iounit = ofcall.ropen.iounit;
+			ofcall.ropen.setIoUnit(p9conn->rmsg.size() - 24);
+			fid->iounit = ofcall.ropen.getIoUnit();
 			fid->omode = ifcall.topen.getMode();
-			fid->qid = ofcall.ropen.qid;
+			fid->qid = ofcall.ropen.getQid();
 		}
 		free(ifcall.tcreate.getName());
 		break;

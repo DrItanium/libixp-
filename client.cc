@@ -70,7 +70,7 @@ initfid(std::shared_ptr<CFid> f, Fcall *fcall, decltype(CFid::iounit) iounit) {
 	f->open = 1;
 	f->offset = 0;
     f->iounit = iounit;
-	f->qid = fcall->ropen.qid;
+    f->qid = fcall->ropen.getQid();
 }
 std::shared_ptr<Stat>
 _stat(ulong fid, std::function<bool(Fcall*)> dofcall) {
@@ -414,8 +414,8 @@ Client::create(const char *path, uint perm, uint8_t mode) {
         return nullptr;
 	}
 
-    auto count = fcall.ropen.iounit;
-    if (count == 0 || (fcall.ropen.iounit > (msize-24))) {
+    auto count = fcall.ropen.getIoUnit();
+    if (count == 0 || (fcall.ropen.getIoUnit() > (msize-24))) {
         count = msize-24;
     }
 	initfid(f, &fcall, count);
@@ -443,8 +443,8 @@ Client::open(const char *path, uint8_t mode) {
 		return nullptr;
 	}
 
-    auto count = fcall.ropen.iounit;
-    if (count == 0 || (fcall.ropen.iounit > (msize-24))) {
+    auto count = fcall.ropen.getIoUnit();
+    if (count == 0 || (fcall.ropen.getIoUnit() > (msize-24))) {
         count = msize-24;
     }
 	initfid(f, &fcall, count);

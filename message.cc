@@ -153,9 +153,9 @@ FRAuth::packUnpack(Msg& msg) {
 }
 void
 FROpen::packUnpack(Msg& msg) {
-    msg.pqid(&qid);
+    msg.pqid(&_qid);
     if (getType() != FType::RAttach) {
-        msg.pu32(&iounit);
+        msg.pu32(&_iounit);
     }
 }
 void
