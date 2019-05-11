@@ -25,6 +25,13 @@ namespace jyq {
         Fcall*	p;
         bool waiting;
         bool async;
+        int sendrpc(Fcall *f);
+        Rendez& getRendez() noexcept { return r; }
+        Client& getMux() noexcept { return mux; }
+        constexpr auto getTag() const noexcept { return tag; }
+        constexpr auto isWaiting() const noexcept { return waiting; }
+        constexpr auto isAsync() const noexcept { return async; }
+
     };
 } // end namespace jyq
 #endif // end LIBJYQ_RPC_H__

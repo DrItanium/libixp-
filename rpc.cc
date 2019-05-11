@@ -111,33 +111,29 @@ Client::puttag(Rpc *r)
     tagrend.wake();
     r->r.deactivate();
 }
-namespace {
 int
-sendrpc(Rpc *r, Fcall *f)
+Rpc::sendrpc(Fcall *f)
 {
 	auto ret = 0;
-	auto mux = &(r->mux);
 	/* assign the tag, add selves to response queue */
     {
-        concurrency::Locker<Mutex> lk(mux->lk);
-        r->tag = mux->gettag(r);
-        f->hdr.tag = r->tag;
-        mux->enqueue(r);
+        concurrency::Locker<Mutex> lk(mux.lk);
+        tag = mux.gettag(this);
+        f->hdr.tag = tag;
+        mux.enqueue(this);
     }
 
     {
-        concurrency::Locker<Mutex> a(mux->wlock);
-        if(!fcall2msg(&mux->wmsg, f) || !mux->fd.sendmsg(mux->wmsg)) {
-            /* werrstr("settag/send tag %d: %r", tag); fprint(2, "%r\n"); */
-            concurrency::Locker<Mutex> lk(mux->lk);
-            mux->dequeue(r);
-            mux->puttag(r);
+        concurrency::Locker<Mutex> a(mux.wlock);
+        if(!fcall2msg(&mux.wmsg, f) || !mux.fd.sendmsg(mux.wmsg)) {
+            concurrency::Locker<Mutex> lk(mux.lk);
+            mux.dequeue(this);
+            mux.puttag(this);
             ret = -1;
         }
     }
     return ret;
 }
-} // end namespace
 void
 Client::dispatchandqlock(Fcall *f)
 {
@@ -182,15 +178,16 @@ Fcall*
 Client::muxrpc(Fcall *tx)
 {
 	Rpc r(*this);
-	Fcall *p;
+	Fcall *p = nullptr;
 
-	if(sendrpc(&r, tx) < 0)
+    if (r.sendrpc(tx) < 0) {
 		return nullptr;
+    }
 
     lk.lock();
 	/* wait for our packet */
 	while(muxer && muxer != &r && !r.p) {
-        r.r.sleep();
+        r.getRendez().sleep();
     }
 
 	/* if not done, there's no muxer; start muxing */
