@@ -143,6 +143,27 @@ _pwrite(CFid *f, const void *buf, long count, int64_t offset, std::function<bool
 	return len;
 }
 } // end namespace
+std::optional<Fcall>
+Client::dofcall(Fcall& fcall) {
+    auto ret = muxrpc(&fcall);
+
+    if (!ret) {
+        return std::nullopt;
+    }
+    if (ret->getType() == FType::RError) {
+        wErrorString(ret->error.getEname());
+        free(ret); // this will need to be fixed
+        return std::nullopt;
+    }
+    if (auto hdrVal = uint8_t(ret->hdr.getType()), fhdrVal = uint8_t(fcall.getType()); hdrVal != (fhdrVal^1)) {
+        wErrorString("received mismatched fcall");
+        free(ret);
+        return std::nullopt;
+	}
+    std::optional<Fcall> output(*ret);
+    free(ret);
+    return output;
+}
 bool 
 Client::dofcall(Fcall *fcall) {
 
@@ -159,7 +180,7 @@ Client::dofcall(Fcall *fcall) {
         wErrorString("received mismatched fcall");
 		goto fail;
 	}
-	memcpy(fcall, ret, sizeof *fcall);
+    *fcall = *ret;
 	free(ret);
 	return true;
 fail:
@@ -417,9 +438,6 @@ Client::create(const char *path, uint perm, uint8_t mode) {
     }
 	initfid(f, &fcall, count);
 	f->mode = mode;
-
-	//Fcall::free(&fcall);
-
 	return f;
 }
 
@@ -447,7 +465,6 @@ Client::open(const char *path, uint8_t mode) {
 	initfid(f, &fcall, count);
 	f->mode = mode;
 
-	//Fcall::free(&fcall);
 	return f;
 }
 
