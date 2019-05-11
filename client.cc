@@ -22,7 +22,7 @@ constexpr auto RootFid = 1;
 
 void
 Client::clunk(std::shared_ptr<CFid> ptr) {
-    ptr->clunk([this](auto* value) { return (bool)dofcall(*value); });
+    ptr->clunk([this](auto& value) { return dofcall(value); });
     putfid(ptr);
 }
 std::shared_ptr<CFid>
@@ -118,7 +118,7 @@ _pread(CFid *f, char *buf, long count, int64_t offset, std::function<std::shared
 }
 
 long
-_pwrite(CFid *f, const void *buf, long count, int64_t offset, std::function<bool(Fcall*)> dofcall) {
+_pwrite(CFid *f, const void *buf, long count, int64_t offset, DoFcallFunc dofcall) {
 	int n, len;
 
 	len = 0;
@@ -129,15 +129,16 @@ _pwrite(CFid *f, const void *buf, long count, int64_t offset, std::function<bool
         fcall.twrite.setOffset(offset);
         fcall.twrite.setData((char*)buf + len);
         fcall.twrite.setSize(n);
-        if (!dofcall(&fcall)) {
-			return -1;
-        }
+        if (auto result = dofcall(fcall); !result) {
+            return -1;
+        } else {
 
-		offset += fcall.rwrite.size();
-		len += fcall.rwrite.size();
+            offset += result->rwrite.size();
+            len += result->rwrite.size();
 
-		if(fcall.rwrite.size() < n) {
-			break;
+            if(result->rwrite.size() < n) {
+                break;
+            }
         }
 	} while(len < count);
 	return len;
@@ -478,7 +479,7 @@ Client::open(const char *path, uint8_t mode) {
  */
 
 bool
-CFid::close(std::function<bool(Fcall*)> fn) {
+CFid::close(DoFcallFunc fn) {
     return clunk(fn);
 }
 
@@ -509,14 +510,14 @@ Client::stat(const char *path) {
 	if (auto f = walk(path); !f) {
         return nullptr;
     } else {
-	    auto stat = _stat(f->fid, [this](auto* fc) { return (bool)dofcall(*fc); });
+	    auto stat = _stat(f->fid, [this](auto& fc) { return dofcall(fc); });
         clunk(f);
 	    return stat;
     }
 }
 
 std::shared_ptr<Stat>
-CFid::fstat(std::function<bool(Fcall*)> c) {
+CFid::fstat(DoFcallFunc c) {
 	return _stat(fid, c);
 }
 
@@ -641,9 +642,7 @@ CFid::pwrite(const void *buf, long count, int64_t offset, DoFcallFunc fn) {
 bool
 CFid::performClunk(DoFcallFunc c) {
 	Fcall fcall(FType::TClunk, fid);
-	auto result = c(&fcall);
-    //Fcall::free(&fcall); // TODO eliminate this call and use destructor
-    return result;
+    return bool(c(fcall));
 }
 
 bool 

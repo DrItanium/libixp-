@@ -218,7 +218,7 @@ namespace jyq {
         ~Fcall();
         void packUnpack(Msg& msg) noexcept;
     };
-    using DoFcallFunc = std::function<bool(Fcall*)>;
+    using DoFcallFunc = std::function<std::shared_ptr<Fcall>(Fcall&)>;
     uint	msg2fcall(Msg*, Fcall*);
     uint	fcall2msg(Msg*, Fcall*);
 } // end namespace jyq
