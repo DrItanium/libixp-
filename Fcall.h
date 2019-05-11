@@ -34,8 +34,12 @@ namespace jyq {
         void packUnpack(Msg& msg);
     };
     struct FError : public FHdr {
-        char*		ename;
         void packUnpack(Msg& msg);
+        char* getEname() noexcept { return _ename; }
+        const char* getEname() const noexcept { return _ename; }
+        void setEname(char* value) noexcept { _ename = value; }
+        private:
+            char* _ename;
     };
     struct FROpen : public FHdr {
         constexpr auto getIoUnit() const noexcept { return _iounit; }

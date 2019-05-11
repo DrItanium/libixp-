@@ -101,8 +101,8 @@ Fcall::free(Fcall *fcall) {
 		fcall->version.version = nullptr;
 		break;
     case FType::RError:
-		::free(fcall->error.ename);
-		fcall->error.ename = nullptr;
+		::free(fcall->error.getEname());
+		fcall->error.setEname(nullptr);
 		break;
     default:
         break;
@@ -170,7 +170,7 @@ FTFlush::packUnpack(Msg& msg) {
 }
 void
 FError::packUnpack(Msg& msg) {
-    msg.pstring(&ename);
+    msg.pstring(&_ename);
 }
 void 
 FRWalk::packUnpack(Msg& msg) {

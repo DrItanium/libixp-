@@ -437,7 +437,7 @@ Req9::respond(const char *error) {
         ofcall.setType(FType(((uint8_t)ifcall.getType()) + 1));
     } else {
         ofcall.setType(FType::RError);
-		ofcall.error.ename = (char*)error;
+		ofcall.error.setEname((char*)error);
 	}
 
 	if(printfcall) {

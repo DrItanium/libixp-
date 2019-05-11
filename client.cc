@@ -152,7 +152,7 @@ Client::dofcall(Fcall *fcall) {
 		return false;
     }
 	if(ret->hdr.type == FType::RError) {
-        wErrorString(ret->error.ename);
+        wErrorString(ret->error.getEname());
 		goto fail;
 	}
     if (auto hdrVal = uint8_t(ret->hdr.type), fhdrVal = uint8_t(fcall->getType()); hdrVal != (fhdrVal^1)) {
