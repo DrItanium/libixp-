@@ -72,6 +72,17 @@ namespace jyq {
         void putfid(std::shared_ptr<CFid> cfid);
         void clunk(std::shared_ptr<CFid> fid);
         DoFcallFunc getDoFcallLambda() noexcept { return [this](auto* ptr) { return this->dofcall(ptr); }; }
+        int gettag(Rpc* r);
+        void puttag(Rpc* r);
+        private:
+        Fcall* muxrecv();
+        void electmuxer();
+        void dispatchandqlock(Fcall *f);
+
+
+
+
+
     };
 } // end namespace jyq
 #endif // end LIBJYQ_CLIENT_H__

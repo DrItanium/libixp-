@@ -20,17 +20,16 @@ Rpc::Rpc(Client& m) : mux(m) {
     r.mutex = &m.lk;
     p = nullptr;
 }
-namespace {
 
 Fcall*
-muxrecv(Client *mux)
+Client::muxrecv()
 {
 	//Fcall *f = nullptr;
-    concurrency::Locker<Mutex> theRlock(mux->rlock);
-    if (mux->fd.recvmsg(mux->rmsg) == 0) {
+    concurrency::Locker<Mutex> theRlock(rlock);
+    if (fd.recvmsg(rmsg) == 0) {
         return nullptr;
     }
-	if(auto f = new Fcall(); msg2fcall(&mux->rmsg, f) == 0) {
+	if(auto f = new Fcall(); msg2fcall(&rmsg, f) == 0) {
         delete f;
         return nullptr;
 	} else {
@@ -40,72 +39,60 @@ muxrecv(Client *mux)
 
 
 void
-electmuxer(Client *mux)
+Client::electmuxer()
 {
 	/* if there is anyone else sleeping, wake them to mux */
-	for(auto rpc=mux->sleep.next; rpc != &mux->sleep; rpc = rpc->next){
+	for(auto rpc=sleep.next; rpc != &sleep; rpc = rpc->next){
 		if(!rpc->async){
-			mux->muxer = rpc;
+			muxer = rpc;
 			concurrency::threadModel->wake(&rpc->r);
 			return;
 		}
 	}
-	mux->muxer = nullptr;
+	muxer = nullptr;
 }
-void
-enqueue(Client *mux, Rpc *r)
-{
-    mux->enqueue(r);
-}
-
-void
-dequeue(Client * c, Rpc *r)
-{
-    c->dequeue(r);
-}
-
 int 
-gettag(Client *mux, Rpc *r)
+Client::gettag(Rpc *r)
 {
 	int i, mw;
 	Rpc **w;
-    auto Found = [mux, r](auto index) {
-        mux->nwait++;
-        mux->wait[index] = r;
-        r->tag = index+mux->mintag;
+    auto Found = [this, r](auto index) {
+        nwait++;
+        wait[index] = r;
+        r->tag = index+mintag;
         return r->tag;
     };
 	for(;;){
 		/* wait for a free tag */
-		while(mux->nwait == mux->mwait){
-			if(mux->mwait < mux->maxtag-mux->mintag){
-				mw = mux->mwait;
+		while(nwait == mwait){
+			if(mwait < maxtag-mintag){
+				mw = mwait;
 				if(mw == 0) {
 					mw = 1;
                 } else {
 					mw <<= 1;
                 }
-				w = (decltype(w))realloc(mux->wait, mw * sizeof *w);
+				w = (decltype(w))realloc(wait, mw * sizeof *w);
                 if (!w) {
 					return -1;
                 }
-				memset(w+mux->mwait, 0, (mw-mux->mwait) * sizeof *w);
-				mux->wait = w;
-				mux->freetag = mux->mwait;
-				mux->mwait = mw;
+				memset(w+mwait, 0, (mw-mwait) * sizeof *w);
+				wait = w;
+				freetag = mwait;
+				mwait = mw;
 				break;
 			}
-            mux->tagrend.sleep();
+            tagrend.sleep();
 		}
 
-		i=mux->freetag;
-		if(mux->wait[i] == 0)
+		i=freetag;
+		if(wait[i] == 0)
             return Found(i);
-		for(; i<mux->mwait; i++)
-			if(mux->wait[i] == 0)
+		for(; i<mwait; i++)
+			if(wait[i] == 0)
                 return Found(i);
-		for(i=0; i<mux->freetag; i++)
-			if(mux->wait[i] == 0)
+		for(i=0; i<freetag; i++)
+			if(wait[i] == 0)
                 return Found(i);
 		/* should not fall out of while without free tag */
         throw "Fell out of loop without free tag!";
@@ -114,16 +101,17 @@ gettag(Client *mux, Rpc *r)
 }
 
 void
-puttag(Client *mux, Rpc *r)
+Client::puttag(Rpc *r)
 {
-	auto i = r->tag - mux->mintag;
-	assert(mux->wait[i] == r);
-	mux->wait[i] = nullptr;
-	mux->nwait--;
-	mux->freetag = i;
-    mux->tagrend.wake();
+	auto i = r->tag - mintag;
+	assert(wait[i] == r);
+	wait[i] = nullptr;
+	nwait--;
+	freetag = i;
+    tagrend.wake();
     r->r.deactivate();
 }
+namespace {
 int
 sendrpc(Rpc *r, Fcall *f)
 {
@@ -132,9 +120,9 @@ sendrpc(Rpc *r, Fcall *f)
 	/* assign the tag, add selves to response queue */
     {
         concurrency::Locker<Mutex> lk(mux->lk);
-        r->tag = gettag(mux, r);
+        r->tag = mux->gettag(r);
         f->hdr.tag = r->tag;
-        enqueue(mux, r);
+        mux->enqueue(r);
     }
 
     {
@@ -142,26 +130,27 @@ sendrpc(Rpc *r, Fcall *f)
         if(!fcall2msg(&mux->wmsg, f) || !mux->fd.sendmsg(mux->wmsg)) {
             /* werrstr("settag/send tag %d: %r", tag); fprint(2, "%r\n"); */
             concurrency::Locker<Mutex> lk(mux->lk);
-            dequeue(mux, r);
-            puttag(mux, r);
+            mux->dequeue(r);
+            mux->puttag(r);
             ret = -1;
         }
     }
     return ret;
 }
+} // end namespace
 void
-dispatchandqlock(Client *mux, Fcall *f)
+Client::dispatchandqlock(Fcall *f)
 {
-	int tag = f->hdr.tag - mux->mintag;
-    mux->lk.lock();
+	int tag = f->hdr.tag - mintag;
+    lk.lock();
 	/* hand packet to correct sleeper */
-	if(tag < 0 || tag >= mux->mwait) {
-		fprintf(stderr, "libjyq: received unfeasible tag: %d (min: %d, max: %d)\n", f->hdr.tag, mux->mintag, mux->mintag+mux->mwait);
+	if(tag < 0 || tag >= mwait) {
+		fprintf(stderr, "libjyq: received unfeasible tag: %d (min: %d, max: %d)\n", f->hdr.tag, mintag, mintag+mwait);
         Fcall::free(f);
         delete f;
         return;
 	}
-	auto r2 = mux->wait[tag];
+	auto r2 = wait[tag];
     if (!r2 || !(r2->prev)) {
 		fprintf(stderr, "libjyq: received message with bad tag\n");
         Fcall::free(f);
@@ -169,10 +158,9 @@ dispatchandqlock(Client *mux, Fcall *f)
         return;
 	}
 	r2->p = f;
-	dequeue(mux, r2);
+    dequeue(r2);
     r2->r.wake();
 }
-} // end namespace
 void
 Client::enqueue(Rpc* r) {
 	r->next = sleep.next;
@@ -211,19 +199,19 @@ Client::muxrpc(Fcall *tx)
 		muxer = &r;
 		while(!r.p){
             lk.unlock();
-			p = muxrecv(this);
+			p = muxrecv();
             if (!p) {
 				/* eof -- just give up and pass the buck */
                 lk.lock();
                 dequeue(&r);
 				break;
 			}
-			dispatchandqlock(this, p);
+			dispatchandqlock(p);
 		}
-		electmuxer(this);
+		electmuxer();
 	}
 	p = r.p;
-	puttag(this, &r);
+	puttag(&r);
     lk.unlock();
     if (!p) {
         wErrorString("unexpected eof");
