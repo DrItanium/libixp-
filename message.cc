@@ -165,7 +165,7 @@ void
 FTWalk::packUnpack(Msg& msg) {
     packUnpackFid(msg);
     msg.pu32(&_newfid);
-    msg.pstrings(&getSizeReference(), wname, nelem(wname));
+    msg.pstrings(&getSizeReference(), _wname, nelem(_wname));
 }
 void
 FTFlush::packUnpack(Msg& msg) {

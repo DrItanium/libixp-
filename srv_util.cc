@@ -555,18 +555,18 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
 
 	auto file = (FileId*)srv_clonefiles(std::any_cast<FileId*>(req->fid->aux));
 	for(i=0; i < req->ifcall.twalk.size(); i++) {
-		if(!strcmp(req->ifcall.twalk.wname[i], "..")) {
+		if(!strcmp(req->ifcall.twalk.getWname()[i], "..")) {
 			if(file->next) {
 				tfile = file;
 				file = file->next;
 				srv_freefile(tfile);
 			}
 		}else{
-			tfile = lookup(file, req->ifcall.twalk.wname[i]);
+			tfile = lookup(file, req->ifcall.twalk.getWname()[i]);
 			if(!tfile)
 				break;
 			assert(!tfile->next);
-			if(strcmp(req->ifcall.twalk.wname[i], ".")) {
+			if(strcmp(req->ifcall.twalk.getWname()[i], ".")) {
 				tfile->next = file;
 				file = tfile;
 			}

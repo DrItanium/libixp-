@@ -76,7 +76,7 @@ namespace jyq {
             void dequeue(Rpc*);
             void putfid(std::shared_ptr<CFid> cfid);
             void clunk(std::shared_ptr<CFid> fid);
-            DoFcallFunc getDoFcallLambda() noexcept { return [this](auto& ptr) { return dofcall(ptr); }; }
+            inline DoFcallFunc getDoFcallLambda() noexcept { return [this](auto& ptr) { return dofcall(ptr); }; }
             int gettag(Rpc* r) { return gettag(*r); }
             int gettag(Rpc& r);
             void puttag(Rpc& r);

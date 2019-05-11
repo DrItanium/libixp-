@@ -191,7 +191,7 @@ Client::walk(const char *path) {
         int n = separation.size();
         int count = 0;
         for (auto& sep : separation) {
-            fcall.twalk.wname[count] = sep.data();
+            fcall.twalk.getWname()[count] = sep.data();
             ++count;
         }
         auto f = getFid();

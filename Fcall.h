@@ -12,102 +12,114 @@
 #include "stat.h"
 #include "Msg.h"
 namespace jyq {
-    struct FHdr {
-        void packUnpack(Msg& msg);
-        void packUnpackFid(Msg& msg);
-        constexpr auto getType() const noexcept { return _type; }
-        constexpr auto getTag() const noexcept { return _tag; }
-        constexpr auto getFid() const noexcept { return _fid; }
-        void setType(FType value) noexcept { _type = value; }
-        void setTag(uint16_t value) noexcept { _tag = value; }
-        void setFid(uint32_t value) noexcept { _fid = value; }
-        FHdr() = default;
-        ~FHdr() = default;
+    class FHdr {
+        public:
+            void packUnpack(Msg& msg);
+            void packUnpackFid(Msg& msg);
+            constexpr auto getType() const noexcept { return _type; }
+            constexpr auto getTag() const noexcept { return _tag; }
+            constexpr auto getFid() const noexcept { return _fid; }
+            void setType(FType value) noexcept { _type = value; }
+            void setTag(uint16_t value) noexcept { _tag = value; }
+            void setFid(uint32_t value) noexcept { _fid = value; }
+            FHdr() = default;
+            ~FHdr() = default;
         private:
             FType _type;
             uint16_t _tag;
             uint32_t _fid;
 
     };
-    struct FVersion : public FHdr, public ContainsSizeParameter<uint32_t> {
-        void packUnpack(Msg& msg);
-        char* getVersion() noexcept { return _version; }
-        const char* getVersion() const noexcept { return _version; }
-        void setVersion(char* value) noexcept { _version = value; }
+    class FVersion : public FHdr, public ContainsSizeParameter<uint32_t> {
+        public:
+            using FHdr::FHdr;
+            void packUnpack(Msg& msg);
+            char* getVersion() noexcept { return _version; }
+            const char* getVersion() const noexcept { return _version; }
+            void setVersion(char* value) noexcept { _version = value; }
         private:
             char* _version;
     };
-    struct FTFlush : public FHdr {
-        constexpr auto getOldTag() const noexcept { return _oldtag; }
-        void setOldTag(uint16_t oldtag) noexcept { _oldtag = oldtag; }
-        void packUnpack(Msg& msg);
+    class FTFlush : public FHdr {
+        public:
+            using FHdr::FHdr;
+            constexpr auto getOldTag() const noexcept { return _oldtag; }
+            void setOldTag(uint16_t oldtag) noexcept { _oldtag = oldtag; }
+            void packUnpack(Msg& msg);
         private:
             uint16_t _oldtag;
     };
-    struct FError : public FHdr {
-        void packUnpack(Msg& msg);
-        char* getEname() noexcept { return _ename; }
-        const char* getEname() const noexcept { return _ename; }
-        void setEname(char* value) noexcept { _ename = value; }
+    class FError : public FHdr {
+        public:
+            void packUnpack(Msg& msg);
+            char* getEname() noexcept { return _ename; }
+            const char* getEname() const noexcept { return _ename; }
+            void setEname(char* value) noexcept { _ename = value; }
         private:
             char* _ename;
     };
-    struct FROpen : public FHdr {
-        constexpr auto getIoUnit() const noexcept { return _iounit; }
-        void setIoUnit(uint32_t value) noexcept { _iounit = value; }
-        void packUnpack(Msg& msg);
-        const Qid& getQid() const noexcept { return _qid; }
-        Qid& getQid() noexcept { return _qid; }
-        void setQid(const Qid& value) noexcept { _qid = value; }
+    class FROpen : public FHdr {
+        public:
+            constexpr auto getIoUnit() const noexcept { return _iounit; }
+            void setIoUnit(uint32_t value) noexcept { _iounit = value; }
+            void packUnpack(Msg& msg);
+            const Qid& getQid() const noexcept { return _qid; }
+            Qid& getQid() noexcept { return _qid; }
+            void setQid(const Qid& value) noexcept { _qid = value; }
         private: 
             Qid		_qid; /* +Rattach */
             uint32_t	_iounit;
     };
-    struct FRAuth : public FHdr {
-        const Qid& getAQid() const noexcept { return _aqid; }
-        Qid& getAQid() noexcept { return _aqid; }
-        void setAQid(const Qid& aq) noexcept { _aqid = aq; }
-        void packUnpack(Msg& msg);
+    class FRAuth : public FHdr {
+        public:
+            const Qid& getAQid() const noexcept { return _aqid; }
+            Qid& getAQid() noexcept { return _aqid; }
+            void setAQid(const Qid& aq) noexcept { _aqid = aq; }
+            void packUnpack(Msg& msg);
         private:
             Qid		_aqid;
     };
-    struct FAttach : public FHdr {
-        void packUnpack(Msg& msg);
-        constexpr auto getAfid() const noexcept { return _afid; }
-        void setAfid(uint32_t value) noexcept { _afid = value; }
-        char* getUname() noexcept { return _uname; }
-        const char* getUname() const noexcept { return _uname; }
-        void setUname(char* value) noexcept { _uname = value; }
-        char* getAname() noexcept { return _aname; }
-        const char* getAname() const noexcept { return _aname; }
-        void setAname(char* value) noexcept { _aname = value; }
+    class FAttach : public FHdr {
+        public:
+            constexpr auto getAfid() const noexcept { return _afid; }
+            char* getUname() noexcept { return _uname; }
+            const char* getUname() const noexcept { return _uname; }
+            char* getAname() noexcept { return _aname; }
+            const char* getAname() const noexcept { return _aname; }
+            void setAfid(uint32_t value) noexcept { _afid = value; }
+            void setUname(char* value) noexcept { _uname = value; }
+            void setAname(char* value) noexcept { _aname = value; }
+            void packUnpack(Msg& msg);
         private:
             uint32_t	_afid;
             char*		_uname;
             char*		_aname;
     };
-    struct FTCreate : public FHdr {
-        constexpr auto getPerm() const noexcept { return _perm; }
-        void setPerm(uint32_t perm) noexcept { _perm = perm; }
-        constexpr auto getMode() const noexcept { return _mode; }
-        void setMode(uint8_t value) noexcept { _mode = value; }
-        const char* getName() const noexcept { return _name; }
-        char* getName() noexcept { return _name; }
-        void setName(char* value) noexcept { _name = value; }
-        void packUnpack(Msg& msg);
+    class FTCreate : public FHdr {
+        public:
+            constexpr auto getPerm() const noexcept { return _perm; }
+            constexpr auto getMode() const noexcept { return _mode; }
+            const char* getName() const noexcept { return _name; }
+            char* getName() noexcept { return _name; }
+            void setPerm(uint32_t perm) noexcept { _perm = perm; }
+            void setMode(uint8_t value) noexcept { _mode = value; }
+            void setName(char* value) noexcept { _name = value; }
+            void packUnpack(Msg& msg);
         private:
             uint32_t	_perm;
             char*		_name;
             uint8_t		_mode; /* +Topen */
     };
-    struct FTWalk : public FHdr, public ContainsSizeParameter<uint16_t>  {
-        constexpr auto getNewFid() const noexcept { return _newfid; }
-        void setNewFid(uint32_t value) noexcept { _newfid = value; }
-        void packUnpack(Msg& msg);
+    class FTWalk : public FHdr, public ContainsSizeParameter<uint16_t>  {
+        public:
+            constexpr auto getNewFid() const noexcept { return _newfid; }
+            void setNewFid(uint32_t value) noexcept { _newfid = value; }
+            char** getWname() noexcept { return _wname; }
+            constexpr auto getMaximumWnameCount() const noexcept { return maximum::Welem; }
+            void packUnpack(Msg& msg);
         private:
             uint32_t _newfid;
-        public:
-            char*		wname[maximum::Welem];
+            char*    _wname[maximum::Welem];
                 
     };
     struct FRWalk : public FHdr, public ContainsSizeParameter<uint16_t> {

@@ -40,7 +40,7 @@ namespace jyq {
                     _map.erase(key);
                     return result;
                 } else {
-                    return std::optional<V>(std::nullopt);
+                    return std::nullopt;
                 }
             }
             bool insert(const K key, V value) {
