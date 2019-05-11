@@ -147,14 +147,14 @@ Client::dispatchandqlock(Fcall *f)
 	/* hand packet to correct sleeper */
 	if(tag < 0 || tag >= mwait) {
 		fprintf(stderr, "libjyq: received unfeasible tag: %d (min: %d, max: %d)\n", f->getTag(), mintag, mintag+mwait);
-        Fcall::free(f);
+        //Fcall::free(f);
         delete f;
         return;
 	}
 	auto r2 = wait[tag];
     if (!r2 || !(r2->prev)) {
 		fprintf(stderr, "libjyq: received message with bad tag\n");
-        Fcall::free(f);
+        //Fcall::free(f);
         delete f;
         return;
 	}

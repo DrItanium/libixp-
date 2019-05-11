@@ -82,7 +82,6 @@ _stat(ulong fid, std::function<bool(Fcall*)> dofcall) {
     Msg msg((char*)fcall.rstat.getStat(), fcall.rstat.size(), Msg::Mode::Unpack);
     auto stat = std::make_shared<Stat>();
     msg.pstat(*stat);
-	Fcall::free(&fcall); // TODO eliminate this eventually
 	if(msg.pos > msg.end) {
         return nullptr;
 	} else {
@@ -92,10 +91,10 @@ _stat(ulong fid, std::function<bool(Fcall*)> dofcall) {
 
 long
 _pread(CFid *f, char *buf, long count, int64_t offset, std::function<bool(Fcall*)> dofcall) {
-	Fcall fcall;
 
 	auto len = 0l;
 	while(len < count) {
+	    Fcall fcall;
         auto n = min<int>(count-len, f->iounit);
         fcall.setTypeAndFid(FType::TRead, f->fid);
         fcall.tread.setOffset(offset);
@@ -111,20 +110,20 @@ _pread(CFid *f, char *buf, long count, int64_t offset, std::function<bool(Fcall*
 		offset += fcall.rread.size();
 		len += fcall.rread.size();
 
-		Fcall::free(&fcall);
-		if(fcall.rread.size() < n)
+		if(fcall.rread.size() < n) {
 			break;
+        }
 	}
 	return len;
 }
 
 long
 _pwrite(CFid *f, const void *buf, long count, int64_t offset, std::function<bool(Fcall*)> dofcall) {
-	Fcall fcall;
 	int n, len;
 
 	len = 0;
 	do {
+        Fcall fcall;
 		n = min<int>(count-len, f->iounit);
         fcall.setTypeAndFid(FType::TWrite, f->fid);
         fcall.twrite.setOffset(offset);
@@ -137,9 +136,9 @@ _pwrite(CFid *f, const void *buf, long count, int64_t offset, std::function<bool
 		offset += fcall.rwrite.size();
 		len += fcall.rwrite.size();
 
-		Fcall::free(&fcall);
-		if(fcall.rwrite.size() < n)
+		if(fcall.rwrite.size() < n) {
 			break;
+        }
 	} while(len < count);
 	return len;
 }
@@ -164,7 +163,7 @@ Client::dofcall(Fcall *fcall) {
 	free(ret);
 	return true;
 fail:
-	Fcall::free(fcall);
+    fcall->reset();
 	free(ret);
 	return false;
 }
@@ -220,7 +219,6 @@ Client::walk(const char *path) {
 
         f->qid = fcall.rwalk.wqid[n-1]; // gross... so gross, this is taken from teh c code...so gross
 
-        Fcall::free(&fcall);
         return f;
     }
 }
@@ -248,7 +246,6 @@ Client::remove(const char *path) {
     } else {
         fcall.setTypeAndFid(FType::TRemove, f->fid);
         auto ret = dofcall(&fcall);
-        Fcall::free(&fcall); // TODO eliminate this
         putfid(f);
 
         return ret;
@@ -326,7 +323,7 @@ Client::mountfd(const Connection& fd) {
 	c->msize = fcall.version.size();
 
 	c->allocmsg(fcall.version.size());
-	Fcall::free(&fcall);
+    fcall.reset();
 
     fcall.setTypeAndFid(FType::TAttach, RootFid);
     fcall.tattach.setAfid(NoFid);
@@ -421,7 +418,7 @@ Client::create(const char *path, uint perm, uint8_t mode) {
 	initfid(f, &fcall, count);
 	f->mode = mode;
 
-	Fcall::free(&fcall);
+	//Fcall::free(&fcall);
 
 	return f;
 }
@@ -450,7 +447,7 @@ Client::open(const char *path, uint8_t mode) {
 	initfid(f, &fcall, count);
 	f->mode = mode;
 
-	Fcall::free(&fcall);
+	//Fcall::free(&fcall);
 	return f;
 }
 
@@ -631,7 +628,7 @@ bool
 CFid::performClunk(DoFcallFunc c) {
 	Fcall fcall(FType::TClunk, fid);
 	auto result = c(&fcall);
-    Fcall::free(&fcall); // TODO eliminate this call and use destructor
+    //Fcall::free(&fcall); // TODO eliminate this call and use destructor
     return result;
 }
 

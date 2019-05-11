@@ -195,7 +195,7 @@ namespace jyq {
         FIO      twrite, rwrite, 
                  tread, rread,
                  io;
-        static void free(Fcall*);
+        //static void free(Fcall*);
         constexpr auto getType() const noexcept { return hdr.getType(); }
         constexpr auto getFid() const noexcept { return hdr.getFid(); }
         constexpr auto getTag() const noexcept { return hdr.getTag(); }
@@ -214,6 +214,8 @@ namespace jyq {
         Fcall(FType type, uint32_t fid) : Fcall(type) {
             setFid(fid);
         }
+        void reset();
+        ~Fcall();
         void packUnpack(Msg& msg) noexcept;
     };
     using DoFcallFunc = std::function<bool(Fcall*)>;

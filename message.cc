@@ -85,24 +85,27 @@ Stat::free(Stat *s) {
 	s->name = s->uid = s->gid = s->muid = nullptr;
 }
 
+Fcall::~Fcall() {
+    reset();
+}
 void
-Fcall::free(Fcall *fcall) {
-    switch(fcall->getType()) {
+Fcall::reset() {
+    switch(getType()) {
     case FType::RStat:
-        ::free(fcall->rstat.getStat());
-        fcall->rstat.setStat(nullptr);
+        ::free(rstat.getStat());
+        rstat.setStat(nullptr);
 		break;
     case FType::RRead:
-		::free(fcall->rread.getData());
-        fcall->rread.setData(nullptr);
+		::free(rread.getData());
+        rread.setData(nullptr);
 		break;
     case FType::RVersion:
-        ::free(fcall->version.getVersion());
-		fcall->version.setVersion(nullptr);
+        ::free(version.getVersion());
+		version.setVersion(nullptr);
 		break;
     case FType::RError:
-		::free(fcall->error.getEname());
-		fcall->error.setEname(nullptr);
+		::free(error.getEname());
+		error.setEname(nullptr);
 		break;
     default:
         break;
