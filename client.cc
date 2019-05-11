@@ -73,24 +73,25 @@ initfid(std::shared_ptr<CFid> f, Fcall *fcall, decltype(CFid::iounit) iounit) {
     f->qid = fcall->ropen.getQid();
 }
 std::shared_ptr<Stat>
-_stat(ulong fid, std::function<bool(Fcall*)> dofcall) {
+_stat(ulong fid, std::function<std::shared_ptr<Fcall>(Fcall&)> dofcall) {
 	Fcall fcall(FType::TStat, fid);
-	if(!dofcall(&fcall)) {
-		return nullptr;
-    }
-
-    Msg msg((char*)fcall.rstat.getStat(), fcall.rstat.size(), Msg::Mode::Unpack);
-    auto stat = std::make_shared<Stat>();
-    msg.pstat(*stat);
-	if(msg.pos > msg.end) {
+    if (auto result = dofcall(fcall); !result) {
         return nullptr;
-	} else {
-	    return stat;
+    } else {
+
+        Msg msg((char*)result->rstat.getStat(), result->rstat.size(), Msg::Mode::Unpack);
+        auto stat = std::make_shared<Stat>();
+        msg.pstat(*stat);
+        if(msg.pos > msg.end) {
+            return nullptr;
+        } else {
+            return stat;
+        }
     }
 }
 
 long
-_pread(CFid *f, char *buf, long count, int64_t offset, std::function<bool(Fcall*)> dofcall) {
+_pread(CFid *f, char *buf, long count, int64_t offset, std::function<std::shared_ptr<Fcall>(Fcall&)> dofcall) {
 
 	auto len = 0l;
 	while(len < count) {
@@ -99,19 +100,18 @@ _pread(CFid *f, char *buf, long count, int64_t offset, std::function<bool(Fcall*
         fcall.setTypeAndFid(FType::TRead, f->fid);
         fcall.tread.setOffset(offset);
         fcall.tread.setSize(n);
-        if (!dofcall(&fcall)) {
-			return -1;
-        }
-		if(fcall.rread.size() > n) {
+        if (auto result = dofcall(fcall); !result) {
             return -1;
-        }
+        } else if (result->rread.size() > n) {
+            return -1;
+        } else {
+            memcpy(buf+len, result->rread.getData(), result->rread.size());
+            offset += result->rread.size();
+            len += result->rread.size();
 
-		memcpy(buf+len, fcall.rread.getData(), fcall.rread.size());
-		offset += fcall.rread.size();
-		len += fcall.rread.size();
-
-		if(fcall.rread.size() < n) {
-			break;
+            if(result->rread.size() < n) {
+                break;
+            }
         }
 	}
 	return len;
