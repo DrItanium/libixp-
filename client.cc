@@ -58,16 +58,12 @@ Msg::alloc(uint n) {
     end = data + n;
     pos = data;
 }
-namespace {
-
-
 void
-allocmsg(Client *c, int n) {
-    c->rmsg.alloc(n);
-    c->wmsg.alloc(n);
+Client::allocmsg(int n) {
+    rmsg.alloc(n);
+    wmsg.alloc(n);
 }
-
-
+namespace {
 
 void
 initfid(std::shared_ptr<CFid> f, Fcall *fcall, decltype(CFid::iounit) iounit) {
@@ -79,8 +75,9 @@ initfid(std::shared_ptr<CFid> f, Fcall *fcall, decltype(CFid::iounit) iounit) {
 std::shared_ptr<Stat>
 _stat(ulong fid, std::function<bool(Fcall*)> dofcall) {
 	Fcall fcall(FType::TStat, fid);
-	if(!dofcall(&fcall))
+	if(!dofcall(&fcall)) {
 		return nullptr;
+    }
 
     Msg msg((char*)fcall.rstat.stat, fcall.rstat.size(), Msg::Mode::Unpack);
     auto stat = std::make_shared<Stat>();
@@ -303,7 +300,7 @@ Client::mountfd(const Connection& fd) {
 
     fcall.setType(FType::TVersion);
     auto c = new Client(fd);
-	allocmsg(c, 256);
+    c->allocmsg(256);
 	c->lastfid = RootFid;
 	/* Override tag matching on TVersion */
 	c->mintag = NoTag;
@@ -328,7 +325,7 @@ Client::mountfd(const Connection& fd) {
 	c->maxtag = 255;
 	c->msize = fcall.version.size();
 
-	allocmsg(c, fcall.version.size());
+	c->allocmsg(fcall.version.size());
 	Fcall::free(&fcall);
 
     fcall.setTypeAndFid(FType::TAttach, RootFid);

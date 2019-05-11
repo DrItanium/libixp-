@@ -85,6 +85,7 @@ namespace jyq {
             Fcall* muxrecv();
             void electmuxer();
             void dispatchandqlock(Fcall *f);
+            void allocmsg(int n);
 
 
 
