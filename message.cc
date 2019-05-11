@@ -93,8 +93,8 @@ Fcall::free(Fcall *fcall) {
 		fcall->rstat.stat = nullptr;
 		break;
     case FType::RRead:
-		::free(fcall->rread.data);
-		fcall->rread.data = nullptr;
+		::free(fcall->rread.getData());
+        fcall->rread.setData(nullptr);
 		break;
     case FType::RVersion:
 		::free(fcall->version.version);
@@ -191,11 +191,11 @@ FIO::packUnpack(Msg& msg) {
     auto type = getType();
     if (type == FType::TRead || type == FType::TWrite) {
         packUnpackFid(msg);
-        msg.pu64(&offset);
+        msg.pu64(&_offset);
     }
     msg.pu32(&getSizeReference());
     if (type == FType::RRead || type == FType::TWrite) {
-        msg.pdata(&data, size());
+        msg.pdata(&_data, size());
     }
 }
 void

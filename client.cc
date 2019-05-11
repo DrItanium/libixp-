@@ -98,7 +98,7 @@ _pread(CFid *f, char *buf, long count, int64_t offset, std::function<bool(Fcall*
 	while(len < count) {
         auto n = min<int>(count-len, f->iounit);
         fcall.setTypeAndFid(FType::TRead, f->fid);
-		fcall.tread.offset = offset;
+        fcall.tread.setOffset(offset);
         fcall.tread.setSize(n);
         if (!dofcall(&fcall)) {
 			return -1;
@@ -107,7 +107,7 @@ _pread(CFid *f, char *buf, long count, int64_t offset, std::function<bool(Fcall*
             return -1;
         }
 
-		memcpy(buf+len, fcall.rread.data, fcall.rread.size());
+		memcpy(buf+len, fcall.rread.getData(), fcall.rread.size());
 		offset += fcall.rread.size();
 		len += fcall.rread.size();
 
@@ -127,8 +127,8 @@ _pwrite(CFid *f, const void *buf, long count, int64_t offset, std::function<bool
 	do {
 		n = min<int>(count-len, f->iounit);
         fcall.setTypeAndFid(FType::TWrite, f->fid);
-		fcall.twrite.offset = offset;
-		fcall.twrite.data = (char*)buf + len;
+        fcall.twrite.setOffset(offset);
+        fcall.twrite.setData((char*)buf + len);
         fcall.twrite.setSize(n);
         if (!dofcall(&fcall)) {
 			return -1;

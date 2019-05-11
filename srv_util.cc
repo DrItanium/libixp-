@@ -124,14 +124,14 @@ srv_clonefiles(FileId *fileid) {
 void
 srv_readbuf(Req9 *req, char *buf, uint len) {
 
-	if(req->ifcall.io.offset >= len)
+	if(req->ifcall.io.getOffset() >= len)
 		return;
 
-	len -= req->ifcall.io.offset;
+	len -= req->ifcall.io.getOffset();
 	if(len > req->ifcall.io.size())
 		len = req->ifcall.io.size();
-	req->ofcall.io.data = (decltype(req->ofcall.io.data))jyq::emalloc(len);
-	memcpy(req->ofcall.io.data, buf + req->ifcall.io.offset, len);
+	req->ofcall.io.setData((decltype(req->ofcall.io.getData()))jyq::emalloc(len));
+	memcpy(req->ofcall.io.getData(), buf + req->ifcall.io.getOffset(), len);
 	req->ofcall.io.setSize(len);
 }
 
@@ -143,7 +143,7 @@ srv_writebuf(Req9 *req, char **buf, uint *len, uint max) {
 
 	file = std::any_cast<decltype(file)>(req->fid->aux);
 
-	offset = req->ifcall.io.offset;
+	offset = req->ifcall.io.getOffset();
 	if(file->tab.perm & uint32_t(DMode::APPEND))
 		offset = *len;
 
@@ -162,7 +162,7 @@ srv_writebuf(Req9 *req, char **buf, uint *len, uint max) {
     }
 	p = *buf;
 
-	memcpy(p+offset, req->ifcall.io.data, count);
+	memcpy(p+offset, req->ifcall.io.getData(), count);
 	req->ofcall.io.setSize(count);
 	p[offset+count] = '\0';
 }
@@ -178,21 +178,19 @@ srv_writebuf(Req9 *req, char **buf, uint *len, uint max) {
  */
 void
 srv_data2cstring(Req9 *req) {
-	char *p, *q;
-	uint i;
-
-    i = req->ifcall.io.size();
-	p = req->ifcall.io.data;
+    uint i = req->ifcall.io.size();
+	auto p = req->ifcall.io.getData();
 	if(i && p[i - 1] == '\n') {
 		i--;
     }
-	q = (decltype(q))memchr(p, '\0', i);
-	if(q)
+	char* q = (char*)memchr(p, '\0', i);
+	if(q) {
 		i = q - p;
+    }
 
-	p = (decltype(p))jyq::erealloc(req->ifcall.io.data, i+1);
+	p = (decltype(p))jyq::erealloc(req->ifcall.io.getData(), i+1);
 	p[i] = '\0';
-	req->ifcall.io.data = p;
+	req->ifcall.io.setData(p);
 }
 
 /**
@@ -209,14 +207,13 @@ srv_data2cstring(Req9 *req) {
  */
 char*
 srv_writectl(Req9 *req, std::function<char*(void*, Msg*)> fn) {
-	char *err, *s, *p, c;
-	FileId *file;
+	char *err, *p, c;
 	Msg msg;
 
-	file = std::any_cast<decltype(file)>(req->fid->aux);
+	FileId* file = std::any_cast<FileId*>(req->fid->aux);
 
 	srv_data2cstring(req);
-	s = req->ifcall.io.data;
+    auto s = req->ifcall.io.getData();
 
 	err = nullptr;
 	c = *s;
@@ -290,7 +287,7 @@ pending_respond(Req9 *req) {
 	if(p->queue) {
 		queue = p->queue;
 		p->queue = queue->link;
-		req->ofcall.io.data = queue->dat;
+        req->ofcall.io.setData(queue->dat);
 		req->ofcall.io.setSize(queue->len);
 		if(req->aux.has_value()) {
             req_link = std::any_cast<decltype(req_link)>(req->aux);
@@ -534,7 +531,7 @@ srv_readdir(Req9 *req, LookupFn lookup, std::function<void(Stat*, FileId*)> dost
 	for(file=file->next; file; file=file->next) {
 		dostat(&stat, file);
         ulong n = stat.size();
-		if(offset >= req->ifcall.io.offset) {
+		if(offset >= req->ifcall.io.getOffset()) {
 			if(size < n)
 				break;
             msg.pstat(&stat);
@@ -547,7 +544,7 @@ srv_readdir(Req9 *req, LookupFn lookup, std::function<void(Stat*, FileId*)> dost
 		srv_freefile(file);
 	}
 	req->ofcall.io.setSize(msg.pos - msg.data);
-	req->ofcall.io.data = msg.data;
+    req->ofcall.io.setData(msg.data);
     req->respond(nullptr);
 }
 

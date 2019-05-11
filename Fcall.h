@@ -73,10 +73,14 @@ namespace jyq {
         void packUnpack(Msg& msg);
     };
     struct FIO : public FHdr, public ContainsSizeParameter<uint32_t> {
-        uint64_t	offset; /* Tread, Twrite */
-        char*		data; /* Twrite, Rread */
         void packUnpack(Msg& msg);
-        constexpr auto getOffset() const noexcept { return offset; }
+        constexpr auto getOffset() const noexcept { return _offset; }
+        void setOffset(uint64_t value) noexcept { _offset = value; }
+        char* getData() const noexcept { return _data; }
+        void setData(char* value) noexcept { _data = value; }
+        private: 
+            uint64_t  _offset; /* Tread, Twrite */
+            char*     _data; /* Twrite, Rread */
     };
     struct FRStat : public FHdr, public ContainsSizeParameter<uint16_t> {
         uint8_t*	stat;
