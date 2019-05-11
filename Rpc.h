@@ -19,8 +19,8 @@ namespace jyq {
             Rpc(Client& m);
             ~Rpc() = default;
             Client&	mux;
-            Rpc*		next;
-            Rpc*		prev;
+            std::shared_ptr<Rpc> _next;
+            std::shared_ptr<Rpc> _prev;
             Rendez	r;
             std::shared_ptr<Fcall> p;
             int sendrpc(Fcall *f);

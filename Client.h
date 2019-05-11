@@ -52,7 +52,7 @@ namespace jyq {
             Rendez	tagrend;
             Rpc**	wait;
             Rpc*		muxer;
-            Rpc		sleep;
+            std::shared_ptr<Rpc> sleep;
             int		mintag;
             int		maxtag;
             bool remove(const char*);
