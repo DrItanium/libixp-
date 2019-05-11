@@ -47,10 +47,6 @@ constexpr auto SQid = SByte + SDWord + SQWord;
  *	F<pu8>, F<pu16>, F<pu32>, F<pu64>,
  *	F<pstring>, F<pstrings>
  */
-Msg
-Msg::message(char *data, uint length, Mode mode) {
-    return Msg(data, length, mode);
-}
 Msg::Msg(char* _data, uint _length, Mode _mode) {
 
 	data = _data;

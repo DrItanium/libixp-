@@ -216,10 +216,6 @@ xread(int argc, char *argv[]) {
 
 int
 xls(int argc, char *argv[]) {
-	jyq::Msg m;
-	char *file;
-	int count;
-
 	auto lflag = 0;
     auto dflag = 0;
 
@@ -234,7 +230,7 @@ xls(int argc, char *argv[]) {
 		usage();
 	}ARGEND;
 
-	file = EARGF(usage());
+	char* file = EARGF(usage());
 
     auto stat = client->stat(file);
     if (!stat) {
@@ -255,8 +251,9 @@ xls(int argc, char *argv[]) {
 
     std::vector<std::shared_ptr<jyq::Stat>> stats;
     char* buf = new char[fid->iounit];
-	while((count = fid->read(buf, fid->iounit, client->getDoFcallLambda())) > 0) {
-        m = jyq::Msg::message(buf, count, jyq::Msg::Mode::Unpack);
+    int count = 0;
+    for (count = fid->read(buf, fid->iounit, client->getDoFcallLambda()); count > 0; count = fid->read(buf, fid->iounit, client->getDoFcallLambda())) {
+        jyq::Msg m(buf, count, jyq::Msg::Mode::Unpack);
 		while(m.pos < m.end) {
             stats.emplace_back(std::make_shared<jyq::Stat>());
             m.pstat(stats.back().get());

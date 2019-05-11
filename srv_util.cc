@@ -21,7 +21,7 @@ struct Queue {
 	long		len;
 };
 
-constexpr auto QID(int64_t t, int64_t i) noexcept {
+constexpr auto computeQIDValue(int64_t t, int64_t i) noexcept {
     return int64_t((t & 0xFF)<<32) | int64_t(i & 0xFFFF'FFFF);
 }
 
@@ -207,26 +207,23 @@ srv_data2cstring(Req9 *req) {
  */
 char*
 srv_writectl(Req9 *req, std::function<char*(void*, Msg*)> fn) {
-	char *err, *p, c;
-	Msg msg;
-
 	FileId* file = std::any_cast<FileId*>(req->fid->aux);
 
 	srv_data2cstring(req);
     auto s = req->ifcall.io.getData();
 
-	err = nullptr;
-	c = *s;
+	char* err = nullptr;
+	auto c = *s;
 	while(c != '\0') {
 		while(*s == '\n')
 			s++;
-		p = s;
+		auto p = s;
 		while(*p != '\0' && *p != '\n')
 			p++;
 		c = *p;
 		*p = '\0';
 
-		msg = Msg::message(s, p-s, Msg::Mode::Pack);
+        Msg msg(s, p-s, Msg::Mode::Pack);
 		s = fn(file->p, &msg);
 		if(s)
 			err = s;
@@ -522,7 +519,7 @@ srv_readdir(Req9 *req, LookupFn lookup, std::function<void(Stat*, FileId*)> dost
 	if(size > req->fid->iounit)
 		size = req->fid->iounit;
 	auto buf = (char*)jyq::emallocz(size);
-	auto msg = Msg::message(buf, size, Msg::Mode::Pack);
+    Msg msg(buf, size, Msg::Mode::Pack);
 
 	file = lookup(file, nullptr);
 	tfile = file;
@@ -572,7 +569,7 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
 			}
 		}
 		req->ofcall.rwalk.getWqid()[i].type = file->tab.qtype;
-		req->ofcall.rwalk.getWqid()[i].path = QID(file->tab.type, file->id);
+		req->ofcall.rwalk.getWqid()[i].path = computeQIDValue(file->tab.type, file->id);
 	}
 	/* There should be a way to do this on freefid() */
 	if(i < req->ifcall.twalk.size()) {

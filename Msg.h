@@ -35,7 +35,6 @@ namespace jyq {
         void pstat(Stat& value) { packUnpack(value); }
         void pfcall(Fcall* value) { packUnpack(value); }
         void pfcall(Fcall& value) { packUnpack(value); }
-        static Msg message(char*, uint len, Mode mode);
         Msg();
         Msg(char*, uint, Mode);
         using Action = std::function<void(Msg&)>;
