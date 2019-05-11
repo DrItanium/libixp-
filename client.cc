@@ -22,7 +22,7 @@ constexpr auto RootFid = 1;
 
 void
 Client::clunk(std::shared_ptr<CFid> ptr) {
-    ptr->clunk([this](auto* value) { return dofcall(value); });
+    ptr->clunk([this](auto* value) { return (bool)dofcall(*value); });
     putfid(ptr);
 }
 std::shared_ptr<CFid>
@@ -161,6 +161,7 @@ Client::dofcall(Fcall& fcall) {
 	}
     return ret;
 }
+#if 0
 bool 
 Client::dofcall(Fcall *fcall) {
 
@@ -184,6 +185,7 @@ fail:
 	free(ret);
 	return false;
 }
+#endif
 std::shared_ptr<CFid>
 Client::walkdir(char *path, const char **rest) {
 	char *p;
@@ -221,7 +223,7 @@ Client::walk(const char *path) {
 
         fcall.twalk.setSize(n);
         fcall.twalk.setNewFid(f->fid);
-        if (dofcall(&fcall) == 0) {
+        if (dofcall(fcall) == 0) {
             putfid(f);
             return nullptr;
         }
@@ -256,16 +258,15 @@ Client::walk(const char *path) {
 
 bool
 Client::remove(const char *path) {
-	Fcall fcall;
-
     if (auto f = walk(path); !f) {
         return false;
     } else {
+        Fcall fcall;
         fcall.setTypeAndFid(FType::TRemove, f->fid);
-        auto ret = dofcall(&fcall);
+        auto ret = dofcall(fcall);
         putfid(f);
 
-        return ret;
+        return (bool)ret;
     }
 }
 
@@ -323,7 +324,7 @@ Client::mountfd(const Connection& fd) {
     fcall.version.setSize(maximum::Msg);
 	fcall.version.setVersion((char*)Version);
 
-	if(!c->dofcall(&fcall)) {
+	if(!c->dofcall(fcall)) {
         delete c;
 		return nullptr;
 	}
@@ -346,7 +347,7 @@ Client::mountfd(const Connection& fd) {
     fcall.tattach.setAfid(NoFid);
 	fcall.tattach.setUname(getenv("USER"));
 	fcall.tattach.setAname((char*)"");
-	if(!c->dofcall(&fcall)) {
+	if(!c->dofcall(fcall)) {
         delete c;
 		return nullptr;
 	}
@@ -423,7 +424,7 @@ Client::create(const char *path, uint perm, uint8_t mode) {
     fcall.tcreate.setPerm(perm);
     fcall.tcreate.setMode(mode);
 
-	if(!dofcall(&fcall)) {
+	if(!dofcall(fcall)) {
         clunk(f);
         return nullptr;
 	}
@@ -449,7 +450,7 @@ Client::open(const char *path, uint8_t mode) {
     fcall.setTypeAndFid(FType::TOpen, f->fid);
     fcall.topen.setMode(mode);
 
-	if(!dofcall(&fcall)) {
+	if(!dofcall(fcall)) {
 		clunk(f);
 		return nullptr;
 	}
@@ -508,7 +509,7 @@ Client::stat(const char *path) {
 	if (auto f = walk(path); !f) {
         return nullptr;
     } else {
-	    auto stat = _stat(f->fid, [this](auto* fc) { return this->dofcall(fc); });
+	    auto stat = _stat(f->fid, [this](auto* fc) { return (bool)dofcall(*fc); });
         clunk(f);
 	    return stat;
     }

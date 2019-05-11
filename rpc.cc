@@ -116,6 +116,25 @@ Client::puttag(Rpc& r)
     tagrend.wake();
     r.getRendez().deactivate();
 }
+bool
+Rpc::sendrpc(Fcall& f) {
+    { 
+        concurrency::Locker<Mutex> lk(mux.lk);
+        tag = mux.gettag(this);
+        f.setTag(tag);
+        mux.enqueue(this);
+    }
+    { 
+        concurrency::Locker<Mutex> a(mux.wlock);
+        if (!fcall2msg(&mux.wmsg, &f) || !mux.getConnection().sendmsg(mux.wmsg)) {
+            concurrency::Locker<Mutex> lk(mux.lk);
+            mux.dequeue(this);
+            mux.puttag(this);
+            return false;
+        }
+    }
+    return true;
+}
 int
 Rpc::sendrpc(Fcall *f)
 {
@@ -204,7 +223,7 @@ Client::muxrpc(Fcall& tx)
     Rpc r(*this);
     std::shared_ptr<Fcall> p;
 
-    if (r.sendrpc(&tx) < 0) {
+    if (!r.sendrpc(tx)) {
         return nullptr;
     }
     lk.lock();

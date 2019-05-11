@@ -24,6 +24,7 @@ namespace jyq {
             Rendez	r;
             std::shared_ptr<Fcall> p;
             int sendrpc(Fcall *f);
+            bool sendrpc(Fcall& f); // can't make this const right now since modification to input happens...
             Rendez& getRendez() noexcept { return r; }
             Client& getMux() noexcept { return mux; }
             constexpr auto getTag() const noexcept { return tag; }

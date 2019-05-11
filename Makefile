@@ -72,7 +72,9 @@ convert.o: convert.cc qid.h types.h Msg.h stat.h jyq.h PrintFunctions.h \
  thread.h Srv9.h Conn9.h Fcall.h map.h Conn.h socket.h Fid.h Req9.h \
  util.h Client.h Rpc.h CFid.h
 error.o: error.cc PrintFunctions.h types.h thread.h
-jyqc.o: jyqc.cc argv.h types.h
+jyqc.o: jyqc.cc jyq.h types.h PrintFunctions.h thread.h Srv9.h Conn9.h \
+ qid.h Fcall.h stat.h Msg.h map.h Conn.h socket.h Fid.h Req9.h util.h \
+ Client.h Rpc.h CFid.h argv.h
 message.o: message.cc Msg.h types.h qid.h stat.h jyq.h PrintFunctions.h \
  thread.h Srv9.h Conn9.h Fcall.h map.h Conn.h socket.h Fid.h Req9.h \
  util.h Client.h Rpc.h CFid.h argv.h

@@ -15,7 +15,7 @@
 #include <list>
 #include <map>
 #include <sstream>
-#include <jyq.h>
+#include "jyq.h"
 #include "argv.h"
 
 
