@@ -21,6 +21,7 @@ namespace jyq {
          * @return the connection object stored in this class
          */
         Connection& getConnection() noexcept { return _fd; }
+        uint recvmsg(Msg& msg) { return getConnection().recvmsg(msg); }
         public:
             Server&	srv;
             std::any	aux;	/* Arbitrary pointer, to be used by handlers. */

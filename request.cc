@@ -114,7 +114,7 @@ handlefcall(Conn *c) {
 	auto p9conn = std::any_cast<Conn9*>(c->aux);
 
     p9conn->rlock.lock();
-    if (c->getConnection().recvmsg(p9conn->rmsg) == 0) {
+    if (c->recvmsg(p9conn->rmsg) == 0) {
         p9conn->rlock.unlock();
         hangup(c);
         return;
@@ -126,8 +126,8 @@ handlefcall(Conn *c) {
     }
     p9conn->rlock.unlock();
 
-    Req9 req;
     p9conn->operator++();
+    Req9 req;
 	req.conn = p9conn;
 	req.srv = p9conn->srv;
 	req.ifcall = fcall;
@@ -158,9 +158,10 @@ handlereq(Req9& r) {
     static std::map<FType, std::function<void(Req9&)>> dispatchTable = {
         { FType::TVersion, 
             [](Req9& r) {
-                if(!strcmp(r.ifcall.version.version, "9P")) {
+                std::string ver(r.ifcall.version.version);
+                if(!strcmp(ver.c_str(), "9P")) {
                     r.ofcall.version.version = "9P";
-                } else if(!strcmp(r.ifcall.version.version, "9P2000")) {
+                } else if(!strcmp(ver.c_str(), "9P2000")) {
                     r.ofcall.version.version = "9P2000";
                 } else {
                     r.ofcall.version.version = "unknown";
