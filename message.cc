@@ -142,9 +142,9 @@ FAttach::packUnpack(Msg& msg) {
     if (getType() == FType::TAttach) {
         packUnpackFid(msg);
     }
-    msg.pu32(&afid);
-    msg.pstring(&uname);
-    msg.pstring(&aname);
+    msg.pu32(&_afid);
+    msg.pstring(&_uname);
+    msg.pstring(&_aname);
 }
 
 void

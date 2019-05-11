@@ -329,9 +329,9 @@ Client::mountfd(const Connection& fd) {
 	Fcall::free(&fcall);
 
     fcall.setTypeAndFid(FType::TAttach, RootFid);
-	fcall.tattach.afid = NoFid;
-	fcall.tattach.uname = getenv("USER");
-	fcall.tattach.aname = (char*)"";
+    fcall.tattach.setAfid(NoFid);
+	fcall.tattach.setUname(getenv("USER"));
+	fcall.tattach.setAname((char*)"");
 	if(!c->dofcall(&fcall)) {
         delete c;
 		return nullptr;

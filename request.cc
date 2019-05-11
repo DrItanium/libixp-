@@ -369,8 +369,8 @@ Req9::respond(const char *error) {
 		if(error) {
             destroyfid(*p9conn, fid->fid);
         }
-		free(ifcall.tattach.uname);
-		free(ifcall.tattach.aname);
+		free(ifcall.tattach.getUname());
+		free(ifcall.tattach.getAname());
 		break;
 	case FType::TOpen:
 	case FType::TCreate:

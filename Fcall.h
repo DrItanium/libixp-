@@ -72,11 +72,19 @@ namespace jyq {
             Qid		_aqid;
     };
     struct FAttach : public FHdr {
-        uint32_t	afid;
-        char*		uname;
-        char*		aname;
         void packUnpack(Msg& msg);
-        constexpr auto getAfid() const noexcept { return afid; }
+        constexpr auto getAfid() const noexcept { return _afid; }
+        void setAfid(uint32_t value) noexcept { _afid = value; }
+        char* getUname() noexcept { return _uname; }
+        const char* getUname() const noexcept { return _uname; }
+        void setUname(char* value) noexcept { _uname = value; }
+        char* getAname() noexcept { return _aname; }
+        const char* getAname() const noexcept { return _aname; }
+        void setAname(char* value) noexcept { _aname = value; }
+        private:
+            uint32_t	_afid;
+            char*		_uname;
+            char*		_aname;
     };
     struct FTCreate : public FHdr {
         constexpr auto getPerm() const noexcept { return _perm; }
