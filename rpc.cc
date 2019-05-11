@@ -52,15 +52,15 @@ Client::electmuxer()
 	muxer = nullptr;
 }
 int 
-Client::gettag(Rpc *r)
+Client::gettag(Rpc &r)
 {
 	int i, mw;
 	Rpc **w;
-    auto Found = [this, r](auto index) {
+    auto Found = [this, &r](auto index) {
         nwait++;
-        wait[index] = r;
-        r->setTag(index + mintag);
-        return r->getTag();
+        wait[index] = &r;
+        r.setTag(index + mintag);
+        return r.getTag();
     };
 	for(;;){
 		/* wait for a free tag */
@@ -86,14 +86,19 @@ Client::gettag(Rpc *r)
 		}
 
 		i=freetag;
-		if(wait[i] == 0)
+		if(wait[i] == 0) {
             return Found(i);
-		for(; i<mwait; i++)
-			if(wait[i] == 0)
+        }
+		for(; i<mwait; i++) {
+			if(wait[i] == 0) {
                 return Found(i);
-		for(i=0; i<freetag; i++)
-			if(wait[i] == 0)
+            }
+        }
+		for(i=0; i<freetag; i++) {
+			if(wait[i] == 0) {
                 return Found(i);
+            }
+        }
 		/* should not fall out of while without free tag */
         throw "Fell out of loop without free tag!";
 	}
@@ -101,15 +106,15 @@ Client::gettag(Rpc *r)
 }
 
 void
-Client::puttag(Rpc *r)
+Client::puttag(Rpc& r)
 {
-	auto i = r->getTag() - mintag;
-	assert(wait[i] == r);
+	auto i = r.getTag() - mintag;
+	assert(wait[i] == &r);
 	wait[i] = nullptr;
 	nwait--;
 	freetag = i;
     tagrend.wake();
-    r->r.deactivate();
+    r.getRendez().deactivate();
 }
 int
 Rpc::sendrpc(Fcall *f)
@@ -125,7 +130,7 @@ Rpc::sendrpc(Fcall *f)
 
     {
         concurrency::Locker<Mutex> a(mux.wlock);
-        if(!fcall2msg(&mux.wmsg, f) || !mux.fd.sendmsg(mux.wmsg)) {
+        if(!fcall2msg(&mux.wmsg, f) || !mux.getConnection().sendmsg(mux.wmsg)) {
             concurrency::Locker<Mutex> lk(mux.lk);
             mux.dequeue(this);
             mux.puttag(this);
