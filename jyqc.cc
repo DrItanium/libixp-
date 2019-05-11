@@ -73,7 +73,7 @@ str_of_time(uint val) {
 }
 
 void
-print_stat(std::shared_ptr<jyq::Stat> s, int details) {
+printStat(std::shared_ptr<jyq::Stat> s, int details) {
 	if(details) {
         jyq::print(std::cout, str_of_mode(s->mode), " ", 
                 s->uid, " ", s->gid, " ", s->length, " ", 
@@ -238,7 +238,7 @@ xls(int argc, char *argv[]) {
     }
 
 	if(dflag || (stat->mode&static_cast<uint32_t>(jyq::DMode::DIR)) == 0) {
-		print_stat(stat, lflag);
+		printStat(stat, lflag);
         jyq::Stat::free(stat.get());
 		return 0;
 	}
@@ -263,7 +263,7 @@ xls(int argc, char *argv[]) {
 
     // TODO implement sorting in the future
     for (auto& stat : stats) {
-        print_stat(stat, lflag);
+        printStat(stat, lflag);
         jyq::Stat::free(stat.get());
     }
 	if(count == -1) {
