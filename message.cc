@@ -177,7 +177,7 @@ FError::packUnpack(Msg& msg) {
 }
 void 
 FRWalk::packUnpack(Msg& msg) {
-    msg.pqids(&getSizeReference(), wqid, nelem(wqid));
+    msg.pqids(&getSizeReference(), _wqid, nelem(_wqid));
 }
 void
 FTCreate::packUnpack(Msg& msg) {

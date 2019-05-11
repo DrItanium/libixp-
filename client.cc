@@ -16,7 +16,6 @@
 #include "PrintFunctions.h"
 #include "socket.h"
 
-#define nelem(ary) (sizeof(ary) / sizeof(*ary))
 namespace jyq {
 constexpr auto RootFid = 1;
 
@@ -212,7 +211,7 @@ Client::walk(const char *path) {
             return nullptr;
         }
 
-        f->qid = fcall.rwalk.wqid[n-1]; // gross... so gross, this is taken from teh c code...so gross
+        f->qid = fcall.rwalk.getWqid()[n-1]; // gross... so gross, this is taken from teh c code...so gross
 
         return f;
     }

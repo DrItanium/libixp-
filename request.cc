@@ -394,7 +394,7 @@ Req9::respond(const char *error) {
             if (ofcall.rwalk.empty()) {
 				newfid->qid = fid->qid;
             } else {
-				newfid->qid = ofcall.rwalk.wqid[ofcall.rwalk.size()-1];
+				newfid->qid = ofcall.rwalk.getWqid()[ofcall.rwalk.size()-1];
             }
 		}
 		free(*ifcall.twalk.getWname());

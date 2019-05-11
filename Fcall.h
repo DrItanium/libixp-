@@ -122,35 +122,41 @@ namespace jyq {
             char*    _wname[maximum::Welem];
                 
     };
-    struct FRWalk : public FHdr, public ContainsSizeParameter<uint16_t> {
-        void packUnpack(Msg& msg);
+    class FRWalk : public FHdr, public ContainsSizeParameter<uint16_t> {
         public:
-            Qid		wqid[maximum::Welem];
+            void packUnpack(Msg& msg);
+            Qid* getWqid() noexcept { return _wqid; }
+            constexpr auto getWqidMaximum() const noexcept { return maximum::Welem; }
+        private:
+            Qid		_wqid[maximum::Welem];
     };
-    struct FIO : public FHdr, public ContainsSizeParameter<uint32_t> {
-        void packUnpack(Msg& msg);
-        constexpr auto getOffset() const noexcept { return _offset; }
-        void setOffset(uint64_t value) noexcept { _offset = value; }
-        const char* getData() const noexcept { return _data; }
-        char* getData() noexcept { return _data; }
-        void setData(char* value) noexcept { _data = value; }
+    class FIO : public FHdr, public ContainsSizeParameter<uint32_t> {
+        public:
+            constexpr auto getOffset() const noexcept { return _offset; }
+            const char* getData() const noexcept { return _data; }
+            char* getData() noexcept { return _data; }
+            void setOffset(uint64_t value) noexcept { _offset = value; }
+            void setData(char* value) noexcept { _data = value; }
+            void packUnpack(Msg& msg);
         private: 
             uint64_t  _offset; /* Tread, Twrite */
             char*     _data; /* Twrite, Rread */
     };
-    struct FRStat : public FHdr, public ContainsSizeParameter<uint16_t> {
-        void packUnpack(Msg& msg);
-        const uint8_t* getStat() const noexcept { return _stat; }
-        uint8_t* getStat() noexcept { return _stat; }
-        void setStat(uint8_t* value) noexcept { _stat = value; }
+    class FRStat : public FHdr, public ContainsSizeParameter<uint16_t> {
+        public:
+            const uint8_t* getStat() const noexcept { return _stat; }
+            uint8_t* getStat() noexcept { return _stat; }
+            void setStat(uint8_t* value) noexcept { _stat = value; }
+            void packUnpack(Msg& msg);
         private:
             uint8_t* _stat;
     };
-    struct FTWStat : public FHdr {
-        void packUnpack(Msg& msg);
-        Stat& getStat() noexcept { return _stat; }
-        const Stat& getStat() const noexcept { return _stat; }
-        void setStat(const Stat& stat) noexcept { _stat = stat; }
+    class FTWStat : public FHdr {
+        public:
+            Stat& getStat() noexcept { return _stat; }
+            const Stat& getStat() const noexcept { return _stat; }
+            void setStat(const Stat& stat) noexcept { _stat = stat; }
+            void packUnpack(Msg& msg);
         private:
             Stat _stat;
     };
