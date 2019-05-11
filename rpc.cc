@@ -42,7 +42,7 @@ void
 Client::electmuxer()
 {
 	/* if there is anyone else sleeping, wake them to mux */
-	for(auto rpc=sleep.next; rpc != &sleep; rpc = rpc->next){
+	for(auto rpc=sleep->_next; rpc != sleep; rpc = rpc->_next){
         if (!rpc->isAsync()) {
 			muxer = rpc;
 			concurrency::threadModel->wake(&rpc->r);
@@ -177,47 +177,47 @@ Client::dispatchandqlock(std::shared_ptr<Fcall> f)
     r2->r.wake();
 }
 void
-Client::enqueue(Rpc* r) {
-	r->next = sleep.next;
-	r->prev = &sleep;
-	r->next->prev = r;
-	r->prev->next = r;
+Client::enqueue(std::shared_ptr<Rpc> r) {
+	r->_next = sleep->_next;
+	r->_prev = sleep;
+	r->_next->_prev = r;
+	r->_prev->_next = r;
 }
 
 void
-Client::dequeue(Rpc* r) {
-	r->next->prev = r->prev;
-	r->prev->next = r->next;
-	r->prev = nullptr;
-	r->next = nullptr;
+Client::dequeue(std::shared_ptr<Rpc> r) {
+	r->_next->_prev = r->_prev;
+	r->_prev->_next = r->_next;
+	r->_prev = nullptr;
+	r->_next = nullptr;
 
 }
 std::shared_ptr<Fcall>
 Client::muxrpc(Fcall& tx) 
 {
-    Rpc r(*this);
+    auto r = std::make_shared<Rpc>(*this);
     std::shared_ptr<Fcall> p;
 
-    if (!r.sendrpc(tx)) {
+    if (!r->sendrpc(tx)) {
         return nullptr;
     }
     lk.lock();
 	/* wait for our packet */
-	while(muxer && muxer != &r && !r.p) {
+	while(muxer && muxer != r && !r.p) {
         r.getRendez().sleep();
     }
 
 	/* if not done, there's no muxer; start muxing */
 	if(!r.p){
-		assert(muxer == nullptr || muxer == &r);
-		muxer = &r;
+		assert(muxer == nullptr || muxer == r);
+		muxer = r;
 		while(!r.p){
             lk.unlock();
             p.reset(muxrecv());
             if (!p) {
 				/* eof -- just give up and pass the buck */
                 lk.lock();
-                dequeue(&r);
+                dequeue(r);
 				break;
 			}
 			dispatchandqlock(p);
@@ -225,7 +225,7 @@ Client::muxrpc(Fcall& tx)
 		electmuxer();
 	}
 	p = r.p;
-	puttag(&r);
+	puttag(r);
     lk.unlock();
     if (!p) {
         wErrorString("unexpected eof");

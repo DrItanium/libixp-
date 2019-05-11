@@ -51,7 +51,8 @@ namespace jyq {
             Mutex	wlock;
             Rendez	tagrend;
             Rpc**	wait;
-            Rpc*		muxer;
+            //Rpc*		muxer;
+            std::shared_ptr<Rpc> muxer;
             std::shared_ptr<Rpc> sleep;
             int		mintag;
             int		maxtag;
@@ -72,13 +73,16 @@ namespace jyq {
             std::shared_ptr<CFid> walk(const char*);
             std::shared_ptr<CFid> walkdir(char *path, const char **rest);
             std::shared_ptr<Fcall> dofcall(Fcall& fcall);
-            void enqueue(Rpc*);
-            void dequeue(Rpc*);
+            //void enqueue(Rpc*);
+            void enqueue(std::shared_ptr<Rpc>);
+            //void dequeue(Rpc*);
+            void dequeue(std::shared_ptr<Rpc>);
             void putfid(std::shared_ptr<CFid> cfid);
             void clunk(std::shared_ptr<CFid> fid);
             inline DoFcallFunc getDoFcallLambda() noexcept { return [this](auto& ptr) { return dofcall(ptr); }; }
             int gettag(Rpc* r) { return gettag(*r); }
             int gettag(Rpc& r);
+            void puttag(std::shared_ptr<Rpc> r) { puttag(r.get()); }
             void puttag(Rpc& r);
             void puttag(Rpc* r) { return puttag(*r); }
         private:
