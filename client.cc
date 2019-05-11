@@ -143,26 +143,23 @@ _pwrite(CFid *f, const void *buf, long count, int64_t offset, std::function<bool
 	return len;
 }
 } // end namespace
-std::optional<Fcall>
+std::shared_ptr<Fcall>
 Client::dofcall(Fcall& fcall) {
-    auto ret = muxrpc(&fcall);
+    // this version of dofcall does not modify the result of 
+    auto ret = muxrpc(fcall);
 
     if (!ret) {
-        return std::nullopt;
+        return nullptr;
     }
     if (ret->getType() == FType::RError) {
         wErrorString(ret->error.getEname());
-        free(ret); // this will need to be fixed
-        return std::nullopt;
+        return nullptr;
     }
-    if (auto hdrVal = uint8_t(ret->hdr.getType()), fhdrVal = uint8_t(fcall.getType()); hdrVal != (fhdrVal^1)) {
+    if (auto hdrVal = uint8_t(ret->getType()), fhdrVal = uint8_t(fcall.getType()); hdrVal != (fhdrVal^1)) {
         wErrorString("received mismatched fcall");
-        free(ret);
-        return std::nullopt;
+        return nullptr;
 	}
-    std::optional<Fcall> output(*ret);
-    free(ret);
-    return output;
+    return ret;
 }
 bool 
 Client::dofcall(Fcall *fcall) {
@@ -171,12 +168,11 @@ Client::dofcall(Fcall *fcall) {
     if (!ret) {
 		return false;
     }
-	if(ret->hdr.getType()== FType::RError) {
+	if(ret->getType()== FType::RError) {
         wErrorString(ret->error.getEname());
 		goto fail;
 	}
-    if (auto hdrVal = uint8_t(ret->hdr.getType()), fhdrVal = uint8_t(fcall->getType()); hdrVal != (fhdrVal^1)) {
-        std::cout << "hdrVal: " << hdrVal << std::endl;
+    if (auto hdrVal = uint8_t(ret->getType()), fhdrVal = uint8_t(fcall->getType()); hdrVal != (fhdrVal^1)) {
         wErrorString("received mismatched fcall");
 		goto fail;
 	}

@@ -68,12 +68,12 @@ namespace jyq {
             auto open(const char* str, OMode mode) { return open(str, uint8_t(mode)); }
             auto stat(const std::string& str) { return stat(str.c_str()); }
             Fcall* muxrpc(Fcall*);
-            //std::shared_ptr<Fcall> muxrpc(Fcall& tx)
+            std::shared_ptr<Fcall> muxrpc(Fcall& tx);
             std::shared_ptr<CFid> getFid();
             std::shared_ptr<CFid> walk(const char*);
             std::shared_ptr<CFid> walkdir(char *path, const char **rest);
             bool dofcall(Fcall *fcall);
-            std::optional<Fcall> dofcall(Fcall& fcall);
+            std::shared_ptr<Fcall> dofcall(Fcall& fcall);
             void enqueue(Rpc*);
             void dequeue(Rpc*);
             void putfid(std::shared_ptr<CFid> cfid);
@@ -87,6 +87,7 @@ namespace jyq {
             Fcall* muxrecv();
             void electmuxer();
             void dispatchandqlock(Fcall *f);
+            void dispatchandqlock(std::shared_ptr<Fcall> f);
             void allocmsg(int n);
 
 

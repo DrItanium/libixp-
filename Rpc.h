@@ -22,7 +22,7 @@ namespace jyq {
             Rpc*		next;
             Rpc*		prev;
             Rendez	r;
-            Fcall*	p;
+            std::shared_ptr<Fcall> p;
             int sendrpc(Fcall *f);
             Rendez& getRendez() noexcept { return r; }
             Client& getMux() noexcept { return mux; }
