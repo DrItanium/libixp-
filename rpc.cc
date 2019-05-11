@@ -43,7 +43,7 @@ Client::electmuxer()
 {
 	/* if there is anyone else sleeping, wake them to mux */
 	for(auto rpc=sleep.next; rpc != &sleep; rpc = rpc->next){
-		if(!rpc->async){
+        if (!rpc->isAsync()) {
 			muxer = rpc;
 			concurrency::threadModel->wake(&rpc->r);
 			return;
@@ -59,8 +59,8 @@ Client::gettag(Rpc *r)
     auto Found = [this, r](auto index) {
         nwait++;
         wait[index] = r;
-        r->tag = index+mintag;
-        return r->tag;
+        r->setTag(index + mintag);
+        return r->getTag();
     };
 	for(;;){
 		/* wait for a free tag */
@@ -103,7 +103,7 @@ Client::gettag(Rpc *r)
 void
 Client::puttag(Rpc *r)
 {
-	auto i = r->tag - mintag;
+	auto i = r->getTag() - mintag;
 	assert(wait[i] == r);
 	wait[i] = nullptr;
 	nwait--;

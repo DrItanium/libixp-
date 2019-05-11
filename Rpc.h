@@ -15,22 +15,27 @@
 namespace jyq {
     struct Client;
     struct Rpc {
-        Rpc(Client& m);
-        ~Rpc() = default;
-        Client&	mux;
-        Rpc*		next;
-        Rpc*		prev;
-        Rendez	r;
-        uint		tag;
-        Fcall*	p;
-        bool waiting;
-        bool async;
-        int sendrpc(Fcall *f);
-        Rendez& getRendez() noexcept { return r; }
-        Client& getMux() noexcept { return mux; }
-        constexpr auto getTag() const noexcept { return tag; }
-        constexpr auto isWaiting() const noexcept { return waiting; }
-        constexpr auto isAsync() const noexcept { return async; }
+        public:
+            Rpc(Client& m);
+            ~Rpc() = default;
+            Client&	mux;
+            Rpc*		next;
+            Rpc*		prev;
+            Rendez	r;
+            Fcall*	p;
+            int sendrpc(Fcall *f);
+            Rendez& getRendez() noexcept { return r; }
+            Client& getMux() noexcept { return mux; }
+            constexpr auto getTag() const noexcept { return tag; }
+            constexpr auto isWaiting() const noexcept { return waiting; }
+            constexpr auto isAsync() const noexcept { return async; }
+            void setTag(uint value) noexcept { tag = value; }
+            void setWaiting(bool value = true) noexcept { waiting = value; }
+            void setAsync(bool value = true) noexcept { async = value; }
+        private:
+            uint		tag;
+            bool waiting;
+            bool async;
 
     };
 } // end namespace jyq
