@@ -149,8 +149,7 @@ FAttach::packUnpack(Msg& msg) {
 
 void
 FRAuth::packUnpack(Msg& msg) {
-    aqid.packUnpack(msg);
-    msg.pqid(&aqid);
+    msg.pqid(&_aqid);
 }
 void
 FROpen::packUnpack(Msg& msg) {

@@ -44,8 +44,12 @@ namespace jyq {
         void packUnpack(Msg& msg);
     };
     struct FRAuth : public FHdr {
-        Qid		aqid;
+        const Qid& getAQid() const noexcept { return _aqid; }
+        Qid& getAQid() noexcept { return _aqid; }
+        void setAQid(const Qid aq) noexcept { _aqid = aq; }
         void packUnpack(Msg& msg);
+        private:
+            Qid		_aqid;
     };
     struct FAttach : public FHdr {
         uint32_t	afid;
