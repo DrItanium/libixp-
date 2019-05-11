@@ -101,17 +101,19 @@ namespace jyq {
             uint8_t		_mode; /* +Topen */
     };
     struct FTWalk : public FHdr, public ContainsSizeParameter<uint16_t>  {
-        char*		wname[maximum::Welem];
         constexpr auto getNewFid() const noexcept { return _newfid; }
         void setNewFid(uint32_t value) noexcept { _newfid = value; }
         void packUnpack(Msg& msg);
         private:
             uint32_t _newfid;
+        public:
+            char*		wname[maximum::Welem];
                 
     };
     struct FRWalk : public FHdr, public ContainsSizeParameter<uint16_t> {
-        Qid		wqid[maximum::Welem];
         void packUnpack(Msg& msg);
+        public:
+            Qid		wqid[maximum::Welem];
     };
     struct FIO : public FHdr, public ContainsSizeParameter<uint32_t> {
         void packUnpack(Msg& msg);
