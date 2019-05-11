@@ -204,7 +204,7 @@ Client::walk(const char *path) {
         fcall.setFid(RootFid);
 
         fcall.twalk.setSize(n);
-        fcall.twalk.newfid = f->fid;
+        fcall.twalk.setNewFid(f->fid);
         if (dofcall(&fcall) == 0) {
             putfid(f);
             return nullptr;

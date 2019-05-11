@@ -584,7 +584,7 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
 		return;
 	}
 	/* Remove refs for req->fid if no new fid */
-	if(req->ifcall.hdr.fid == req->ifcall.twalk.newfid) {
+	if(req->ifcall.hdr.fid == req->ifcall.twalk.getNewFid()) {
 		tfile = std::any_cast<decltype(tfile)>(req->fid->aux);
 		req->fid->aux = file;
 		while((file = tfile)) {

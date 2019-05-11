@@ -384,7 +384,7 @@ Req9::respond(const char *error) {
 		break;
 	case FType::TWalk:
 		if(error || ofcall.rwalk.size() < ifcall.twalk.size()) {
-			if(ifcall.hdr.fid != ifcall.twalk.newfid && newfid) {
+			if(ifcall.hdr.fid != ifcall.twalk.getNewFid() && newfid) {
 				destroyfid(*p9conn, newfid->fid);
             }
 			if(!error && ofcall.rwalk.empty()) {

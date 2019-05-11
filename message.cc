@@ -162,7 +162,7 @@ FROpen::packUnpack(Msg& msg) {
 void
 FTWalk::packUnpack(Msg& msg) {
     packUnpackFid(msg);
-    msg.pu32(&newfid);
+    msg.pu32(&_newfid);
     msg.pstrings(&getSizeReference(), wname, nelem(wname));
 }
 void

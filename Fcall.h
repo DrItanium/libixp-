@@ -63,10 +63,13 @@ namespace jyq {
         void packUnpack(Msg& msg);
     };
     struct FTWalk : public FHdr, public ContainsSizeParameter<uint16_t>  {
-        uint32_t	newfid;
         char*		wname[maximum::Welem];
-        constexpr auto getNewFid() const noexcept { return newfid; }
+        constexpr auto getNewFid() const noexcept { return _newfid; }
+        void setNewFid(uint32_t value) noexcept { _newfid = value; }
         void packUnpack(Msg& msg);
+        private:
+            uint32_t _newfid;
+                
     };
     struct FRWalk : public FHdr, public ContainsSizeParameter<uint16_t> {
         Qid		wqid[maximum::Welem];
