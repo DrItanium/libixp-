@@ -230,7 +230,7 @@ Client::muxrpc(Fcall& tx)
 	puttag(&r);
     lk.unlock();
     if (!p) {
-        wErrorString("unexpected eof");
+        throw Exception("unexpected eof");
     }
 	return p;
 }
