@@ -64,10 +64,6 @@ namespace jyq {
             Rpc**	wait;
             Rpc*		muxer;
             Rpc		sleep;
-            constexpr auto getMintag() const noexcept { return _mintag; }
-            constexpr auto getMaxtag() const noexcept { return _maxtag; }
-            void setMintag(int value) noexcept { _mintag = value; }
-            void setMaxtag(int value) noexcept { _maxtag = value; }
         private:
             int		_mintag;
             int		_maxtag;
