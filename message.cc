@@ -68,11 +68,14 @@ Msg::Msg() : data(nullptr), pos(nullptr), end(nullptr), _mode(Mode::Pack) {
  *	S<Fcall>, S<Stat>
  */
 Stat::~Stat() {
-	::free(s->name);
-	::free(s->uid);
-	::free(s->gid);
-	::free(s->muid);
-	s->name = s->uid = s->gid = s->muid = nullptr;
+	::free(name);
+	::free(uid);
+	::free(gid);
+	::free(muid);
+	name = nullptr;
+    uid = nullptr;
+    gid = nullptr;
+    muid = nullptr;
 }
 
 Fcall::~Fcall() {

@@ -418,7 +418,7 @@ Req9::respond(const char *error) {
         }
 		break;
 	case FType::TWStat:
-		Stat::free(&ifcall.twstat.getStat());
+		//Stat::free(&ifcall.twstat.getStat());
 		break;
 	case FType::TRead:
 	case FType::TStat:
