@@ -29,7 +29,7 @@ Client::getFid() {
     concurrency::Locker<Mutex> theLock(lk);
     if (freefid.empty()) {
         auto ptr = std::make_shared<CFid>();
-        ptr->fid = ++lastfid;
+        ptr->fid = ++_lastfid;
         return ptr;
     } else {
         std::shared_ptr<CFid> front(freefid.front()); // make a copy?
@@ -41,8 +41,8 @@ Client::getFid() {
 void
 Client::putfid(std::shared_ptr<CFid> f) {
     concurrency::Locker<Mutex> theLock(lk);
-    if (f->fid == lastfid) {
-		lastfid--;
+    if (f->fid == _lastfid) {
+		_lastfid--;
 	} else {
         freefid.emplace_front(f);
 	}
@@ -291,7 +291,7 @@ Client::mountfd(const Connection& fd) {
     fcall.setType(FType::TVersion);
     auto c = new Client(fd);
     c->allocmsg(256);
-	c->lastfid = RootFid;
+	c->_lastfid = RootFid;
 	/* Override tag matching on TVersion */
 	c->mintag = NoTag;
 	c->maxtag = NoTag+1;
@@ -313,7 +313,7 @@ Client::mountfd(const Connection& fd) {
 
 	c->mintag = 0;
 	c->maxtag = 255;
-	c->msize = fcall.version.size();
+	c->_msize = fcall.version.size();
 
 	c->allocmsg(fcall.version.size());
     fcall.reset();
@@ -405,8 +405,8 @@ Client::create(const char *path, uint perm, uint8_t mode) {
 	}
 
     auto count = fcall.ropen.getIoUnit();
-    if (count == 0 || (fcall.ropen.getIoUnit() > (msize-24))) {
-        count = msize-24;
+    if (count == 0 || (fcall.ropen.getIoUnit() > (_msize-24))) {
+        count = _msize-24;
     }
 	initfid(f, &fcall, count);
 	f->mode = mode;
@@ -431,8 +431,8 @@ Client::open(const char *path, uint8_t mode) {
 	}
 
     auto count = fcall.ropen.getIoUnit();
-    if (count == 0 || (fcall.ropen.getIoUnit() > (msize-24))) {
-        count = msize-24;
+    if (count == 0 || (fcall.ropen.getIoUnit() > (_msize-24))) {
+        count = _msize-24;
     }
 	initfid(f, &fcall, count);
 	f->mode = mode;

@@ -57,16 +57,16 @@ Client::gettag(Rpc &r)
 	int i, mw;
 	Rpc **w;
     auto Found = [this, &r](auto index) {
-        nwait++;
+        _nwait++;
         wait[index] = &r;
         r.setTag(index + mintag);
         return r.getTag();
     };
 	for(;;){
 		/* wait for a free tag */
-		while(nwait == mwait){
-			if(mwait < maxtag-mintag){
-				mw = mwait;
+		while(_nwait == _mwait){
+			if(_mwait < maxtag-mintag){
+				mw = _mwait;
 				if(mw == 0) {
 					mw = 1;
                 } else {
@@ -76,25 +76,25 @@ Client::gettag(Rpc &r)
                 if (!w) {
 					return -1;
                 }
-				memset(w+mwait, 0, (mw-mwait) * sizeof *w);
+				memset(w+_mwait, 0, (mw-_mwait) * sizeof *w);
 				wait = w;
-				freetag = mwait;
-				mwait = mw;
+				_freetag = _mwait;
+				_mwait = mw;
 				break;
 			}
             tagrend.sleep();
 		}
 
-		i=freetag;
+		i=_freetag;
 		if(wait[i] == 0) {
             return Found(i);
         }
-		for(; i<mwait; i++) {
+		for(; i<_mwait; i++) {
 			if(wait[i] == 0) {
                 return Found(i);
             }
         }
-		for(i=0; i<freetag; i++) {
+		for(i=0; i<_freetag; i++) {
 			if(wait[i] == 0) {
                 return Found(i);
             }
@@ -111,8 +111,8 @@ Client::puttag(Rpc& r)
 	auto i = r.getTag() - mintag;
 	assert(wait[i] == &r);
 	wait[i] = nullptr;
-	nwait--;
-	freetag = i;
+	_nwait--;
+	_freetag = i;
     tagrend.wake();
     r.getRendez().deactivate();
 }
@@ -165,8 +165,8 @@ Client::dispatchandqlock(std::shared_ptr<Fcall> f)
 	int tag = f->getTag() - mintag;
     lk.lock();
 	/* hand packet to correct sleeper */
-	if(tag < 0 || tag >= mwait) {
-        throw Exception("libjyq: received unfeasible tag: ", f->getTag(), "(min: ", mintag, ", max: ", mintag+mwait, ")\n");
+	if(tag < 0 || tag >= _mwait) {
+        throw Exception("libjyq: received unfeasible tag: ", f->getTag(), "(min: ", mintag, ", max: ", mintag+_mwait, ")\n");
 	}
 	auto r2 = wait[tag];
     if (!r2 || !(r2->prev)) {

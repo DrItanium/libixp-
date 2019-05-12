@@ -45,7 +45,7 @@ namespace jyq {
             void setMwait(uint value) noexcept { _mwait = value; }
             void setFreetag(uint value) noexcept { _freetag = value; }
             void setMsize(uint value) noexcept { _msize = value; }
-            void setLastFid(uint value) noexcept { _lastfid = value; }
+            void setLastfid(uint value) noexcept { _lastfid = value; }
             /* Private members */
         private:
             uint    _lastfid;
