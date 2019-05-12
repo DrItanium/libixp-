@@ -36,13 +36,24 @@ namespace jyq {
             //int     fd;
             Connection fd;
         public:
-            uint    msize;
-            uint    lastfid;
-
+            constexpr auto getLastfid() const noexcept { return _lastfid; }
+            constexpr auto getMsize() const noexcept { return _msize; }
+            constexpr auto getNwait() const noexcept { return _nwait; }
+            constexpr auto getMwait() const noexcept { return _mwait; }
+            constexpr auto getFreetag() const noexcept { return _freetag; }
+            void setNwait(uint value) noexcept { _nwait = value; }
+            void setMwait(uint value) noexcept { _mwait = value; }
+            void setFreetag(uint value) noexcept { _freetag = value; }
+            void setMsize(uint value) noexcept { _msize = value; }
+            void setLastFid(uint value) noexcept { _lastfid = value; }
             /* Private members */
-            uint    nwait;
-            uint    mwait;
-            uint    freetag;
+        private:
+            uint    _lastfid;
+            uint    _freetag;
+            uint    _msize;
+            uint    _nwait;
+            uint    _mwait;
+        public:
             std::list<std::shared_ptr<CFid>> freefid;
             Msg     rmsg;
             Msg     wmsg;
