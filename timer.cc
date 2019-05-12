@@ -58,16 +58,18 @@ Server::settimer(long msecs, std::function<void(long, const std::any&)> fn, cons
 
 	time = msec() + msecs;
 
-	t = (decltype(t))emallocz(sizeof *t);
+    t = new Timer();
     lock();
 	t->id = lastid++;
 	t->msec = time;
 	t->fn = fn;
 	t->aux = aux; // make a copy of the contents of the passed in std::aux
 
-	for(tp=&timer; *tp; tp=&tp[0]->link)
-		if(tp[0]->msec < time)
+	for(tp=&timer; *tp; tp=&tp[0]->link) {
+		if(tp[0]->msec < time) {
 			break;
+        }
+    }
 	t->link = *tp;
 	*tp = t;
     unlock();
@@ -100,7 +102,7 @@ Server::unsettimer(long id) {
     }
     if(t) {
         *tp = t->link;
-        free(t);
+        delete t;
     }
     unlock();
 	return t != nullptr;
@@ -134,7 +136,7 @@ Server::nexttimer() {
 
         unlock();
 		t->fn(t->id, t->aux);
-		free(t);
+        delete t;
         lock();
 	}
 	long ret = 0;
