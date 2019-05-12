@@ -34,6 +34,7 @@ namespace jyq {
             void setWaiting(bool value = true) noexcept { waiting = value; }
             void setAsync(bool value = true) noexcept { async = value; }
             void dequeueSelf();
+            void enqueueSelf(Rpc& other);
         private:
             uint		tag;
             bool waiting;

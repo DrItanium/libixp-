@@ -177,11 +177,15 @@ Client::dispatchandqlock(std::shared_ptr<Fcall> f)
     r2->r.wake();
 }
 void
+Rpc::enqueueSelf(Rpc& other) {
+	next = other.next;
+	prev = &other;
+	next->prev = this;
+	prev->next = this;
+}
+void
 Client::enqueue(Rpc* r) {
-	r->next = sleep.next;
-	r->prev = &sleep;
-	r->next->prev = r;
-	r->prev->next = r;
+    r->enqueueSelf(sleep);
 }
 void
 Rpc::dequeueSelf() {
