@@ -17,7 +17,7 @@
 namespace jyq {
 Rpc::Rpc(Client& m) : mux(m) {
     waiting = true;
-    r.mutex = &m.lk;
+    r.mutex = &m.getLock();
     p = nullptr;
 }
 
@@ -25,7 +25,7 @@ Fcall*
 Client::muxrecv()
 {
 	//Fcall *f = nullptr;
-    concurrency::Locker<Mutex> theRlock(rlock);
+    concurrency::Locker<Mutex> theRlock(_rlock);
     if (fd.recvmsg(_rmsg) == 0) {
         return nullptr;
     }
@@ -119,15 +119,15 @@ Client::puttag(Rpc& r)
 bool
 Rpc::sendrpc(Fcall& f) {
     { 
-        concurrency::Locker<Mutex> lk(mux.lk);
+        concurrency::Locker<Mutex> lk(mux.getLock());
         tag = mux.gettag(this);
         f.setTag(tag);
         mux.enqueue(this);
     }
     { 
-        concurrency::Locker<Mutex> a(mux.wlock);
+        concurrency::Locker<Mutex> a(mux.getWriteLock());
         if (!fcall2msg(&mux.getWmsg(), &f) || !mux.getConnection().sendmsg(mux.getWmsg())) {
-            concurrency::Locker<Mutex> lk(mux.lk);
+            concurrency::Locker<Mutex> lk(mux.getLock());
             mux.dequeue(this);
             mux.puttag(this);
             return false;
@@ -141,16 +141,16 @@ Rpc::sendrpc(Fcall *f)
 	auto ret = 0;
 	/* assign the tag, add selves to response queue */
     {
-        concurrency::Locker<Mutex> lk(mux.lk);
+        concurrency::Locker<Mutex> lk(mux.getLock());
         tag = mux.gettag(this);
         f->setTag(tag);
         mux.enqueue(this);
     }
 
     {
-        concurrency::Locker<Mutex> a(mux.wlock);
+        concurrency::Locker<Mutex> a(mux.getWriteLock());
         if(!fcall2msg(&mux.getWmsg(), f) || !mux.getConnection().sendmsg(mux.getWmsg())) {
-            concurrency::Locker<Mutex> lk(mux.lk);
+            concurrency::Locker<Mutex> lk(mux.getLock());
             mux.dequeue(this);
             mux.puttag(this);
             ret = -1;
@@ -163,7 +163,7 @@ void
 Client::dispatchandqlock(std::shared_ptr<Fcall> f)
 {
 	int tag = f->getTag() - _mintag;
-    lk.lock();
+    _lk.lock();
 	/* hand packet to correct sleeper */
 	if(tag < 0 || tag >= _mwait) {
         throw Exception("libjyq: received unfeasible tag: ", f->getTag(), "(min: ", _mintag, ", max: ", _mintag+_mwait, ")\n");
@@ -207,7 +207,7 @@ Client::muxrpc(Fcall& tx)
     if (!r.sendrpc(tx)) {
         return nullptr;
     }
-    lk.lock();
+    _lk.lock();
 	/* wait for our packet */
 	while(muxer && muxer != &r && !r.p) {
         r.getRendez().sleep();
@@ -218,11 +218,11 @@ Client::muxrpc(Fcall& tx)
 		assert(muxer == nullptr || muxer == &r);
 		muxer = &r;
 		while(!r.p){
-            lk.unlock();
+            _lk.unlock();
             p.reset(muxrecv());
             if (!p) {
 				/* eof -- just give up and pass the buck */
-                lk.lock();
+                _lk.lock();
                 dequeue(&r);
 				break;
 			}
@@ -232,7 +232,7 @@ Client::muxrpc(Fcall& tx)
 	}
 	p = r.p;
 	puttag(&r);
-    lk.unlock();
+    _lk.unlock();
     if (!p) {
         throw Exception("unexpected eof");
     }

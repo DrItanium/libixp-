@@ -34,6 +34,13 @@ namespace jyq {
             const Connection& getConnection() const noexcept { return fd; }
             Msg& getWmsg() noexcept { return _wmsg; }
             const Msg& getWmsg() const noexcept { return _wmsg; }
+            Mutex& getLock() noexcept { return _lk; }
+            const Mutex& getLock() const noexcept { return _lk; }
+            Mutex& getReadLock() noexcept { return _rlock; }
+            const Mutex& getReadLock() const noexcept { return _rlock; }
+            Mutex& getWriteLock() noexcept { return _wlock; }
+            const Mutex& getWriteLock() const noexcept { return _wlock; }
+
         private:
             //int     fd;
             Connection fd;
@@ -45,10 +52,10 @@ namespace jyq {
             std::list<std::shared_ptr<CFid>> _freefid;
             Msg     _rmsg;
             Msg     _wmsg;
+            Mutex	_lk;
+            Mutex	_rlock;
+            Mutex	_wlock;
         public:
-            Mutex	lk;
-            Mutex	rlock;
-            Mutex	wlock;
             Rendez	tagrend;
             Rpc**	wait;
             Rpc*		muxer;

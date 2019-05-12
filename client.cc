@@ -26,7 +26,7 @@ Client::clunk(std::shared_ptr<CFid> ptr) {
 }
 std::shared_ptr<CFid>
 Client::getFid() {
-    concurrency::Locker<Mutex> theLock(lk);
+    concurrency::Locker<Mutex> theLock(_lk);
     if (_freefid.empty()) {
         auto ptr = std::make_shared<CFid>();
         ptr->fid = ++_lastfid;
@@ -40,7 +40,7 @@ Client::getFid() {
 
 void
 Client::putfid(std::shared_ptr<CFid> f) {
-    concurrency::Locker<Mutex> theLock(lk);
+    concurrency::Locker<Mutex> theLock(_lk);
     if (f->fid == _lastfid) {
 		_lastfid--;
 	} else {
@@ -628,7 +628,7 @@ Client::Client(int _fd) : fd(_fd), sleep(*this) { }
 Client::Client(const Connection& c) : fd(c), sleep(*this) { 
     sleep.next = &sleep;
     sleep.prev = &sleep;
-	tagrend.mutex = &lk;
+	tagrend.mutex = &_lk;
 }
 } // end namespace jyq
 
