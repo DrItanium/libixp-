@@ -104,7 +104,7 @@ xappend(int argc, char *argv[]) {
 	
 	auto stat = client->stat(file);
 	fid->offset = stat->length;
-    jyq::Stat::free(stat.get());
+    //jyq::Stat::free(stat.get());
 	write_data(fid, file);
 	return 0;
 }
@@ -239,10 +239,10 @@ xls(int argc, char *argv[]) {
 
 	if(dflag || (stat->mode&static_cast<uint32_t>(jyq::DMode::DIR)) == 0) {
 		printStat(stat, lflag);
-        jyq::Stat::free(stat.get());
+        //jyq::Stat::free(stat.get());
 		return 0;
 	}
-    jyq::Stat::free(stat.get());
+    //jyq::Stat::free(stat.get());
 
     auto fid = client->open(file, jyq::OMode::READ);
 	if(!fid) {
@@ -264,7 +264,7 @@ xls(int argc, char *argv[]) {
     // TODO implement sorting in the future
     for (auto& stat : stats) {
         printStat(stat, lflag);
-        jyq::Stat::free(stat.get());
+        //jyq::Stat::free(stat.get());
     }
 	if(count == -1) {
         throw jyq::Exception("Can't read directory '", file, "': ", jyq::errbuf());

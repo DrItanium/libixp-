@@ -22,7 +22,8 @@ namespace jyq {
         char*	gid;
         char*	muid;
         uint16_t    size() noexcept;
-        static void free(Stat* stat);
+        //static void free(Stat* stat);
+        ~Stat();
         void packUnpack(Msg& msg) noexcept;
         //~Stat();
     };

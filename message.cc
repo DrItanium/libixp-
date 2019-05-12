@@ -67,8 +67,7 @@ Msg::Msg() : data(nullptr), pos(nullptr), end(nullptr), _mode(Mode::Pack) {
  * See also:
  *	S<Fcall>, S<Stat>
  */
-void
-Stat::free(Stat *s) {
+Stat::~Stat() {
 	::free(s->name);
 	::free(s->uid);
 	::free(s->gid);
