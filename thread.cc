@@ -20,7 +20,7 @@ Mutex::~Mutex() {
     deactivate();
 }
 
-Rendez::Rendez(Mutex* m) : mutex(m) {
+Rendez::Rendez(Mutex* m) : _mutex(m) {
     concurrency::threadModel->init(this); 
     _active = true;
 }

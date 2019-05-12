@@ -17,7 +17,7 @@
 namespace jyq {
 Rpc::Rpc(Client& m) : _mux(m) {
     _waiting = true;
-    _r.mutex = &m.getLock();
+    _r.setMutex(&m.getLock());
     _p = nullptr;
 }
 

@@ -95,5 +95,5 @@ namespace jyq::concurrency {
     bool PThreadImpl::canlock(jyq::Mutex* m) { return !pthread_mutex_trylock(std::any_cast<RawMutexLock>(m->aux).get()); }
     void PThreadImpl::lock(jyq::Mutex* m)   { pthread_mutex_lock(std::any_cast<RawMutexLock>(m->aux).get()); }
     void PThreadImpl::unlock(jyq::Mutex* m) { pthread_mutex_unlock(std::any_cast<RawMutexLock>(m->aux).get()); }
-    void PThreadImpl::sleep(jyq::Rendez* r) { pthread_cond_wait(std::any_cast<RawRendez>(r->aux).get(), std::any_cast<RawMutexLock>(r->mutex->aux).get()); }
+    void PThreadImpl::sleep(jyq::Rendez* r) { pthread_cond_wait(std::any_cast<RawRendez>(r->aux).get(), std::any_cast<RawMutexLock>(r->getMutex()->aux).get()); }
 } // end namespace jyq::concurrency 
