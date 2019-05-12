@@ -26,14 +26,18 @@ namespace jyq {
     struct Rendez {
         Rendez(Mutex* m = nullptr);
         ~Rendez();
-        Mutex* mutex;
         std::any aux;
         bool wake();
         bool wakeall();
         void sleep();
-        bool isActive() const noexcept { return _active; }
+        constexpr bool isActive() const noexcept { return _active; }
         bool deactivate();
+        Mutex* getMutex() noexcept { return _mutex; }
+        const Mutex* getMutex() const noexcept { return _mutex; }
+        void setMutex(Mutex* mux) noexcept { _mutex = mux; }
+        bool hasMutex() const noexcept { return _mutex != nullptr; }
         private:
+            Mutex* _mutex;
             bool _active = false;
     };
 
