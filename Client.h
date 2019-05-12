@@ -64,8 +64,13 @@ namespace jyq {
             Rpc**	wait;
             Rpc*		muxer;
             Rpc		sleep;
-            int		mintag;
-            int		maxtag;
+            constexpr auto getMintag() const noexcept { return _mintag; }
+            constexpr auto getMaxtag() const noexcept { return _maxtag; }
+            void setMintag(int value) noexcept { _mintag = value; }
+            void setMaxtag(int value) noexcept { _maxtag = value; }
+        private:
+            int		_mintag;
+            int		_maxtag;
         public:
             bool remove(const char*);
             std::shared_ptr<CFid> create(const char*, uint perm, uint8_t mode);

@@ -293,8 +293,8 @@ Client::mountfd(const Connection& fd) {
     c->allocmsg(256);
 	c->_lastfid = RootFid;
 	/* Override tag matching on TVersion */
-	c->mintag = NoTag;
-	c->maxtag = NoTag+1;
+	c->_mintag = NoTag;
+	c->_maxtag = NoTag+1;
 
     fcall.version.setSize(maximum::Msg);
 	fcall.version.setVersion((char*)Version);
@@ -311,8 +311,8 @@ Client::mountfd(const Connection& fd) {
 		return nullptr;
 	}
 
-	c->mintag = 0;
-	c->maxtag = 255;
+	c->_mintag = 0;
+	c->_maxtag = 255;
 	c->_msize = fcall.version.size();
 
 	c->allocmsg(fcall.version.size());

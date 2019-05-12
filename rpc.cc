@@ -59,13 +59,13 @@ Client::gettag(Rpc &r)
     auto Found = [this, &r](auto index) {
         _nwait++;
         wait[index] = &r;
-        r.setTag(index + mintag);
+        r.setTag(index + _mintag);
         return r.getTag();
     };
 	for(;;){
 		/* wait for a free tag */
 		while(_nwait == _mwait){
-			if(_mwait < maxtag-mintag){
+			if(_mwait < (_maxtag-_mintag)) {
 				mw = _mwait;
 				if(mw == 0) {
 					mw = 1;
@@ -108,7 +108,7 @@ Client::gettag(Rpc &r)
 void
 Client::puttag(Rpc& r)
 {
-	auto i = r.getTag() - mintag;
+	auto i = r.getTag() - _mintag;
 	assert(wait[i] == &r);
 	wait[i] = nullptr;
 	_nwait--;
@@ -162,11 +162,11 @@ Rpc::sendrpc(Fcall *f)
 void
 Client::dispatchandqlock(std::shared_ptr<Fcall> f)
 {
-	int tag = f->getTag() - mintag;
+	int tag = f->getTag() - _mintag;
     lk.lock();
 	/* hand packet to correct sleeper */
 	if(tag < 0 || tag >= _mwait) {
-        throw Exception("libjyq: received unfeasible tag: ", f->getTag(), "(min: ", mintag, ", max: ", mintag+_mwait, ")\n");
+        throw Exception("libjyq: received unfeasible tag: ", f->getTag(), "(min: ", _mintag, ", max: ", _mintag+_mwait, ")\n");
 	}
 	auto r2 = wait[tag];
     if (!r2 || !(r2->prev)) {
