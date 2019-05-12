@@ -55,6 +55,7 @@ namespace jyq {
             Rpc		sleep;
             int		mintag;
             int		maxtag;
+        public:
             bool remove(const char*);
             std::shared_ptr<CFid> create(const char*, uint perm, uint8_t mode);
             std::shared_ptr<CFid> open(const char*, uint8_t);

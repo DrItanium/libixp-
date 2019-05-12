@@ -79,12 +79,18 @@ Stat::free(Stat *s) {
 Fcall::~Fcall() {
     reset();
 }
+
+void
+FRStat::purgeStat() noexcept {
+    ::free(_stat);
+    _stat = nullptr;
+}
+
 void
 Fcall::reset() {
     switch(getType()) {
     case FType::RStat:
-        ::free(rstat.getStat());
-        rstat.setStat(nullptr);
+        rstat.purgeStat();
 		break;
     case FType::RRead:
 		::free(rread.getData());

@@ -148,6 +148,7 @@ namespace jyq {
             uint8_t* getStat() noexcept { return _stat; }
             void setStat(uint8_t* value) noexcept { _stat = value; }
             void packUnpack(Msg& msg);
+            void purgeStat() noexcept;
         private:
             uint8_t* _stat;
     };
