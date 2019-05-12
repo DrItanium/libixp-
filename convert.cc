@@ -89,7 +89,7 @@ Msg::pstring(char **s) {
 
 	if((pos + len) <= end) {
         if (unpackRequested()) {
-			*s = (char*)jyq::emalloc(len + 1);
+            *s = new char[len + 1];
 			memcpy(*s, pos, len);
 			(*s)[len] = '\0';
 		} else {
@@ -147,7 +147,7 @@ Msg::pstrings(uint16_t *num, char *strings[], uint max) {
 		}
 		pos = s;
 		size += *num;
-		s = (char*)jyq::emalloc(size);
+        s = new char[size];
 	}
 
 	for(auto i = 0; i < *num; ++i) {
@@ -158,7 +158,7 @@ Msg::pstrings(uint16_t *num, char *strings[], uint max) {
 
         if (unpackRequested()) {
 			memcpy(s, pos, len);
-			strings[i] = (char*)s;
+			strings[i] = s;
 			s += len;
 			pos += len;
 			*s++ = '\0';
@@ -189,7 +189,7 @@ void
 Msg::pdata(char **data, uint len) {
     if(pos + len <= end) {
         if (unpackRequested()) {
-            *data = (char*)jyq::emalloc(len);
+            *data = new char[len];
             memcpy(*data, pos, len);
         } else {
             memcpy(pos, *data, len);
