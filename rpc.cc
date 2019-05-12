@@ -26,10 +26,10 @@ Client::muxrecv()
 {
 	//Fcall *f = nullptr;
     concurrency::Locker<Mutex> theRlock(rlock);
-    if (fd.recvmsg(rmsg) == 0) {
+    if (fd.recvmsg(_rmsg) == 0) {
         return nullptr;
     }
-	if(auto f = new Fcall(); msg2fcall(&rmsg, f) == 0) {
+	if(auto f = new Fcall(); msg2fcall(&_rmsg, f) == 0) {
         delete f;
         return nullptr;
 	} else {
@@ -126,7 +126,7 @@ Rpc::sendrpc(Fcall& f) {
     }
     { 
         concurrency::Locker<Mutex> a(mux.wlock);
-        if (!fcall2msg(&mux.wmsg, &f) || !mux.getConnection().sendmsg(mux.wmsg)) {
+        if (!fcall2msg(&mux.getWmsg(), &f) || !mux.getConnection().sendmsg(mux.getWmsg())) {
             concurrency::Locker<Mutex> lk(mux.lk);
             mux.dequeue(this);
             mux.puttag(this);
@@ -149,7 +149,7 @@ Rpc::sendrpc(Fcall *f)
 
     {
         concurrency::Locker<Mutex> a(mux.wlock);
-        if(!fcall2msg(&mux.wmsg, f) || !mux.getConnection().sendmsg(mux.wmsg)) {
+        if(!fcall2msg(&mux.getWmsg(), f) || !mux.getConnection().sendmsg(mux.getWmsg())) {
             concurrency::Locker<Mutex> lk(mux.lk);
             mux.dequeue(this);
             mux.puttag(this);

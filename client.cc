@@ -59,8 +59,8 @@ Msg::alloc(uint n) {
 }
 void
 Client::allocmsg(int n) {
-    rmsg.alloc(n);
-    wmsg.alloc(n);
+    _rmsg.alloc(n);
+    _wmsg.alloc(n);
 }
 namespace {
 
@@ -252,11 +252,11 @@ Client::~Client() {
 
     free(wait);
 
-    if (rmsg.data) {
-        delete [] rmsg.data;
+    if (_rmsg.data) {
+        delete [] _rmsg.data;
     }
-    if (wmsg.data) {
-        delete [] wmsg.data;
+    if (_wmsg.data) {
+        delete [] _wmsg.data;
     }
 }
 
