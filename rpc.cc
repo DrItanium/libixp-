@@ -82,7 +82,7 @@ Client::gettag(Rpc &r)
 				_mwait = mw;
 				break;
 			}
-            tagrend.sleep();
+            _tagrend.sleep();
 		}
 
 		i=_freetag;
@@ -113,7 +113,7 @@ Client::puttag(Rpc& r)
 	wait[i] = nullptr;
 	_nwait--;
 	_freetag = i;
-    tagrend.wake();
+    _tagrend.wake();
     r.getRendez().deactivate();
 }
 bool

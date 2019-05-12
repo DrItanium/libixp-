@@ -628,7 +628,7 @@ Client::Client(int _fd) : fd(_fd), sleep(*this) { }
 Client::Client(const Connection& c) : fd(c), sleep(*this) { 
     sleep.next = &sleep;
     sleep.prev = &sleep;
-	tagrend.mutex = &_lk;
+	_tagrend.mutex = &_lk;
 }
 } // end namespace jyq
 

@@ -55,8 +55,8 @@ namespace jyq {
             Mutex	_lk;
             Mutex	_rlock;
             Mutex	_wlock;
+            Rendez	_tagrend;
         public:
-            Rendez	tagrend;
             Rpc**	wait;
             Rpc*		muxer;
             Rpc		sleep;
