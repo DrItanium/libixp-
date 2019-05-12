@@ -43,7 +43,7 @@ srv_getfile(void) {
 
 	if(!free_fileid) {
 		i = 15;
-		file = (decltype(file))jyq::emallocz(i * sizeof *file);
+        file = new FileId[i];
 		for(; i; i--) {
 			file->next = free_fileid;
 			free_fileid = file++;
@@ -130,7 +130,7 @@ srv_readbuf(Req9 *req, char *buf, uint len) {
 	len -= req->ifcall.io.getOffset();
 	if(len > req->ifcall.io.size())
 		len = req->ifcall.io.size();
-	req->ofcall.io.setData((decltype(req->ofcall.io.getData()))jyq::emalloc(len));
+    req->ofcall.io.setData(new char[len]);
 	memcpy(req->ofcall.io.getData(), buf + req->ifcall.io.getOffset(), len);
 	req->ofcall.io.setSize(len);
 }
@@ -290,12 +290,12 @@ pending_respond(Req9 *req) {
             req_link = std::any_cast<decltype(req_link)>(req->aux);
 			req_link->next->prev = req_link->prev;
 			req_link->prev->next = req_link->next;
-			free(req_link);
+            delete req_link;
 		}
 		req->respond(nullptr);
-		free(queue);
+        delete queue;
 	}else {
-		req_link = (decltype(req_link))jyq::emallocz(sizeof *req_link);
+        req_link = new RequestLink();
 		req_link->req = req;
 		req_link->next = &p->pending->req;
 		req_link->prev = req_link->next->prev;
@@ -329,8 +329,8 @@ pending_write(Pending *pending, const char *dat, long ndat) {
 	for(pp=pending->fids.next; pp != &pending->fids; pp=pp->next) {
 		for(qp=&pp->queue; *qp; qp=&qp[0]->link)
 			;
-		queue = (decltype(queue))jyq::emallocz(sizeof *queue);
-		queue->dat = (decltype(queue->dat))jyq::emalloc(ndat);
+        queue = new Queue();
+        queue->dat = new char[ndat];
 		memcpy(queue->dat, dat, ndat);
 		queue->len = ndat;
 		*qp = queue;
@@ -347,8 +347,9 @@ pending_write(Pending *pending, const char *dat, long ndat) {
 	req_link.prev->next = &req_link;
 	req_link.next->prev = &req_link;
 
-	while((rp = req_link.next) != &req_link)
+	while((rp = req_link.next) != &req_link) {
 		pending_respond(rp->req);
+    }
 }
 
 int
@@ -385,7 +386,7 @@ pending_pushfid(Pending *pending, Fid *fid) {
 	}
 
 	auto file = std::any_cast<FileId*>(fid->aux);
-	pend_link = (decltype(pend_link))jyq::emallocz(sizeof *pend_link);
+    pend_link = new PendingLink();
 	pend_link->fid = fid;
 	pend_link->pending = pending;
 	pend_link->next = &pending->fids;
@@ -518,7 +519,7 @@ srv_readdir(Req9 *req, LookupFn lookup, std::function<void(Stat*, FileId*)> dost
 	ulong size = req->ifcall.io.size();
 	if(size > req->fid->iounit)
 		size = req->fid->iounit;
-	auto buf = (char*)jyq::emallocz(size);
+    auto buf = new char[size];
     Msg msg(buf, size, Msg::Mode::Pack);
 
 	file = lookup(file, nullptr);
