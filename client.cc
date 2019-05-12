@@ -626,8 +626,8 @@ CFid::clunk(DoFcallFunc fn) {
 
 Client::Client(int _fd) : fd(_fd), sleep(*this) { }
 Client::Client(const Connection& c) : fd(c), sleep(*this) { 
-    sleep.next = &sleep;
-    sleep.prev = &sleep;
+    sleep.setNext(&sleep);
+    sleep.setPrevious(&sleep);
 	_tagrend.mutex = &_lk;
 }
 } // end namespace jyq

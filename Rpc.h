@@ -18,27 +18,35 @@ namespace jyq {
         public:
             Rpc(Client& m);
             ~Rpc() = default;
-            Client&	mux;
-            Rpc*		next;
-            Rpc*		prev;
-            Rendez	r;
-            std::shared_ptr<Fcall> p;
             int sendrpc(Fcall *f);
             bool sendrpc(Fcall& f); // can't make this const right now since modification to input happens...
-            Rendez& getRendez() noexcept { return r; }
-            Client& getMux() noexcept { return mux; }
-            constexpr auto getTag() const noexcept { return tag; }
-            constexpr auto isWaiting() const noexcept { return waiting; }
-            constexpr auto isAsync() const noexcept { return async; }
-            void setTag(uint value) noexcept { tag = value; }
-            void setWaiting(bool value = true) noexcept { waiting = value; }
-            void setAsync(bool value = true) noexcept { async = value; }
+            auto getNext() noexcept { return _next; }
+            auto getPrevious() noexcept { return _prev; }
+            void setNext(Rpc* next) noexcept { _next = next; }
+            void setPrevious(Rpc* prev) noexcept { _prev = prev; }
+            Rendez& getRendez() noexcept { return _r; }
+            const Rendez& getRendez() const noexcept { return _r; }
+            Client& getMux() noexcept { return _mux; }
+            const Client& getMux() const noexcept { return _mux; }
+            constexpr auto getTag() const noexcept { return _tag; }
+            constexpr auto isWaiting() const noexcept { return _waiting; }
+            constexpr auto isAsync() const noexcept { return _async; }
+            void setTag(uint value) noexcept { _tag = value; }
+            void setWaiting(bool value = true) noexcept { _waiting = value; }
+            void setAsync(bool value = true) noexcept { _async = value; }
             void dequeueSelf();
             void enqueueSelf(Rpc& other);
+            void setP(std::shared_ptr<Fcall> value) noexcept { _p = value; }
+            auto getP() noexcept { return _p; }
         private:
-            uint		tag;
-            bool waiting;
-            bool async;
+            Client& _mux;
+            Rpc*    _next;
+            Rpc*    _prev;
+            Rendez	_r;
+            uint    _tag;
+            std::shared_ptr<Fcall> _p;
+            bool _waiting;
+            bool _async;
 
     };
 } // end namespace jyq

@@ -15,10 +15,10 @@
 #include "PrintFunctions.h"
 
 namespace jyq {
-Rpc::Rpc(Client& m) : mux(m) {
-    waiting = true;
-    r.mutex = &m.getLock();
-    p = nullptr;
+Rpc::Rpc(Client& m) : _mux(m) {
+    _waiting = true;
+    _r.mutex = &m.getLock();
+    _p = nullptr;
 }
 
 Fcall*
@@ -42,10 +42,10 @@ void
 Client::electmuxer()
 {
 	/* if there is anyone else sleeping, wake them to mux */
-	for(auto rpc=sleep.next; rpc != &sleep; rpc = rpc->next){
+	for(auto rpc=sleep.getNext(); rpc != &sleep; rpc = rpc->getNext()){
         if (!rpc->isAsync()) {
 			muxer = rpc;
-			concurrency::threadModel->wake(&rpc->r);
+			concurrency::threadModel->wake(&rpc->getRendez());
 			return;
 		}
 	}
@@ -119,17 +119,17 @@ Client::puttag(Rpc& r)
 bool
 Rpc::sendrpc(Fcall& f) {
     { 
-        concurrency::Locker<Mutex> lk(mux.getLock());
-        tag = mux.gettag(this);
-        f.setTag(tag);
-        mux.enqueue(this);
+        concurrency::Locker<Mutex> lk(_mux.getLock());
+        _tag = _mux.gettag(this);
+        f.setTag(_tag);
+        _mux.enqueue(this);
     }
     { 
-        concurrency::Locker<Mutex> a(mux.getWriteLock());
-        if (!fcall2msg(&mux.getWmsg(), &f) || !mux.getConnection().sendmsg(mux.getWmsg())) {
-            concurrency::Locker<Mutex> lk(mux.getLock());
-            mux.dequeue(this);
-            mux.puttag(this);
+        concurrency::Locker<Mutex> a(_mux.getWriteLock());
+        if (!fcall2msg(&_mux.getWmsg(), &f) || !_mux.getConnection().sendmsg(_mux.getWmsg())) {
+            concurrency::Locker<Mutex> lk(_mux.getLock());
+            _mux.dequeue(this);
+            _mux.puttag(this);
             return false;
         }
     }
@@ -141,18 +141,18 @@ Rpc::sendrpc(Fcall *f)
 	auto ret = 0;
 	/* assign the tag, add selves to response queue */
     {
-        concurrency::Locker<Mutex> lk(mux.getLock());
-        tag = mux.gettag(this);
-        f->setTag(tag);
-        mux.enqueue(this);
+        concurrency::Locker<Mutex> lk(_mux.getLock());
+        _tag = _mux.gettag(this);
+        f->setTag(_tag);
+        _mux.enqueue(this);
     }
 
     {
-        concurrency::Locker<Mutex> a(mux.getWriteLock());
-        if(!fcall2msg(&mux.getWmsg(), f) || !mux.getConnection().sendmsg(mux.getWmsg())) {
-            concurrency::Locker<Mutex> lk(mux.getLock());
-            mux.dequeue(this);
-            mux.puttag(this);
+        concurrency::Locker<Mutex> a(_mux.getWriteLock());
+        if(!fcall2msg(&_mux.getWmsg(), f) || !_mux.getConnection().sendmsg(_mux.getWmsg())) {
+            concurrency::Locker<Mutex> lk(_mux.getLock());
+            _mux.dequeue(this);
+            _mux.puttag(this);
             ret = -1;
         }
     }
@@ -169,19 +169,19 @@ Client::dispatchandqlock(std::shared_ptr<Fcall> f)
         throw Exception("libjyq: received unfeasible tag: ", f->getTag(), "(min: ", _mintag, ", max: ", _mintag+_mwait, ")\n");
 	}
 	auto r2 = wait[tag];
-    if (!r2 || !(r2->prev)) {
+    if (!r2 || !(r2->getPrevious())) {
         throw Exception("libjyq: received message with bad tag\n");
 	}
-	r2->p = f;
+	r2->setP(f);
     dequeue(r2);
-    r2->r.wake();
+    r2->getRendez().wake();
 }
 void
 Rpc::enqueueSelf(Rpc& other) {
-	next = other.next;
-	prev = &other;
-	next->prev = this;
-	prev->next = this;
+	_next = other._next;
+	_prev = &other;
+	_next->_prev = this;
+	_prev->_next = this;
 }
 void
 Client::enqueue(Rpc* r) {
@@ -189,10 +189,10 @@ Client::enqueue(Rpc* r) {
 }
 void
 Rpc::dequeueSelf() {
-	next->prev = prev;
-	prev->next = next;
-	prev = nullptr;
-	next = nullptr;
+	_next->_prev = _prev;
+	_prev->_next = _next;
+	_prev = nullptr;
+	_next = nullptr;
 }
 void
 Client::dequeue(Rpc* r) {
@@ -209,15 +209,15 @@ Client::muxrpc(Fcall& tx)
     }
     _lk.lock();
 	/* wait for our packet */
-	while(muxer && muxer != &r && !r.p) {
+	while(muxer && muxer != &r && !r.getP()) {
         r.getRendez().sleep();
     }
 
 	/* if not done, there's no muxer; start muxing */
-	if(!r.p){
+	if(!r.getP()){
 		assert(muxer == nullptr || muxer == &r);
 		muxer = &r;
-		while(!r.p){
+		while(!r.getP()){
             _lk.unlock();
             p.reset(muxrecv());
             if (!p) {
@@ -230,7 +230,7 @@ Client::muxrpc(Fcall& tx)
 		}
 		electmuxer();
 	}
-	p = r.p;
+	p = r.getP();
 	puttag(&r);
     _lk.unlock();
     if (!p) {
