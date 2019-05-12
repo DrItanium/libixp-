@@ -183,14 +183,16 @@ Client::enqueue(Rpc* r) {
 	r->next->prev = r;
 	r->prev->next = r;
 }
-
+void
+Rpc::dequeueSelf() {
+	next->prev = prev;
+	prev->next = next;
+	prev = nullptr;
+	next = nullptr;
+}
 void
 Client::dequeue(Rpc* r) {
-	r->next->prev = r->prev;
-	r->prev->next = r->next;
-	r->prev = nullptr;
-	r->next = nullptr;
-
+    r->dequeueSelf();
 }
 std::shared_ptr<Fcall>
 Client::muxrpc(Fcall& tx) 

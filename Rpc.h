@@ -33,6 +33,7 @@ namespace jyq {
             void setTag(uint value) noexcept { tag = value; }
             void setWaiting(bool value = true) noexcept { waiting = value; }
             void setAsync(bool value = true) noexcept { async = value; }
+            void dequeueSelf();
         private:
             uint		tag;
             bool waiting;
