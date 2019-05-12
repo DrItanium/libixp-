@@ -68,7 +68,7 @@ namespace jyq::concurrency {
         static pthread_key_t errstr_k;
         auto ret = (char*)pthread_getspecific(errstr_k);
         if (!ret) {
-            ret = (char*)jyq::emallocz(ErrorMax);
+            ret = new char[ErrorMax];
             pthread_setspecific(errstr_k, (void*)ret);
         }
         return ret;
