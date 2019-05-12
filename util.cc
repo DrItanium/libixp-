@@ -151,33 +151,12 @@ mfatal(const char *name, uint size) {
 }
 
 /**
- * Function: emalloc
- * Function: emallocz
  * Function: erealloc
  * Function: estrdup
  *
  * These functions act like their stdlib counterparts, but print
  * an error message and exit the program if allocation fails.
- * emallocz acts like emalloc but additionally zeros the
- * result of the allocation.
  */
-void*
-emalloc(uint size) {
-	if (void *ret = malloc(size); !ret) {
-		mfatal("malloc", size);
-        throw "SHOULDN'T GET HERE!";
-    } else {
-        return ret;
-    }
-}
-
-void*
-emallocz(uint size) {
-	void *ret = emalloc(size);
-	memset(ret, 0, size);
-	return ret;
-}
-
 void*
 erealloc(void *ptr, uint size) {
 	if (void *ret = realloc(ptr, size); !ret) {

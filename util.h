@@ -10,8 +10,6 @@
 #include "types.h"
 
 namespace jyq {
-    void*	emalloc(uint);
-    void*	emallocz(uint);
     void	eprint(const char*, ...);
     void*	erealloc(void*, uint);
     char*	estrdup(const char*);
