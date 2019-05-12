@@ -10,7 +10,6 @@
 #include "types.h"
 
 namespace jyq {
-    void	eprint(const char*, ...);
     void*	erealloc(void*, uint);
     char*	estrdup(const char*);
     std::string getNamespace();

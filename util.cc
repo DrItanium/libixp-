@@ -118,31 +118,6 @@ getNamespace() {
 	return _namespace;
 }
 
-/**
- * Function: eprint
- *
- * libjyq calls this function on error. It formats its arguments
- * as F<printf> and exits the program.
- */
-void
-eprint(const char *fmt, ...) {
-	va_list ap;
-
-	int err = errno;
-	fprintf(stderr, "libjyq: fatal: ");
-
-	va_start(ap, fmt);
-	vfprintf(stderr, fmt, ap);
-	va_end(ap);
-
-	if(fmt[strlen(fmt)-1] == ':')
-		fprintf(stderr, " %s\n", strerror(err));
-	else
-		fprintf(stderr, "\n");
-
-	exit(1);
-}
-
 /* Can't malloc */
 static void
 mfatal(const char *name, uint size) {
