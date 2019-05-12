@@ -27,13 +27,13 @@ Client::clunk(std::shared_ptr<CFid> ptr) {
 std::shared_ptr<CFid>
 Client::getFid() {
     concurrency::Locker<Mutex> theLock(lk);
-    if (freefid.empty()) {
+    if (_freefid.empty()) {
         auto ptr = std::make_shared<CFid>();
         ptr->fid = ++_lastfid;
         return ptr;
     } else {
-        std::shared_ptr<CFid> front(freefid.front()); // make a copy?
-        freefid.pop_front();
+        std::shared_ptr<CFid> front(_freefid.front()); // make a copy?
+        _freefid.pop_front();
         return front;
     }
 }
@@ -44,7 +44,7 @@ Client::putfid(std::shared_ptr<CFid> f) {
     if (f->fid == _lastfid) {
 		_lastfid--;
 	} else {
-        freefid.emplace_front(f);
+        _freefid.emplace_front(f);
 	}
 }
 void
