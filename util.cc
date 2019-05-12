@@ -106,10 +106,10 @@ ns_display() {
  */
 /* Not especially threadsafe. */
 std::string
-getNamespace(void) {
+getNamespace() {
     static std::string _namespace;
     if (_namespace.empty()) {
-        if (auto ev = getenv("NAMESPACE"); !ev) {
+        if (auto ev = std::getenv("NAMESPACE"); !ev) {
             _namespace = ns_display();
         } else {
             _namespace = ev;
