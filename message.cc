@@ -291,45 +291,37 @@ Fcall::packUnpack(Msg& msg) noexcept {
  *	F<Msg>, F<pfcall>
  */
 uint
-fcall2msg(Msg *msg, Fcall *fcall) {
-	msg->end = msg->data + msg->size();
-	msg->pos = msg->data + SDWord;
-    msg->setMode(Msg::Mode::Pack);
-    msg->pfcall(fcall);
-
-	if(msg->pos > msg->end)
-		return 0;
-
-	msg->end = msg->pos;
-	uint32_t size = msg->end - msg->data;
-
-	msg->pos = msg->data;
-    msg->pu32(&size);
-
-	msg->pos = msg->data;
-	return size;
-}
-
-uint
-msg2fcall(Msg *msg, Fcall *fcall) {
-	msg->pos = msg->data + SDWord;
-    msg->setMode(Msg::Mode::Unpack);
-    msg->pfcall(fcall);
-
-	if(msg->pos > msg->end)
-		return 0;
-
-	return msg->pos - msg->data;
-}
-
-uint
 Msg::unpack(Fcall& val) {
-    return msg2fcall(this, &val);
+	pos = data + SDWord;
+    setMode(Msg::Mode::Unpack);
+    pfcall(val);
+
+	if(pos > end)
+		return 0;
+
+	return pos - data;
 }
 
 uint
 Msg::pack(Fcall& val) {
-    return fcall2msg(this, &val);
+    //return fcall2msg(this, &val);
+	end = data + size();
+	pos = data + SDWord;
+    setMode(Msg::Mode::Pack);
+    pfcall(val);
+
+	if(pos > end) {
+		return 0;
+    }
+
+	end = pos;
+	uint32_t size = end - data;
+
+	pos = data;
+    pu32(&size);
+
+	pos = data;
+	return size;
 }
 
 } // end namespace jyq
