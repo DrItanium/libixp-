@@ -315,7 +315,7 @@ Req9::handle() {
                     respond("wstat of type");
                 } else if(~ifcall.twstat.getStat().getDev()) {
                     respond("wstat of dev");
-                } else if(~ifcall.twstat.getStat().qid.type || (ulong)~ifcall.twstat.getStat().qid.version || ~ifcall.twstat.getStat().qid.path) {
+                } else if(~ifcall.twstat.getStat().getQid().type || (ulong)~ifcall.twstat.getStat().getQid().version || ~ifcall.twstat.getStat().getQid().path) {
                     respond("wstat of qid");
                 } else if(ifcall.twstat.getStat().muid && ifcall.twstat.getStat().muid[0]) {
                     respond("wstat of muid");

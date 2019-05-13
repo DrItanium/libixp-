@@ -13,8 +13,8 @@ namespace jyq {
         private:
             uint16_t	_type;
             uint32_t	_dev;
+            Qid         _qid;
         public:
-            Qid         qid;
             uint32_t	mode;
             uint32_t	atime;
             uint32_t	mtime;
@@ -32,6 +32,8 @@ namespace jyq {
             void setType(uint16_t value) noexcept { _type = value; }
             constexpr auto getDev() const noexcept { return _dev; }
             void setDev(uint32_t value) noexcept { _dev = value; }
+            Qid& getQid() noexcept { return _qid; }
+            const Qid& getQid() const noexcept { return _qid; }
     };
 } // end namespace jyq
 #endif // end LIBJYQ_STAT_H__
