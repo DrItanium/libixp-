@@ -319,7 +319,7 @@ Req9::handle() {
                     respond("wstat of qid");
                 } else if(ifcall.twstat.getStat().muid && ifcall.twstat.getStat().muid[0]) {
                     respond("wstat of muid");
-                } else if(~ifcall.twstat.getStat().mode && ((ifcall.twstat.getStat().mode&(uint32_t)(DMode::DIR))>>24) != (fid->qid.type&uint8_t(QType::DIR))) {
+                } else if(~ifcall.twstat.getStat().getMode() && ((ifcall.twstat.getStat().getMode()&(uint32_t)(DMode::DIR))>>24) != (fid->qid.type&uint8_t(QType::DIR))) {
                     respond("wstat on DMDIR bit");
                 } else if(!srv->wstat) {
                     respond(Enofunc);

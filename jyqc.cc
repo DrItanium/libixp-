@@ -75,11 +75,11 @@ str_of_time(uint val) {
 void
 printStat(std::shared_ptr<jyq::Stat> s, int details) {
 	if(details) {
-        jyq::print(std::cout, str_of_mode(s->mode), " ", 
+        jyq::print(std::cout, str_of_mode(s->getMode()), " ", 
                 s->uid, " ", s->gid, " ", s->length, " ", 
                 str_of_time(s->mtime), " ", s->name, "\n");
     } else {
-		if((s->mode&(uint32_t)jyq::DMode::DIR) && strcmp(s->name, "/")) {
+		if((s->getMode()&(uint32_t)jyq::DMode::DIR) && strcmp(s->name, "/")) {
             jyq::print(std::cout, s->name, "/\n");
         } else {
             jyq::print(std::cout, s->name, "\n");
@@ -237,7 +237,7 @@ xls(int argc, char *argv[]) {
         throw jyq::Exception("Can't stat file '", file, "': ", jyq::errbuf());
     }
 
-	if(dflag || (stat->mode&static_cast<uint32_t>(jyq::DMode::DIR)) == 0) {
+	if(dflag || (stat->getMode()&static_cast<uint32_t>(jyq::DMode::DIR)) == 0) {
 		printStat(stat, lflag);
         //jyq::Stat::free(stat.get());
 		return 0;
