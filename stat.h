@@ -24,10 +24,8 @@ namespace jyq {
             char*	gid;
             char*	muid;
             uint16_t    size() noexcept;
-            //static void free(Stat* stat);
             ~Stat();
             void packUnpack(Msg& msg) noexcept;
-            //~Stat();
             constexpr auto getType() const noexcept { return _type; }
             void setType(uint16_t value) noexcept { _type = value; }
             constexpr auto getDev() const noexcept { return _dev; }
