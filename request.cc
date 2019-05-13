@@ -317,7 +317,7 @@ Req9::handle() {
                     respond("wstat of dev");
                 } else if(~ifcall.twstat.getStat().getQid().type || (ulong)~ifcall.twstat.getStat().getQid().version || ~ifcall.twstat.getStat().getQid().path) {
                     respond("wstat of qid");
-                } else if(ifcall.twstat.getStat().muid && ifcall.twstat.getStat().muid[0]) {
+                } else if(ifcall.twstat.getStat().getMuid() && ifcall.twstat.getStat().getMuid()[0]) {
                     respond("wstat of muid");
                 } else if(~ifcall.twstat.getStat().getMode() && ((ifcall.twstat.getStat().getMode()&(uint32_t)(DMode::DIR))>>24) != (fid->qid.type&uint8_t(QType::DIR))) {
                     respond("wstat on DMDIR bit");

@@ -68,14 +68,14 @@ Msg::Msg() : data(nullptr), pos(nullptr), end(nullptr), _mode(Mode::Pack) {
  *	S<Fcall>, S<Stat>
  */
 Stat::~Stat() {
-	::free(name);
-	::free(uid);
-	::free(gid);
-	::free(muid);
-	name = nullptr;
-    uid = nullptr;
-    gid = nullptr;
-    muid = nullptr;
+	::free(_name);
+	::free(_uid);
+	::free(_gid);
+	::free(_muid);
+	_name = nullptr;
+    _uid = nullptr;
+    _gid = nullptr;
+    _muid = nullptr;
 }
 
 Fcall::~Fcall() {
@@ -119,10 +119,10 @@ Stat::size() noexcept {
 		+ SQid /* qid */
 		+ (3 * SDWord) /* mode, atime, mtime */
 		+ SQWord /* length */
-        + computeStringSize(name)
-        + computeStringSize(uid)
-        + computeStringSize(gid)
-        + computeStringSize(muid);
+        + computeStringSize(_name)
+        + computeStringSize(_uid)
+        + computeStringSize(_gid)
+        + computeStringSize(_muid);
 }
 void
 FHdr::packUnpack(Msg& msg) 

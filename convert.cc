@@ -252,10 +252,10 @@ Stat::packUnpack(Msg& msg) noexcept {
 	msg.pu32(&_atime);
 	msg.pu32(&_mtime);
 	msg.pu64(&_length);
-	msg.pstring(&name);
-	msg.pstring(&uid);
-	msg.pstring(&gid);
-	msg.pstring(&muid);
+	msg.pstring(&_name);
+	msg.pstring(&_uid);
+	msg.pstring(&_gid);
+	msg.pstring(&_muid);
 }
 
 void

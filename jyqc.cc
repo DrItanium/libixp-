@@ -76,13 +76,13 @@ void
 printStat(std::shared_ptr<jyq::Stat> s, int details) {
 	if(details) {
         jyq::print(std::cout, str_of_mode(s->getMode()), " ", 
-                s->uid, " ", s->gid, " ", s->getLength(), " ", 
-                str_of_time(s->getMtime()), " ", s->name, "\n");
+                s->getUid(), " ", s->getGid(), " ", s->getLength(), " ", 
+                str_of_time(s->getMtime()), " ", s->getName(), "\n");
     } else {
-		if((s->getMode()&(uint32_t)jyq::DMode::DIR) && strcmp(s->name, "/")) {
-            jyq::print(std::cout, s->name, "/\n");
+		if((s->getMode()&(uint32_t)jyq::DMode::DIR) && strcmp(s->getName(), "/")) {
+            jyq::print(std::cout, s->getName(), "/\n");
         } else {
-            jyq::print(std::cout, s->name, "\n");
+            jyq::print(std::cout, s->getName(), "\n");
         }
 	}
 }

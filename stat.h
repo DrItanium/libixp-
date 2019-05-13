@@ -18,11 +18,11 @@ namespace jyq {
             uint32_t	_atime;
             uint32_t	_mtime;
             uint64_t	_length;
+            char*	_name;
+            char*	_uid;
+            char*	_gid;
+            char*	_muid;
         public:
-            char*	name;
-            char*	uid;
-            char*	gid;
-            char*	muid;
             uint16_t    size() noexcept;
             ~Stat();
             void packUnpack(Msg& msg) noexcept;
@@ -40,6 +40,18 @@ namespace jyq {
             void setMtime(uint32_t value) noexcept { _mtime = value; }
             constexpr auto getLength() const noexcept { return _length; }
             void setLength(uint64_t value) noexcept { _length = value; }
+            const char* getName() const noexcept { return _name; }
+            char* getName() noexcept { return _name; }
+            void setName(char* value) noexcept { _name = value; }
+            const char* getUid() const noexcept { return _uid; }
+            char* getUid() noexcept { return _uid; }
+            void setUid(char* value) noexcept { _uid = value; }
+            const char* getGid() const noexcept { return _gid; }
+            char* getGid() noexcept { return _gid; }
+            void setGid(char* value) noexcept { _gid = value; }
+            const char* getMuid() const noexcept { return _muid; }
+            char* getMuid() noexcept { return _muid; }
+            void setMuid(char* value) noexcept { _muid = value; }
     };
 } // end namespace jyq
 #endif // end LIBJYQ_STAT_H__
