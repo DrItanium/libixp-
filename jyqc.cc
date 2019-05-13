@@ -76,7 +76,7 @@ void
 printStat(std::shared_ptr<jyq::Stat> s, int details) {
 	if(details) {
         jyq::print(std::cout, str_of_mode(s->getMode()), " ", 
-                s->uid, " ", s->gid, " ", s->length, " ", 
+                s->uid, " ", s->gid, " ", s->getLength(), " ", 
                 str_of_time(s->getMtime()), " ", s->name, "\n");
     } else {
 		if((s->getMode()&(uint32_t)jyq::DMode::DIR) && strcmp(s->name, "/")) {
@@ -103,7 +103,7 @@ xappend(int argc, char *argv[]) {
     }
 	
 	auto stat = client->stat(file);
-	fid->offset = stat->length;
+	fid->offset = stat->getLength();
     //jyq::Stat::free(stat.get());
 	write_data(fid, file);
 	return 0;

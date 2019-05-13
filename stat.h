@@ -17,8 +17,8 @@ namespace jyq {
             uint32_t	_mode;
             uint32_t	_atime;
             uint32_t	_mtime;
+            uint64_t	_length;
         public:
-            uint64_t	length;
             char*	name;
             char*	uid;
             char*	gid;
@@ -40,6 +40,8 @@ namespace jyq {
             void setAtime(uint32_t value) noexcept { _atime = value; }
             constexpr auto getMtime() const noexcept { return _mtime; }
             void setMtime(uint32_t value) noexcept { _mtime = value; }
+            constexpr auto getLength() const noexcept { return _length; }
+            void setLength(uint64_t value) noexcept { _length = value; }
     };
 } // end namespace jyq
 #endif // end LIBJYQ_STAT_H__
