@@ -322,22 +322,14 @@ msg2fcall(Msg *msg, Fcall *fcall) {
 	return msg->pos - msg->data;
 }
 
-Msg&
-Msg::operator>>(Fcall& val) {
-    if (auto count = msg2fcall(this, &val); count > 0) {
-        return *this;
-    } else {
-        throw Exception("unable to unpack fcall from msg!");
-    }
+uint
+Msg::unpack(Fcall& val) {
+    return msg2fcall(this, &val);
 }
 
-Msg&
-Msg::operator<<(Fcall& val) {
-    if (auto count = fcall2msg(this, &val); count > 0) {
-        return *this;
-    } else {
-        throw Exception("Unable to pack fcall into message!");
-    }
+uint
+Msg::pack(Fcall& val) {
+    return fcall2msg(this, &val);
 }
 
 } // end namespace jyq

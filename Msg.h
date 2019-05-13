@@ -89,13 +89,8 @@ namespace jyq {
         }
         public:
             void alloc(uint n);
-            /**
-             * unpack an Fcall from this message
-             * @return The fcall stored in this message
-             * @throws jyq::Exception If the unpack failed to happen!
-             */
-            Msg& operator>>(Fcall& value);
-            Msg& operator<<(Fcall& value);
+            uint pack(Fcall& value);
+            uint unpack(Fcall& value);
         private:
            enum class NumberSize : uint {
                 SByte = 1,

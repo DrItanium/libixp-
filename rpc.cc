@@ -29,7 +29,7 @@ Client::muxrecv()
     if (fd.recvmsg(_rmsg) == 0) {
         return nullptr;
     }
-	if(auto f = new Fcall(); msg2fcall(&_rmsg, f) == 0) {
+	if(auto f = new Fcall(); _rmsg.unpack(*f) == 0) {
         delete f;
         return nullptr;
 	} else {
@@ -126,7 +126,7 @@ Rpc::sendrpc(Fcall& f) {
     }
     { 
         concurrency::Locker<Mutex> a(_mux.getWriteLock());
-        if (!fcall2msg(&_mux.getWmsg(), &f) || !_mux.getConnection().sendmsg(_mux.getWmsg())) {
+        if (!_mux.getWmsg().pack(f) || !_mux.getConnection().sendmsg(_mux.getWmsg())) {
             concurrency::Locker<Mutex> lk(_mux.getLock());
             _mux.dequeue(this);
             _mux.puttag(this);
@@ -149,7 +149,7 @@ Rpc::sendrpc(Fcall *f)
 
     {
         concurrency::Locker<Mutex> a(_mux.getWriteLock());
-        if(!fcall2msg(&_mux.getWmsg(), f) || !_mux.getConnection().sendmsg(_mux.getWmsg())) {
+        if (!_mux.getWmsg().pack(*f) || !_mux.getConnection().sendmsg(_mux.getWmsg())) {
             concurrency::Locker<Mutex> lk(_mux.getLock());
             _mux.dequeue(this);
             _mux.puttag(this);

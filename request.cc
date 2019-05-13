@@ -119,9 +119,7 @@ handlefcall(Conn *c) {
         hangup(c);
         return;
     }
-    try {
-        p9conn->rmsg >> fcall;
-    } catch (jyq::Exception&) {
+    if (p9conn->rmsg.unpack(fcall) == 0) {
         p9conn->rlock.unlock();
         hangup(c);
         return;
@@ -450,7 +448,7 @@ Req9::respond(const char *error) {
 
 	if(p9conn->conn) {
         concurrency::Locker<Mutex> theLock(p9conn->wlock);
-		msize = fcall2msg(&p9conn->wmsg, &ofcall);
+        msize = p9conn->wmsg.pack(ofcall);
         if (p9conn->conn->getConnection().sendmsg(p9conn->wmsg) != msize) {
 			hangup(p9conn->conn);
         }
