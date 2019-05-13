@@ -77,7 +77,7 @@ printStat(std::shared_ptr<jyq::Stat> s, int details) {
 	if(details) {
         jyq::print(std::cout, str_of_mode(s->getMode()), " ", 
                 s->uid, " ", s->gid, " ", s->length, " ", 
-                str_of_time(s->mtime), " ", s->name, "\n");
+                str_of_time(s->getMtime()), " ", s->name, "\n");
     } else {
 		if((s->getMode()&(uint32_t)jyq::DMode::DIR) && strcmp(s->name, "/")) {
             jyq::print(std::cout, s->name, "/\n");
