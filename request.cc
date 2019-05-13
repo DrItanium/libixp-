@@ -119,7 +119,9 @@ handlefcall(Conn *c) {
         hangup(c);
         return;
     }
-	if(msg2fcall(&p9conn->rmsg, &fcall) == 0) {
+    try {
+        p9conn->rmsg >> fcall;
+    } catch (jyq::Exception&) {
         p9conn->rlock.unlock();
         hangup(c);
         return;

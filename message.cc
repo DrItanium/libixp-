@@ -322,12 +322,21 @@ msg2fcall(Msg *msg, Fcall *fcall) {
 	return msg->pos - msg->data;
 }
 
-Msg::operator Fcall() {
-    Fcall result;
-    if (auto count = msg2fcall(this, &result); count) {
-        return result;
+Msg&
+Msg::operator>>(Fcall& val) {
+    if (auto count = msg2fcall(this, &val); count > 0) {
+        return *this;
     } else {
         throw Exception("unable to unpack fcall from msg!");
+    }
+}
+
+Msg&
+Msg::operator<<(Fcall& val) {
+    if (auto count = fcall2msg(this, &val); count > 0) {
+        return *this;
+    } else {
+        throw Exception("Unable to pack fcall into message!");
     }
 }
 
