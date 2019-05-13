@@ -245,7 +245,7 @@ Stat::packUnpack(Msg& msg) noexcept {
         totalSize = (size() - 2);
     }
     msg.pu16(&totalSize);
-	msg.pu16(&type);
+	msg.pu16(&_type);
 	msg.pu32(&dev);
 	msg.pqid(&qid);
 	msg.pu32(&mode);

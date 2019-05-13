@@ -29,7 +29,6 @@ namespace jyq {
             void packUnpack(Msg& msg) noexcept;
             //~Stat();
             constexpr auto getType() const noexcept { return _type; }
-            void setType(uint16_t value) noexcept { _type = value; }
     };
 } // end namespace jyq
 #endif // end LIBJYQ_STAT_H__

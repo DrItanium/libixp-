@@ -311,7 +311,7 @@ Req9::handle() {
             [&p9conn, srv = p9conn.srv, this]() {
                 if (fid = p9conn.retrieveFid(ifcall.getFid()); !fid) {
                     respond(Enofid);
-                } else if(~ifcall.twstat.getStat().type) {
+                } else if(~ifcall.twstat.getStat().getType()) {
                     respond("wstat of type");
                 } else if(~ifcall.twstat.getStat().dev) {
                     respond("wstat of dev");
