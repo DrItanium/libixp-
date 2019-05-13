@@ -322,4 +322,13 @@ msg2fcall(Msg *msg, Fcall *fcall) {
 	return msg->pos - msg->data;
 }
 
+Msg::operator Fcall() {
+    Fcall result;
+    if (auto count = msg2fcall(this, &result); count) {
+        return result;
+    } else {
+        throw Exception("unable to unpack fcall from msg!");
+    }
+}
+
 } // end namespace jyq
