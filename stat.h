@@ -12,8 +12,8 @@ namespace jyq {
     struct Stat {
         private:
             uint16_t	_type;
+            uint32_t	_dev;
         public:
-            uint32_t	dev;
             Qid         qid;
             uint32_t	mode;
             uint32_t	atime;
@@ -29,6 +29,9 @@ namespace jyq {
             void packUnpack(Msg& msg) noexcept;
             //~Stat();
             constexpr auto getType() const noexcept { return _type; }
+            void setType(uint16_t value) noexcept { _type = value; }
+            constexpr auto getDev() const noexcept { return _dev; }
+            void setDev(uint32_t value) noexcept { _dev = value; }
     };
 } // end namespace jyq
 #endif // end LIBJYQ_STAT_H__

@@ -313,7 +313,7 @@ Req9::handle() {
                     respond(Enofid);
                 } else if(~ifcall.twstat.getStat().getType()) {
                     respond("wstat of type");
-                } else if(~ifcall.twstat.getStat().dev) {
+                } else if(~ifcall.twstat.getStat().getDev()) {
                     respond("wstat of dev");
                 } else if(~ifcall.twstat.getStat().qid.type || (ulong)~ifcall.twstat.getStat().qid.version || ~ifcall.twstat.getStat().qid.path) {
                     respond("wstat of qid");
