@@ -10,22 +10,26 @@ namespace jyq {
     struct Msg;
     /* stat structure */
     struct Stat {
-        uint16_t	type;
-        uint32_t	dev;
-        Qid         qid;
-        uint32_t	mode;
-        uint32_t	atime;
-        uint32_t	mtime;
-        uint64_t	length;
-        char*	name;
-        char*	uid;
-        char*	gid;
-        char*	muid;
-        uint16_t    size() noexcept;
-        //static void free(Stat* stat);
-        ~Stat();
-        void packUnpack(Msg& msg) noexcept;
-        //~Stat();
+        private:
+            uint16_t	_type;
+        public:
+            uint32_t	dev;
+            Qid         qid;
+            uint32_t	mode;
+            uint32_t	atime;
+            uint32_t	mtime;
+            uint64_t	length;
+            char*	name;
+            char*	uid;
+            char*	gid;
+            char*	muid;
+            uint16_t    size() noexcept;
+            //static void free(Stat* stat);
+            ~Stat();
+            void packUnpack(Msg& msg) noexcept;
+            //~Stat();
+            constexpr auto getType() const noexcept { return _type; }
+            void setType(uint16_t value) noexcept { _type = value; }
     };
 } // end namespace jyq
 #endif // end LIBJYQ_STAT_H__
