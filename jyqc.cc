@@ -97,16 +97,15 @@ xappend(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-    auto fid = client->open(file, jyq::OMode::WRITE);
-    if (!fid) {
+    if (auto fid = client->open(file, jyq::OMode::WRITE); !fid) {
         throw jyq::Exception("Can't open file '", file, "': ", jyq::errbuf(), "\n");
+    } else {
+        auto stat = client->stat(file);
+        fid->offset = stat->getLength();
+        //jyq::Stat::free(stat.get());
+        write_data(fid, file);
+        return 0;
     }
-	
-	auto stat = client->stat(file);
-	fid->offset = stat->getLength();
-    //jyq::Stat::free(stat.get());
-	write_data(fid, file);
-	return 0;
 }
 
 static int
