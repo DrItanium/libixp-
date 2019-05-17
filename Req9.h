@@ -31,11 +31,14 @@ namespace jyq {
         const Fcall& getOFcall() const noexcept { return _ofcall; }
         void setIFcall(const Fcall& value) { _ifcall = value; }
         void setOFcall(const Fcall& value) { _ofcall = value; }
+        std::any& getAux() noexcept { return _aux; }
+        const std::any& getAux() const noexcept { return _aux; }
+        void setAux(const std::any& value) { _aux = value; }
         private:
             Fcall	_ifcall; /* The incoming request fcall. */
             Fcall	_ofcall; /* The response fcall, to be filled by handler. */
+            std::any    _aux; // Arbitrary pointer, to be used by handlers. 
         public:
-        std::any    aux; // Arbitrary pointer, to be used by handlers. 
 
         /* Private members */
         Conn9 *conn;

@@ -286,8 +286,8 @@ pending_respond(Req9 *req) {
 		p->queue = queue->link;
         req->getOFcall().io.setData(queue->dat);
 		req->getOFcall().io.setSize(queue->len);
-		if(req->aux.has_value()) {
-            req_link = std::any_cast<decltype(req_link)>(req->aux);
+		if(req->getAux().has_value()) {
+            req_link = std::any_cast<decltype(req_link)>(req->getAux());
 			req_link->next->prev = req_link->prev;
 			req_link->prev->next = req_link->next;
             delete req_link;
@@ -301,7 +301,7 @@ pending_respond(Req9 *req) {
 		req_link->prev = req_link->next->prev;
 		req_link->next->prev = req_link;
 		req_link->prev->next = req_link;
-		req->aux = req_link;
+		req->getAux() = req_link;
 	}
 }
 
@@ -403,7 +403,7 @@ _pending_flush(Req9 *req) {
 
 	auto file = std::any_cast<FileId*>(req->fid->aux);
 	if(file->pending) {
-		req_link = std::any_cast<decltype(req_link)>(req->aux);
+		req_link = std::any_cast<decltype(req_link)>(req->getAux());
 		if(req_link) {
 			req_link->prev->next = req_link->next;
 			req_link->next->prev = req_link->prev;
