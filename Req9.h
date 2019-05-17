@@ -21,10 +21,6 @@ namespace jyq {
     struct Srv9;
     struct Conn9;
     struct Req9 {
-        Srv9*	srv;
-        Fid*	fid;    /* Fid structure corresponding to FHdr.fid */
-        Fid*	newfid; /* Corresponds to FTWStat.newfid */
-        Req9*	oldreq; /* For TFlush requests, the original request. */
         Fcall& getIFcall() noexcept { return _ifcall; }
         const Fcall& getIFcall() const noexcept { return _ifcall; }
         Fcall& getOFcall() noexcept { return _ofcall; }
@@ -36,17 +32,21 @@ namespace jyq {
         void setAux(const std::any& value) { _aux = value; }
         Conn9* getConn() noexcept { return _conn; }
         void setConn(Conn9* value) noexcept { _conn = value; }
+        // methods
+        void respond(const char *err);
+        inline void respond(const std::string& err) { respond(err.c_str()); }
+        void handle();
+        public:
+            Srv9*	srv;
+            Fid*	fid;    /* Fid structure corresponding to FHdr.fid */
+            Fid*	newfid; /* Corresponds to FTWStat.newfid */
+            Req9*	oldreq; /* For TFlush requests, the original request. */
         private:
             Fcall	_ifcall; /* The incoming request fcall. */
             Fcall	_ofcall; /* The response fcall, to be filled by handler. */
             std::any    _aux; // Arbitrary pointer, to be used by handlers. 
             Conn9*  _conn;
-        public:
 
-        // methods
-        void respond(const char *err);
-        inline void respond(const std::string& err) { respond(err.c_str()); }
-        void handle();
 
     };
 } // end namespace jyq
