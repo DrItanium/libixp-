@@ -19,12 +19,20 @@ namespace jyq {
             void setId(long value) noexcept { _id = value; }
             Timer *& getLink() noexcept { return _link; }
             void setLink(Timer* other) noexcept { _link = other; }
+            auto getFunction() noexcept { return _fn; }
+            void setFunction(std::function<void(long, const std::any&)> value) noexcept { _fn = value; }
+            void call(long a, const std::any& b) {
+                if (_fn) {
+                    _fn(a, b);
+                }
+            }
+            void operator()(long a, const std::any& b) { call(a, b); }
         private:
             Timer*		_link;
             uint64_t	_msec;
             long		_id;
+            std::function<void(long, const std::any&)> _fn;
         public:
-            std::function<void(long, const std::any&)> fn;
             std::any	aux;
     };
     uint64_t msec();

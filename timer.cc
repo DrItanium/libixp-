@@ -62,7 +62,7 @@ Server::settimer(long msecs, std::function<void(long, const std::any&)> fn, cons
     lock();
     t->setId(lastid++);
     t->setMsec(time);
-	t->fn = fn;
+    t->setFunction(fn);
 	t->aux = aux; // make a copy of the contents of the passed in std::aux
 
 	for(tp=&timer; *tp; tp=&tp[0]->getLink()) {
@@ -135,7 +135,7 @@ Server::nexttimer() {
 		timer = t->getLink();
 
         unlock();
-		t->fn(t->getId(), t->aux);
+        t->call(t->getId(), t->aux);
         delete t;
         lock();
 	}
