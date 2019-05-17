@@ -128,7 +128,7 @@ handlefcall(Conn *c) {
 
     p9conn->operator++();
     Req9 req;
-	req.conn = p9conn;
+    req.setConn(p9conn);
 	req.srv = p9conn->srv;
     req.setIFcall(fcall);
 	p9conn->conn = c;
@@ -150,7 +150,7 @@ Conn9::retrieveFid(int id) {
 }
 void
 Req9::handle() {
-	auto& p9conn = *conn;
+    auto& p9conn = *_conn;
 
 	if(printfcall) {
 		printfcall(&getIFcall());
@@ -353,7 +353,7 @@ Req9::respond(const char *error) {
 	Conn9 *p9conn;
 	int msize;
 
-	p9conn = conn;
+	p9conn = _conn;
 
 	switch(getIFcall().getType()) {
 	case FType::TVersion:
@@ -485,15 +485,15 @@ cleanupconn(Conn *c) {
                 context.back().getIFcall().setNoTag();
                 context.back().getIFcall().setFid(arg->second.fid);
                 context.back().fid = &arg->second;
-                context.back().conn = &arg->second.conn;
+                context.back().setConn(&arg->second.conn);
                 }, collection);
         p9conn->tagExec<ReqList>([](auto context, Conn9::TagMap::iterator arg) {
-                    arg->second.conn->operator++();
+                    arg->second.getConn()->operator++();
                     context.emplace_back();
                     context.back().getIFcall().setType(FType::TFlush);
                     context.back().getIFcall().setNoTag();
                     context.back().getIFcall().tflush.setOldTag(arg->second.getIFcall().getTag());
-                    context.back().conn = arg->second.conn;
+                    context.back().setConn(arg->second.getConn());
                 }, collection);
 	}
     for (auto& req : collection) {
