@@ -14,6 +14,7 @@ namespace jyq {
     struct Qid;
     union Fcall;
     struct Msg : public ContainsSizeParameter<uint> {
+        using Parent = ContainsSizeParameter<uint>;
         enum class Mode {
             Pack,
             Unpack,

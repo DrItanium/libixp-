@@ -569,8 +569,8 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
 				file = tfile;
 			}
 		}
-		req->ofcall.rwalk.getWqid()[i].type = file->tab.qtype;
-		req->ofcall.rwalk.getWqid()[i].path = computeQIDValue(file->tab.type, file->id);
+		req->ofcall.rwalk.getWqid()[i].setType(file->tab.qtype);
+		req->ofcall.rwalk.getWqid()[i].setPath(computeQIDValue(file->tab.type, file->id));
 	}
 	/* There should be a way to do this on freefid() */
 	if(i < req->ifcall.twalk.size()) {

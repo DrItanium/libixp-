@@ -42,17 +42,20 @@ namespace jyq {
     constexpr T min(T a, T b) noexcept {
         return a < b ? a : b;
     }
+    // sanity checks
+    static_assert(min(1,2) == 1);
+    static_assert(min(2,1) == 1);
+
     template<typename T>
     constexpr T max(T a, T b) noexcept {
         return a > b ? a : b;
     }
-    static_assert(min(1,2) == 1);
-    static_assert(min(2,1) == 1);
     static_assert(max(1,2) == 2);
     static_assert(max(2,1) == 2);
 
     template<typename T>
     struct ContainsSizeParameter {
+        ContainsSizeParameter(T size) : _value(size) { }
         ContainsSizeParameter() = default;
         ~ContainsSizeParameter() = default;
         constexpr T size() const noexcept { return _value; }

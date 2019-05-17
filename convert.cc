@@ -221,7 +221,7 @@ Msg::pdata(char **data, uint len) {
  */
 void
 Qid::packUnpack(Msg& msg) {
-    msg.packUnpackMany(&type, &version, &path);
+    msg.packUnpackMany(&_type, &_version, &_path);
 }
 
 void
