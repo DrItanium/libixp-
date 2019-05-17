@@ -12,11 +12,19 @@
 
 namespace jyq {
     struct Timer {
-        Timer*		link;
-        uint64_t	msec;
-        long		id;
-        std::function<void(long, const std::any&)> fn;
-        std::any	aux;
+        public:
+            constexpr auto getMsec() const noexcept { return _msec; }
+            constexpr auto getId() const noexcept { return _id; }
+            void setMsec(uint64_t value) noexcept { _msec = value; }
+            void setId(long value) noexcept { _id = value; }
+        public:
+            Timer*		link;
+        private:
+            uint64_t	_msec;
+            long		_id;
+        public:
+            std::function<void(long, const std::any&)> fn;
+            std::any	aux;
     };
     uint64_t msec();
 } // end namespace jyq

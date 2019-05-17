@@ -60,20 +60,20 @@ Server::settimer(long msecs, std::function<void(long, const std::any&)> fn, cons
 
     t = new Timer();
     lock();
-	t->id = lastid++;
-	t->msec = time;
+    t->setId(lastid++);
+    t->setMsec(time);
 	t->fn = fn;
 	t->aux = aux; // make a copy of the contents of the passed in std::aux
 
 	for(tp=&timer; *tp; tp=&tp[0]->link) {
-		if(tp[0]->msec < time) {
+		if(tp[0]->getMsec() < time) {
 			break;
         }
     }
 	t->link = *tp;
 	*tp = t;
     unlock();
-	return t->id;
+	return t->getId();
 }
 
 /**
@@ -96,7 +96,7 @@ Server::unsettimer(long id) {
 	Timer *t;
     lock();
     for(tp=&timer; (t=*tp); tp=&t->link) {
-        if(t->id == id) {
+        if(t->getId() == id) {
             break;
         }
     }
@@ -129,19 +129,19 @@ Server::nexttimer() {
     lock();
 	while((t = timer)) {
 		time = msec();
-		if(t->msec > time) {
+		if(t->getMsec() > time) {
 			break;
         }
 		timer = t->link;
 
         unlock();
-		t->fn(t->id, t->aux);
+		t->fn(t->getId(), t->aux);
         delete t;
         lock();
 	}
 	long ret = 0;
 	if(t) {
-		ret = t->msec - time;
+		ret = t->getMsec() - time;
     }
     unlock();
 	return ret;
