@@ -25,8 +25,14 @@ namespace jyq {
         Fid*	fid;    /* Fid structure corresponding to FHdr.fid */
         Fid*	newfid; /* Corresponds to FTWStat.newfid */
         Req9*	oldreq; /* For TFlush requests, the original request. */
-        Fcall	ifcall; /* The incoming request fcall. */
-        Fcall	ofcall; /* The response fcall, to be filled by handler. */
+        Fcall& getIfCall() noexcept { return _ifcall; }
+        const Fcall& getIfCall() const noexcept { return _ifcall; }
+        Fcall& getOfCall() noexcept { return _ofcall; }
+        const Fcall& getOfCall() const noexcept { return _ofcall; }
+        private:
+            Fcall	_ifcall; /* The incoming request fcall. */
+            Fcall	_ofcall; /* The response fcall, to be filled by handler. */
+        public:
         std::any    aux; // Arbitrary pointer, to be used by handlers. 
 
         /* Private members */
