@@ -17,9 +17,10 @@ namespace jyq {
             constexpr auto getId() const noexcept { return _id; }
             void setMsec(uint64_t value) noexcept { _msec = value; }
             void setId(long value) noexcept { _id = value; }
-        public:
-            Timer*		link;
+            Timer *& getLink() noexcept { return _link; }
+            void setLink(Timer* other) noexcept { _link = other; }
         private:
+            Timer*		_link;
             uint64_t	_msec;
             long		_id;
         public:
