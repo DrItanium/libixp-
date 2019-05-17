@@ -130,7 +130,7 @@ handlefcall(Conn *c) {
     Req9 req;
 	req.conn = p9conn;
 	req.srv = p9conn->srv;
-	req.ifcall = fcall;
+    req.setIFcall(fcall);
 	p9conn->conn = c;
 
     if (auto result = p9conn->tagmap.emplace(fcall.getTag(), req); result.second) {
@@ -153,7 +153,7 @@ Req9::handle() {
 	auto& p9conn = *conn;
 
 	if(printfcall) {
-		printfcall(&ifcall);
+		printfcall(&getIFcall());
     }
     static std::map<FType, std::function<void()>> dispatchTable = {
         { FType::TVersion, 
@@ -161,20 +161,20 @@ Req9::handle() {
                 static std::string str9p("9P");
                 static std::string str9p2000("9P2000");
                 static std::string strUnknown("unknown");
-                std::string ver(ifcall.version.getVersion());
+                std::string ver(getIFcall().version.getVersion());
                 if(!strcmp(ver.c_str(), str9p.c_str())) {
-                    ofcall.version.setVersion(str9p.data());
+                    getOFcall().version.setVersion(str9p.data());
                 } else if(!strcmp(ver.c_str(), str9p2000.c_str())) {
-                    ofcall.version.setVersion(str9p2000.data());
+                    getOFcall().version.setVersion(str9p2000.data());
                 } else {
-                    ofcall.version.setVersion(strUnknown.data());
+                    getOFcall().version.setVersion(strUnknown.data());
                 }
-                ofcall.version.setSize(ifcall.version.size());
+                getOFcall().version.setSize(getIFcall().version.size());
                 respond(nullptr);
             } },
         {FType::TAttach, 
             [&p9conn, srv = p9conn.srv, this]() {
-                auto newfid = createfid(p9conn.fidmap, ifcall.getFid(), p9conn);
+                auto newfid = createfid(p9conn.fidmap, getIFcall().getFid(), p9conn);
                 fid = newfid;
                 if (!fid) {
                     respond(Edupfid);
@@ -185,7 +185,7 @@ Req9::handle() {
             } },
         { FType::TClunk, 
             [&p9conn, srv = p9conn.srv, this]() {
-                if (fid = p9conn.retrieveFid(ifcall.getFid()); !fid) {
+                if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
                 } else {
                     if(!srv->clunk) {
@@ -197,7 +197,7 @@ Req9::handle() {
             } },
         { FType::TFlush, 
             [&p9conn, srv = p9conn.srv, this]() {
-                if (oldreq = p9conn.retrieveTag(ifcall.tflush.getOldTag()); !oldreq) {
+                if (oldreq = p9conn.retrieveTag(getIFcall().tflush.getOldTag()); !oldreq) {
                     respond(Enotag);
                 } else {
                     if(!srv->flush) {
@@ -209,7 +209,7 @@ Req9::handle() {
             } },
         {FType::TCreate, 
             [&p9conn, srv = p9conn.srv, this]() {
-                if (fid = p9conn.retrieveFid(ifcall.getFid()); !fid) {
+                if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
                 } else if (fid->omode != -1) {
                     respond(Eopen);
@@ -223,11 +223,11 @@ Req9::handle() {
             } },
         { FType::TOpen, 
             [&p9conn, srv = p9conn.srv, this]() {
-                if (fid = p9conn.retrieveFid(ifcall.getFid()); !fid) {
+                if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
-                } else if ((fid->qid.getType()&uint8_t(QType::DIR)) && (ifcall.topen.getMode()|uint8_t(OMode::RCLOSE)) != (uint8_t(OMode::READ)|uint8_t(OMode::RCLOSE))) {
+                } else if ((fid->qid.getType()&uint8_t(QType::DIR)) && (getIFcall().topen.getMode()|uint8_t(OMode::RCLOSE)) != (uint8_t(OMode::READ)|uint8_t(OMode::RCLOSE))) {
                     respond(Eisdir);
-                } else if (ofcall.ropen.setQid(fid->qid); !p9conn.srv->open) {
+                } else if (getOFcall().ropen.setQid(fid->qid); !p9conn.srv->open) {
                     respond(Enofunc);
                 } else {
                     srv->open(this);
@@ -235,7 +235,7 @@ Req9::handle() {
             } },
         { FType::TRead, 
             [&p9conn, srv = p9conn.srv, this]() {
-                if (fid = p9conn.retrieveFid(ifcall.getFid()); !fid) {
+                if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
                 } else if (fid->omode == -1 || fid->omode == uint8_t(OMode::WRITE)) {
                     respond(Enoread);
@@ -247,7 +247,7 @@ Req9::handle() {
             } },
         { FType::TRemove, 
             [&p9conn, srv = p9conn.srv, this]() {
-                if (fid = p9conn.retrieveFid(ifcall.getFid()); !fid) {
+                if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
                 } else if (!srv->remove) {
                     respond(Enofunc);
@@ -257,7 +257,7 @@ Req9::handle() {
             } },
         { FType::TStat, 
             [&p9conn, srv = p9conn.srv, this]() {
-                if (fid = p9conn.retrieveFid(ifcall.getFid()); !fid) {
+                if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
                 } else if (!srv->stat) {
                     respond(Enofunc);
@@ -267,7 +267,7 @@ Req9::handle() {
             } },
         { FType::TWalk,
             [&p9conn, srv = p9conn.srv, this]() {
-                if (fid = p9conn.retrieveFid(ifcall.getFid()); !fid) {
+                if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
                     return;
                 }
@@ -275,12 +275,12 @@ Req9::handle() {
                     respond("cannot walk from an open fid");
                     return;
                 }
-                if(ifcall.twalk.size() && !(fid->qid.getType()&uint8_t(QType::DIR))) {
+                if(getIFcall().twalk.size() && !(fid->qid.getType()&uint8_t(QType::DIR))) {
                     respond(Enotdir);
                     return;
                 }
-                if((ifcall.getFid() != ifcall.twalk.getNewFid())) {
-                    if (newfid = createfid(p9conn.fidmap, ifcall.twalk.getNewFid(), p9conn); !newfid) {
+                if((getIFcall().getFid() != getIFcall().twalk.getNewFid())) {
+                    if (newfid = createfid(p9conn.fidmap, getIFcall().twalk.getNewFid(), p9conn); !newfid) {
                         respond(Edupfid);
                         return;
                     }
@@ -296,7 +296,7 @@ Req9::handle() {
             } },
         { FType::TWrite,
             [&p9conn, srv = p9conn.srv, this]() {
-                if (fid = p9conn.retrieveFid(ifcall.getFid()); !fid) {
+                if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
                 } else if((fid->omode&3) != (uint8_t(OMode::WRITE)) && (fid->omode&3) != (uint8_t(OMode::RDWR))) {
                     respond("write on fid not opened for writing");
@@ -309,17 +309,17 @@ Req9::handle() {
         },
         { FType::TWStat,
             [&p9conn, srv = p9conn.srv, this]() {
-                if (fid = p9conn.retrieveFid(ifcall.getFid()); !fid) {
+                if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
-                } else if(~ifcall.twstat.getStat().getType()) {
+                } else if(~getIFcall().twstat.getStat().getType()) {
                     respond("wstat of type");
-                } else if(~ifcall.twstat.getStat().getDev()) {
+                } else if(~getIFcall().twstat.getStat().getDev()) {
                     respond("wstat of dev");
-                } else if(~ifcall.twstat.getStat().getQid().getType() || (ulong)~ifcall.twstat.getStat().getQid().getVersion() || ~ifcall.twstat.getStat().getQid().getPath()) {
+                } else if(~getIFcall().twstat.getStat().getQid().getType() || (ulong)~getIFcall().twstat.getStat().getQid().getVersion() || ~getIFcall().twstat.getStat().getQid().getPath()) {
                     respond("wstat of qid");
-                } else if(ifcall.twstat.getStat().getMuid() && ifcall.twstat.getStat().getMuid()[0]) {
+                } else if(getIFcall().twstat.getStat().getMuid() && getIFcall().twstat.getStat().getMuid()[0]) {
                     respond("wstat of muid");
-                } else if(~ifcall.twstat.getStat().getMode() && ((ifcall.twstat.getStat().getMode()&(uint32_t)(DMode::DIR))>>24) != (fid->qid.getType()&uint8_t(QType::DIR))) {
+                } else if(~getIFcall().twstat.getStat().getMode() && ((getIFcall().twstat.getStat().getMode()&(uint32_t)(DMode::DIR))>>24) != (fid->qid.getType()&uint8_t(QType::DIR))) {
                     respond("wstat on DMDIR bit");
                 } else if(!srv->wstat) {
                     respond(Enofunc);
@@ -328,7 +328,7 @@ Req9::handle() {
                 }
             } },
     };
-    if (auto ptr = dispatchTable.find(ifcall.getType()); ptr == dispatchTable.end()) {
+    if (auto ptr = dispatchTable.find(getIFcall().getType()); ptr == dispatchTable.end()) {
         respond(Enofunc);
     } else {
         ptr->second();
@@ -339,11 +339,11 @@ Req9::handle() {
  * Function: respond
  *
  * Sends a response to the given request. The response is
- * constructed from the P<ofcall> member of the P<req> parameter, or
+ * constructed from the P<getOFcall()> member of the P<req> parameter, or
  * from the P<error> parameter if it is non-null. In the latter
  * case, the response is of type RError, while in any other case it
- * is of the same type as P<req>->P<ofcall>, which must match the
- * request type in P<req>->P<ifcall>.
+ * is of the same type as P<req>->P<getOFcall()>, which must match the
+ * request type in P<req>->P<getIFcall()>.
  *
  * See also:
  *	T<Req9>, V<printfcall>
@@ -355,55 +355,55 @@ Req9::respond(const char *error) {
 
 	p9conn = conn;
 
-	switch(ifcall.getType()) {
+	switch(getIFcall().getType()) {
 	case FType::TVersion:
 		assert(error == nullptr);
-		free(ifcall.version.getVersion());
+		free(getIFcall().version.getVersion());
         {
             concurrency::Locker<Mutex> theRlock(p9conn->rlock);
             concurrency::Locker<Mutex> theWlock(p9conn->wlock);
-		    msize = jyq::min<int>(ofcall.version.size(), maximum::Msg);
+		    msize = jyq::min<int>(getOFcall().version.size(), maximum::Msg);
             p9conn->rmsg.alloc(msize);
             p9conn->wmsg.alloc(msize);
         }
-        ofcall.version.setSize(msize);
+        getOFcall().version.setSize(msize);
 		break;
 	case FType::TAttach:
 		if(error) {
             destroyfid(*p9conn, fid->fid);
         }
-		free(ifcall.tattach.getUname());
-		free(ifcall.tattach.getAname());
+		free(getIFcall().tattach.getUname());
+		free(getIFcall().tattach.getAname());
 		break;
 	case FType::TOpen:
 	case FType::TCreate:
 		if(!error) {
-			ofcall.ropen.setIoUnit(p9conn->rmsg.size() - 24);
-			fid->iounit = ofcall.ropen.getIoUnit();
-			fid->omode = ifcall.topen.getMode();
-			fid->qid = ofcall.ropen.getQid();
+			getOFcall().ropen.setIoUnit(p9conn->rmsg.size() - 24);
+			fid->iounit = getOFcall().ropen.getIoUnit();
+			fid->omode = getIFcall().topen.getMode();
+			fid->qid = getOFcall().ropen.getQid();
 		}
-		free(ifcall.tcreate.getName());
+		free(getIFcall().tcreate.getName());
 		break;
 	case FType::TWalk:
-		if(error || ofcall.rwalk.size() < ifcall.twalk.size()) {
-			if(ifcall.getFid() != ifcall.twalk.getNewFid() && newfid) {
+		if(error || getOFcall().rwalk.size() < getIFcall().twalk.size()) {
+			if(getIFcall().getFid() != getIFcall().twalk.getNewFid() && newfid) {
 				destroyfid(*p9conn, newfid->fid);
             }
-			if(!error && ofcall.rwalk.empty()) {
+			if(!error && getOFcall().rwalk.empty()) {
 				error = Enofile.c_str();
             }
 		}else{
-            if (ofcall.rwalk.empty()) {
+            if (getOFcall().rwalk.empty()) {
 				newfid->qid = fid->qid;
             } else {
-				newfid->qid = ofcall.rwalk.getWqid()[ofcall.rwalk.size()-1];
+				newfid->qid = getOFcall().rwalk.getWqid()[getOFcall().rwalk.size()-1];
             }
 		}
-		free(*ifcall.twalk.getWname());
+		free(*getIFcall().twalk.getWname());
 		break;
 	case FType::TWrite:
-		free(ifcall.twrite.getData());
+		free(getIFcall().twrite.getData());
 		break;
 	case FType::TRemove:
 		if(fid) {
@@ -416,12 +416,12 @@ Req9::respond(const char *error) {
         }
 		break;
 	case FType::TFlush:
-        if (oldreq = p9conn->retrieveTag(ifcall.tflush.getOldTag()); oldreq) {
+        if (oldreq = p9conn->retrieveTag(getIFcall().tflush.getOldTag()); oldreq) {
             oldreq->respond(Eintr);
         }
 		break;
 	case FType::TWStat:
-		//Stat::free(&ifcall.twstat.getStat());
+		//Stat::free(&getIFcall().twstat.getStat());
 		break;
 	case FType::TRead:
 	case FType::TStat:
@@ -434,35 +434,35 @@ Req9::respond(const char *error) {
 		break;
 	}
 
-    ofcall.setTag(ifcall.getTag());
+    getOFcall().setTag(getIFcall().getTag());
 
     if (!error) {
-        ofcall.setType(FType(((uint8_t)ifcall.getType()) + 1));
+        getOFcall().setType(FType(((uint8_t)getIFcall().getType()) + 1));
     } else {
-        ofcall.setType(FType::RError);
-		ofcall.error.setEname((char*)error);
+        getOFcall().setType(FType::RError);
+		getOFcall().error.setEname((char*)error);
 	}
 
 	if(printfcall) {
-		printfcall(&ofcall);
+		printfcall(&getOFcall());
     }
 
-    p9conn->removeTag(ifcall.getTag());
+    p9conn->removeTag(getIFcall().getTag());
 
 	if(p9conn->conn) {
         concurrency::Locker<Mutex> theLock(p9conn->wlock);
-        msize = p9conn->wmsg.pack(ofcall);
+        msize = p9conn->wmsg.pack(getOFcall());
         if (p9conn->conn->getConnection().sendmsg(p9conn->wmsg) != msize) {
 			hangup(p9conn->conn);
         }
 	}
 
-	switch(ofcall.getType()) {
+	switch(getOFcall().getType()) {
 	case FType::RStat:
-		free(ofcall.rstat.getStat());
+		free(getOFcall().rstat.getStat());
 		break;
 	case FType::RRead:
-		free(ofcall.rread.getData());
+		free(getOFcall().rread.getData());
 		break;
     default:
         break;
@@ -481,18 +481,18 @@ cleanupconn(Conn *c) {
         p9conn->fidExec<ReqList&>([](auto context, Fid::Map::iterator arg) {
                 ++arg->second.conn;
                 context.emplace_back();
-                context.back().ifcall.setType(FType::TClunk);
-                context.back().ifcall.setNoTag();
-                context.back().ifcall.setFid(arg->second.fid);
+                context.back().getIFcall().setType(FType::TClunk);
+                context.back().getIFcall().setNoTag();
+                context.back().getIFcall().setFid(arg->second.fid);
                 context.back().fid = &arg->second;
                 context.back().conn = &arg->second.conn;
                 }, collection);
         p9conn->tagExec<ReqList>([](auto context, Conn9::TagMap::iterator arg) {
                     arg->second.conn->operator++();
                     context.emplace_back();
-                    context.back().ifcall.setType(FType::TFlush);
-                    context.back().ifcall.setNoTag();
-                    context.back().ifcall.tflush.setOldTag(arg->second.ifcall.getTag());
+                    context.back().getIFcall().setType(FType::TFlush);
+                    context.back().getIFcall().setNoTag();
+                    context.back().getIFcall().tflush.setOldTag(arg->second.getIFcall().getTag());
                     context.back().conn = arg->second.conn;
                 }, collection);
 	}

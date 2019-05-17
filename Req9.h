@@ -25,10 +25,12 @@ namespace jyq {
         Fid*	fid;    /* Fid structure corresponding to FHdr.fid */
         Fid*	newfid; /* Corresponds to FTWStat.newfid */
         Req9*	oldreq; /* For TFlush requests, the original request. */
-        Fcall& getIfCall() noexcept { return _ifcall; }
-        const Fcall& getIfCall() const noexcept { return _ifcall; }
-        Fcall& getOfCall() noexcept { return _ofcall; }
-        const Fcall& getOfCall() const noexcept { return _ofcall; }
+        Fcall& getIFcall() noexcept { return _ifcall; }
+        const Fcall& getIFcall() const noexcept { return _ifcall; }
+        Fcall& getOFcall() noexcept { return _ofcall; }
+        const Fcall& getOFcall() const noexcept { return _ofcall; }
+        void setIFcall(const Fcall& value) { _ifcall = value; }
+        void setOFcall(const Fcall& value) { _ofcall = value; }
         private:
             Fcall	_ifcall; /* The incoming request fcall. */
             Fcall	_ofcall; /* The response fcall, to be filled by handler. */
