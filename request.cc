@@ -95,7 +95,7 @@ createfid(Fid::Map& map, int fid, Conn9& p9conn) {
     }
 }
 Fid::~Fid() {
-    if (auto srv = this->conn.srv; srv) {
+    if (auto srv = this->conn.getSrv(); srv) {
        if (srv->freefid) {
            srv->freefid(this);
        }
@@ -129,7 +129,7 @@ handlefcall(Conn *c) {
     p9conn->operator++();
     Req9 req;
     req.setConn(p9conn);
-	req.srv = p9conn->srv;
+	req.srv = p9conn->getSrv();
     req.setIFcall(fcall);
     p9conn->setConn(c);
 
@@ -173,7 +173,7 @@ Req9::handle() {
                 respond(nullptr);
             } },
         {FType::TAttach, 
-            [&p9conn, srv = p9conn.srv, this]() {
+            [&p9conn, srv = p9conn.getSrv(), this]() {
                 auto newfid = createfid(p9conn.fidmap, getIFcall().getFid(), p9conn);
                 fid = newfid;
                 if (!fid) {
@@ -184,7 +184,7 @@ Req9::handle() {
                 }
             } },
         { FType::TClunk, 
-            [&p9conn, srv = p9conn.srv, this]() {
+            [&p9conn, srv = p9conn.getSrv(), this]() {
                 if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
                 } else {
@@ -196,7 +196,7 @@ Req9::handle() {
                 }
             } },
         { FType::TFlush, 
-            [&p9conn, srv = p9conn.srv, this]() {
+            [&p9conn, srv = p9conn.getSrv(), this]() {
                 if (oldreq = p9conn.retrieveTag(getIFcall().tflush.getOldTag()); !oldreq) {
                     respond(Enotag);
                 } else {
@@ -208,33 +208,33 @@ Req9::handle() {
                 }
             } },
         {FType::TCreate, 
-            [&p9conn, srv = p9conn.srv, this]() {
+            [&p9conn, srv = p9conn.getSrv(), this]() {
                 if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
                 } else if (fid->omode != -1) {
                     respond(Eopen);
                 } else if(!(fid->qid.getType()&uint8_t(QType::DIR))) {
                     respond(Enotdir);
-                } else if(!p9conn.srv->create) {
+                } else if(!p9conn.getSrv()->create) {
                     respond(Enofunc);
                 } else {
                     srv->create(this);
                 }
             } },
         { FType::TOpen, 
-            [&p9conn, srv = p9conn.srv, this]() {
+            [&p9conn, srv = p9conn.getSrv(), this]() {
                 if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
                 } else if ((fid->qid.getType()&uint8_t(QType::DIR)) && (getIFcall().topen.getMode()|uint8_t(OMode::RCLOSE)) != (uint8_t(OMode::READ)|uint8_t(OMode::RCLOSE))) {
                     respond(Eisdir);
-                } else if (getOFcall().ropen.setQid(fid->qid); !p9conn.srv->open) {
+                } else if (getOFcall().ropen.setQid(fid->qid); !p9conn.getSrv()->open) {
                     respond(Enofunc);
                 } else {
                     srv->open(this);
                 }
             } },
         { FType::TRead, 
-            [&p9conn, srv = p9conn.srv, this]() {
+            [&p9conn, srv = p9conn.getSrv(), this]() {
                 if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
                 } else if (fid->omode == -1 || fid->omode == uint8_t(OMode::WRITE)) {
@@ -246,7 +246,7 @@ Req9::handle() {
                 }
             } },
         { FType::TRemove, 
-            [&p9conn, srv = p9conn.srv, this]() {
+            [&p9conn, srv = p9conn.getSrv(), this]() {
                 if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
                 } else if (!srv->remove) {
@@ -256,7 +256,7 @@ Req9::handle() {
                 }
             } },
         { FType::TStat, 
-            [&p9conn, srv = p9conn.srv, this]() {
+            [&p9conn, srv = p9conn.getSrv(), this]() {
                 if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
                 } else if (!srv->stat) {
@@ -266,7 +266,7 @@ Req9::handle() {
                 }
             } },
         { FType::TWalk,
-            [&p9conn, srv = p9conn.srv, this]() {
+            [&p9conn, srv = p9conn.getSrv(), this]() {
                 if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
                     return;
@@ -295,7 +295,7 @@ Req9::handle() {
 
             } },
         { FType::TWrite,
-            [&p9conn, srv = p9conn.srv, this]() {
+            [&p9conn, srv = p9conn.getSrv(), this]() {
                 if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
                 } else if((fid->omode&3) != (uint8_t(OMode::WRITE)) && (fid->omode&3) != (uint8_t(OMode::RDWR))) {
@@ -308,7 +308,7 @@ Req9::handle() {
             }
         },
         { FType::TWStat,
-            [&p9conn, srv = p9conn.srv, this]() {
+            [&p9conn, srv = p9conn.getSrv(), this]() {
                 if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
                 } else if(~getIFcall().twstat.getStat().getType()) {
@@ -535,7 +535,7 @@ Conn::serve9conn() {
     } else {
         Conn9 p9conn;
         ++p9conn;
-        p9conn.srv = std::any_cast<decltype(p9conn.srv)>(this->aux);
+        p9conn.setSrv(std::any_cast<Srv9*>(aux));
         p9conn.alloc(1024);
         //p9conn.rmsg.alloc(1024);
         //p9conn.wmsg.alloc(1024);

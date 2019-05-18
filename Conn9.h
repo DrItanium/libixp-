@@ -26,14 +26,16 @@ struct Conn9 {
     using TagMap = jyq::Map<uint16_t, Req9>;
     TagMap    tagmap;
     Fid::Map  fidmap;
-	Srv9*	srv;
     private:
+    Srv9*   _srv;
 	Conn*	_conn;
 	Mutex	_rlock;
 	Mutex	_wlock;
     Msg		_rmsg;
     Msg		_wmsg;
     public:
+    auto getSrv() noexcept { return _srv; }
+    void setSrv(Srv9* value) { _srv = value; }
     auto getConn() noexcept { return _conn; }
     void setConn(Conn* value) noexcept { _conn = value; }
     Msg& getRMsg() noexcept { return _rmsg; }
