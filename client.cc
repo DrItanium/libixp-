@@ -97,7 +97,7 @@ _pread(CFid *f, char *buf, long count, int64_t offset, std::function<std::shared
 	    Fcall fcall;
         auto n = min<int>(count-len, f->iounit);
         fcall.setTypeAndFid(FType::TRead, f->fid);
-        auto tread = fcall.getTRead();
+        auto& tread = fcall.getTRead();
         tread.setOffset(offset);
         tread.setSize(n);
         if (auto result = dofcall(fcall); !result) {
