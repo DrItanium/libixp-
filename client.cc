@@ -69,7 +69,7 @@ initfid(std::shared_ptr<CFid> f, Fcall *fcall, decltype(CFid::iounit) iounit) {
 	f->open = 1;
 	f->offset = 0;
     f->iounit = iounit;
-    f->qid = fcall->ropen.getQid();
+    f->qid = fcall->getRopen().getQid();
 }
 std::shared_ptr<Stat>
 _stat(ulong fid, std::function<std::shared_ptr<Fcall>(Fcall&)> dofcall) {
@@ -78,7 +78,7 @@ _stat(ulong fid, std::function<std::shared_ptr<Fcall>(Fcall&)> dofcall) {
         return nullptr;
     } else {
 
-        Msg msg((char*)result->rstat.getStat(), result->rstat.size(), Msg::Mode::Unpack);
+        Msg msg((char*)result->getRstat().getStat(), result->getRstat().size(), Msg::Mode::Unpack);
         auto stat = std::make_shared<Stat>();
         msg.pstat(*stat);
         if(msg.pos > msg.end) {
@@ -155,7 +155,7 @@ Client::dofcall(Fcall& fcall) {
         return nullptr;
     }
     if (ret->getType() == FType::RError) {
-        wErrorString(ret->error.getEname());
+        wErrorString(ret->getError().getEname());
         return nullptr;
     }
     if (auto hdrVal = uint8_t(ret->getType()), fhdrVal = uint8_t(fcall.getType()); hdrVal != (fhdrVal^1)) {
@@ -193,28 +193,28 @@ Client::walk(const char *path) {
         int n = separation.size();
         int count = 0;
         for (auto& sep : separation) {
-            fcall.twalk.getWname()[count] = sep.data();
+            fcall.getTwalk().getWname()[count] = sep.data();
             ++count;
         }
         auto f = getFid();
         fcall.setFid(RootFid);
 
-        fcall.twalk.setSize(n);
-        fcall.twalk.setNewFid(f->fid);
+        fcall.getTwalk().setSize(n);
+        fcall.getTwalk().setNewFid(f->fid);
         if (dofcall(fcall) == 0) {
             putfid(f);
             return nullptr;
         }
-        if(fcall.rwalk.size() < n) {
+        if(fcall.getRwalk().size() < n) {
             wErrorString("File does not exist");
-            if(fcall.rwalk.empty()) {
+            if(fcall.getRwalk().empty()) {
                 wErrorString("Protocol botch");
             }
             putfid(f);
             return nullptr;
         }
 
-        f->qid = fcall.rwalk.getWqid()[n-1]; // gross... so gross, this is taken from teh c code...so gross
+        f->qid = fcall.getRwalk().getWqid()[n-1]; // gross... so gross, this is taken from teh c code...so gross
 
         return f;
     }
@@ -299,16 +299,16 @@ Client::mountfd(const Connection& fd) {
 	c->_mintag = NoTag;
 	c->_maxtag = NoTag+1;
 
-    fcall.version.setSize(maximum::Msg);
-	fcall.version.setVersion((char*)Version);
+    fcall.getVersion().setSize(maximum::Msg);
+	fcall.getVersion().setVersion((char*)Version);
 
 	if(!c->dofcall(fcall)) {
         delete c;
 		return nullptr;
 	}
 
-	if(strcmp(fcall.version.getVersion(), Version)
-	|| fcall.version.size() > maximum::Msg) {
+	if(strcmp(fcall.getVersion().getVersion(), Version)
+	|| fcall.getVersion().size() > maximum::Msg) {
 		wErrorString("bad 9P version response");
         delete c;
 		return nullptr;
@@ -316,15 +316,15 @@ Client::mountfd(const Connection& fd) {
 
 	c->_mintag = 0;
 	c->_maxtag = 255;
-	c->_msize = fcall.version.size();
+	c->_msize = fcall.getVersion().size();
 
-	c->allocmsg(fcall.version.size());
+	c->allocmsg(fcall.getVersion().size());
     fcall.reset();
 
     fcall.setTypeAndFid(FType::TAttach, RootFid);
-    fcall.tattach.setAfid(NoFid);
-	fcall.tattach.setUname(getenv("USER"));
-	fcall.tattach.setAname((char*)"");
+    fcall.getTattach().setAfid(NoFid);
+	fcall.getTattach().setUname(getenv("USER"));
+	fcall.getTattach().setAname((char*)"");
 	if(!c->dofcall(fcall)) {
         delete c;
 		return nullptr;
@@ -398,17 +398,17 @@ Client::create(const char *path, uint perm, uint8_t mode) {
     }
 
     fcall.setTypeAndFid(FType::TCreate, f->fid);
-    fcall.tcreate.setName((char*)(uintptr_t)path);
-    fcall.tcreate.setPerm(perm);
-    fcall.tcreate.setMode(mode);
+    fcall.getTcreate().setName((char*)(uintptr_t)path);
+    fcall.getTcreate().setPerm(perm);
+    fcall.getTcreate().setMode(mode);
 
 	if(!dofcall(fcall)) {
         clunk(f);
         return nullptr;
 	}
 
-    auto count = fcall.ropen.getIoUnit();
-    if (count == 0 || (fcall.ropen.getIoUnit() > (_msize-24))) {
+    auto count = fcall.getRopen().getIoUnit();
+    if (count == 0 || (fcall.getRopen().getIoUnit() > (_msize-24))) {
         count = _msize-24;
     }
 	initfid(f, &fcall, count);
@@ -433,8 +433,8 @@ Client::open(const char *path, uint8_t mode) {
 		return nullptr;
 	}
 
-    auto count = fcall.ropen.getIoUnit();
-    if (count == 0 || (fcall.ropen.getIoUnit() > (_msize-24))) {
+    auto count = fcall.getRopen().getIoUnit();
+    if (count == 0 || (fcall.getRopen().getIoUnit() > (_msize-24))) {
         count = _msize-24;
     }
 	initfid(f, &fcall, count);

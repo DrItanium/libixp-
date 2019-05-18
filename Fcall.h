@@ -198,40 +198,45 @@ namespace jyq {
      *	T<Srv9>, T<Req9>
      */
     union Fcall {
-        FHdr     hdr;
-        FVersion version;
-        FTFlush  tflush;
-        FROpen   ropen;
-        FError   error;
-        FRAuth   rauth;
-        FAttach  tattach;
-        FTCreate tcreate;
-        FTWalk   twalk;
-        FRWalk   rwalk;
-        FTWStat  twstat;
-        FRStat   rstat;
-        FIO      io;
-        const auto& getHeader() const noexcept { return hdr; }
-        auto& getHeader() noexcept { return hdr; }
-        auto& getVersion() noexcept { return version; }
-        auto& getTversion() noexcept { return version; }
-        auto& getRversion() noexcept { return version; }
-        auto& getRopen() noexcept { return ropen; }
-        auto& getRcreate() noexcept { return ropen; }
-        auto& getRattach() noexcept { return ropen; }
-        auto& getTattach() noexcept { return tattach; }
-        auto& getTauth() noexcept { return tattach; }
-        auto& getTcreate() noexcept { return tcreate; }
-        auto& getTopen() noexcept { return tcreate; }
-        auto& getTWrite() noexcept { return io; }
-        auto& getRWrite() noexcept { return io; }
-        auto& getTRead() noexcept { return io; }
-        auto& getRRead() noexcept { return io; }
-        auto& getIO() noexcept { return io; }
+        FHdr     _hdr;
+        FVersion _version;
+        FTFlush  _tflush;
+        FROpen   _ropen;
+        FError   _error;
+        FRAuth   _rauth;
+        FAttach  _tattach;
+        FTCreate _tcreate;
+        FTWalk   _twalk;
+        FRWalk   _rwalk;
+        FTWStat  _twstat;
+        FRStat   _rstat;
+        FIO      _io;
+        const auto& getHeader() const noexcept { return _hdr; }
+        auto& getHeader() noexcept { return _hdr; }
+        auto& getVersion() noexcept { return _version; }
+        auto& getTversion() noexcept { return _version; }
+        auto& getRversion() noexcept { return _version; }
+        auto& getRopen() noexcept { return _ropen; }
+        auto& getRcreate() noexcept { return _ropen; }
+        auto& getRattach() noexcept { return _ropen; }
+        auto& getTattach() noexcept { return _tattach; }
+        auto& getTauth() noexcept { return _tattach; }
+        auto& getTcreate() noexcept { return _tcreate; }
+        auto& getTopen() noexcept { return _tcreate; }
+        auto& getTWrite() noexcept { return _io; }
+        auto& getRWrite() noexcept { return _io; }
+        auto& getTRead() noexcept { return _io; }
+        auto& getRRead() noexcept { return _io; }
+        auto& getIO() noexcept { return _io; }
+        auto& getTwalk() noexcept { return _twalk; }
+        auto& getRwalk() noexcept { return _rwalk; }
+        auto& getError() noexcept { return _error; }
+        auto& getTwstat() noexcept { return _twstat; }
+        auto& getRstat() noexcept { return _rstat; }
         //static void free(Fcall*);
-        constexpr auto getType() const noexcept { return hdr.getType(); }
-        constexpr auto getFid() const noexcept { return hdr.getFid(); }
-        constexpr auto getTag() const noexcept { return hdr.getTag(); }
+        constexpr auto getType() const noexcept { return _hdr.getType(); }
+        constexpr auto getFid() const noexcept { return _hdr.getFid(); }
+        constexpr auto getTag() const noexcept { return _hdr.getTag(); }
         void setType(FType type) noexcept { getHeader().setType(type); }
         void setFid(uint32_t value) noexcept { getHeader().setFid(value); }
         void setTag(uint16_t value) noexcept { getHeader().setTag(value); }

@@ -378,14 +378,14 @@ Req9::respond(const char *error) {
 	case FType::TCreate:
 		if(!error) {
 			getOFcall().ropen.setIoUnit(p9conn->getRMsg().size() - 24);
-			fid->iounit = getOFcall().ropen.getIoUnit();
+			fid->iounit = getOFcall().getRopen().getIoUnit();
 			fid->omode = getIFcall().getTopen().getMode();
-			fid->qid = getOFcall().ropen.getQid();
+			fid->qid = getOFcall().getRopen().getQid();
 		}
 		free(getIFcall().tcreate.getName());
 		break;
 	case FType::TWalk:
-		if(error || getOFcall().rwalk.size() < getIFcall().twalk.size()) {
+		if(error || getOFcall().getRwalk().size() < getIFcall().getTwalk().size()) {
 			if(getIFcall().getFid() != getIFcall().twalk.getNewFid() && newfid) {
 				destroyfid(*p9conn, newfid->fid);
             }
