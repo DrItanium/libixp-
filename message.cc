@@ -88,19 +88,19 @@ void
 Fcall::reset() {
     switch(getType()) {
     case FType::RStat:
-        rstat.purgeStat();
+        getRstat().purgeStat();
 		break;
     case FType::RRead:
         ::free(getRRead().getData());
         getRRead().setData(nullptr);
 		break;
     case FType::RVersion:
-        ::free(version.getVersion());
-		version.setVersion(nullptr);
+        ::free(getVersion().getVersion());
+		getVersion().setVersion(nullptr);
 		break;
     case FType::RError:
-		::free(error.getEname());
-		error.setEname(nullptr);
+		::free(getError().getEname());
+		getError().setEname(nullptr);
 		break;
     default:
         break;
@@ -209,63 +209,63 @@ FTWStat::packUnpack(Msg& msg) {
 }
 void
 Fcall::packUnpack(Msg& msg) noexcept {
-    hdr.packUnpack(msg);
+    getHeader().packUnpack(msg);
 
 	switch (getType()) {
 	case FType::TVersion:
 	case FType::RVersion:
-        version.packUnpack(msg);
+        getVersion().packUnpack(msg);
 		break;
 	case FType::TAuth:
         getTauth().packUnpack(msg);
 		break;
 	case FType::RAuth:
-        rauth.packUnpack(msg);
+        getRauth().packUnpack(msg);
 		break;
 	case FType::RAttach:
         getRattach().packUnpack(msg);
 		break;
 	case FType::TAttach:
-        tattach.packUnpack(msg);
+        getTattach().packUnpack(msg);
 		break;
 	case FType::RError:
-        error.packUnpack(msg);
+        getError().packUnpack(msg);
 		break;
 	case FType::TFlush:
-        tflush.packUnpack(msg);
+        getTflush().packUnpack(msg);
 		break;
 	case FType::TWalk:
-        twalk.packUnpack(msg);
+        getTwalk().packUnpack(msg);
 		break;
 	case FType::RWalk:
-        rwalk.packUnpack(msg);
+        getRwalk().packUnpack(msg);
 		break;
 	case FType::TOpen:
         getTopen().packUnpack(msg);
 		break;
 	case FType::ROpen:
 	case FType::RCreate:
-        ropen.packUnpack(msg);
+        getRopen().packUnpack(msg);
 		break;
 	case FType::TCreate:
-        tcreate.packUnpack(msg);
+        getTcreate().packUnpack(msg);
 		break;
 	case FType::TRead:
 	case FType::RRead:
 	case FType::TWrite:
 	case FType::RWrite:
-        io.packUnpack(msg);
+        getIO().packUnpack(msg);
 		break;
 	case FType::TClunk:
 	case FType::TRemove:
 	case FType::TStat:
-        hdr.packUnpackFid(msg);
+        getHeader().packUnpackFid(msg);
 		break;
     case FType::RStat:
-        rstat.packUnpack(msg);
+        getRstat().packUnpack(msg);
 		break;
     case FType::TWStat: 
-        twstat.packUnpack(msg);
+        getTwstat().packUnpack(msg);
 		break;
     default:
         break;

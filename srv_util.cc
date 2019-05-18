@@ -124,15 +124,15 @@ srv_clonefiles(FileId *fileid) {
 void
 srv_readbuf(Req9 *req, char *buf, uint len) {
 
-	if(req->getIFcall().io.getOffset() >= len)
+	if(req->getIFcall().getIO().getOffset() >= len)
 		return;
 
-	len -= req->getIFcall().io.getOffset();
-	if(len > req->getIFcall().io.size())
-		len = req->getIFcall().io.size();
-    req->getOFcall().io.setData(new char[len]);
-	memcpy(req->getOFcall().io.getData(), buf + req->getIFcall().io.getOffset(), len);
-	req->getOFcall().io.setSize(len);
+	len -= req->getIFcall().getIO().getOffset();
+	if(len > req->getIFcall().getIO().size())
+		len = req->getIFcall().getIO().size();
+    req->getOFcall().getIO().setData(new char[len]);
+	memcpy(req->getOFcall().getIO().getData(), buf + req->getIFcall().getIO().getOffset(), len);
+	req->getOFcall().getIO().setSize(len);
 }
 
 void
@@ -143,16 +143,16 @@ srv_writebuf(Req9 *req, char **buf, uint *len, uint max) {
 
 	file = std::any_cast<decltype(file)>(req->fid->aux);
 
-	offset = req->getIFcall().io.getOffset();
+	offset = req->getIFcall().getIO().getOffset();
 	if(file->tab.perm & uint32_t(DMode::APPEND))
 		offset = *len;
 
-	if(offset > *len || req->getIFcall().io.empty()) {
-        req->getOFcall().io.setSize(0);
+	if(offset > *len || req->getIFcall().getIO().empty()) {
+        req->getOFcall().getIO().setSize(0);
 		return;
 	}
 
-	count = req->getIFcall().io.size();
+	count = req->getIFcall().getIO().size();
 	if(max && (offset + count > max))
 		count = max - offset;
 
@@ -162,8 +162,8 @@ srv_writebuf(Req9 *req, char **buf, uint *len, uint max) {
     }
 	p = *buf;
 
-	memcpy(p+offset, req->getIFcall().io.getData(), count);
-	req->getOFcall().io.setSize(count);
+	memcpy(p+offset, req->getIFcall().getIO().getData(), count);
+	req->getOFcall().getIO().setSize(count);
 	p[offset+count] = '\0';
 }
 
@@ -178,8 +178,8 @@ srv_writebuf(Req9 *req, char **buf, uint *len, uint max) {
  */
 void
 srv_data2cstring(Req9 *req) {
-    uint i = req->getIFcall().io.size();
-	auto p = req->getIFcall().io.getData();
+    uint i = req->getIFcall().getIO().size();
+	auto p = req->getIFcall().getIO().getData();
 	if(i && p[i - 1] == '\n') {
 		i--;
     }
@@ -188,9 +188,9 @@ srv_data2cstring(Req9 *req) {
 		i = q - p;
     }
 
-	p = (decltype(p))jyq::erealloc(req->getIFcall().io.getData(), i+1);
+	p = (decltype(p))jyq::erealloc(req->getIFcall().getIO().getData(), i+1);
 	p[i] = '\0';
-	req->getIFcall().io.setData(p);
+	req->getIFcall().getIO().setData(p);
 }
 
 /**
@@ -210,7 +210,7 @@ srv_writectl(Req9 *req, std::function<char*(void*, Msg*)> fn) {
 	FileId* file = std::any_cast<FileId*>(req->fid->aux);
 
 	srv_data2cstring(req);
-    auto s = req->getIFcall().io.getData();
+    auto s = req->getIFcall().getIO().getData();
 
 	char* err = nullptr;
 	auto c = *s;
@@ -284,8 +284,8 @@ pending_respond(Req9 *req) {
 	if(p->queue) {
 		queue = p->queue;
 		p->queue = queue->link;
-        req->getOFcall().io.setData(queue->dat);
-		req->getOFcall().io.setSize(queue->len);
+        req->getOFcall().getIO().setData(queue->dat);
+		req->getOFcall().getIO().setSize(queue->len);
 		if(req->getAux().has_value()) {
             req_link = std::any_cast<decltype(req_link)>(req->getAux());
 			req_link->next->prev = req_link->prev;
@@ -516,7 +516,7 @@ srv_readdir(Req9 *req, LookupFn lookup, std::function<void(Stat*, FileId*)> dost
 
 	auto file = std::any_cast<FileId*>(req->fid->aux);
 
-	ulong size = req->getIFcall().io.size();
+	ulong size = req->getIFcall().getIO().size();
 	if(size > req->fid->iounit)
 		size = req->fid->iounit;
     auto buf = new char[size];
@@ -529,7 +529,7 @@ srv_readdir(Req9 *req, LookupFn lookup, std::function<void(Stat*, FileId*)> dost
 	for(file=file->next; file; file=file->next) {
 		dostat(&stat, file);
         ulong n = stat.size();
-		if(offset >= req->getIFcall().io.getOffset()) {
+		if(offset >= req->getIFcall().getIO().getOffset()) {
 			if(size < n)
 				break;
             msg.pstat(&stat);
@@ -541,8 +541,8 @@ srv_readdir(Req9 *req, LookupFn lookup, std::function<void(Stat*, FileId*)> dost
 		tfile=tfile->next;
 		srv_freefile(file);
 	}
-	req->getOFcall().io.setSize(msg.pos - msg.data);
-    req->getOFcall().io.setData(msg.data);
+	req->getOFcall().getIO().setSize(msg.pos - msg.data);
+    req->getOFcall().getIO().setData(msg.data);
     req->respond(nullptr);
 }
 
@@ -552,28 +552,28 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
 	int i;
 
 	auto file = (FileId*)srv_clonefiles(std::any_cast<FileId*>(req->fid->aux));
-	for(i=0; i < req->getIFcall().twalk.size(); i++) {
-		if(!strcmp(req->getIFcall().twalk.getWname()[i], "..")) {
+	for(i=0; i < req->getIFcall().getTwalk().size(); i++) {
+		if(!strcmp(req->getIFcall().getTwalk().getWname()[i], "..")) {
 			if(file->next) {
 				tfile = file;
 				file = file->next;
 				srv_freefile(tfile);
 			}
 		}else{
-			tfile = lookup(file, req->getIFcall().twalk.getWname()[i]);
+			tfile = lookup(file, req->getIFcall().getTwalk().getWname()[i]);
 			if(!tfile)
 				break;
 			assert(!tfile->next);
-			if(strcmp(req->getIFcall().twalk.getWname()[i], ".")) {
+			if(strcmp(req->getIFcall().getTwalk().getWname()[i], ".")) {
 				tfile->next = file;
 				file = tfile;
 			}
 		}
-		req->getOFcall().rwalk.getWqid()[i].setType(file->tab.qtype);
-		req->getOFcall().rwalk.getWqid()[i].setPath(computeQIDValue(file->tab.type, file->id));
+		req->getOFcall().getRwalk().getWqid()[i].setType(file->tab.qtype);
+		req->getOFcall().getRwalk().getWqid()[i].setPath(computeQIDValue(file->tab.type, file->id));
 	}
 	/* There should be a way to do this on freefid() */
-	if(i < req->getIFcall().twalk.size()) {
+	if(i < req->getIFcall().getTwalk().size()) {
 		while((tfile = file)) {
 			file=file->next;
 			srv_freefile(tfile);
@@ -582,7 +582,7 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
 		return;
 	}
 	/* Remove refs for req->fid if no new fid */
-	if(req->getIFcall().getFid() == req->getIFcall().twalk.getNewFid()) {
+	if(req->getIFcall().getFid() == req->getIFcall().getTwalk().getNewFid()) {
 		tfile = std::any_cast<decltype(tfile)>(req->fid->aux);
 		req->fid->aux = file;
 		while((file = tfile)) {
@@ -592,7 +592,7 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
 	} else {
 		req->newfid->aux = file;
     }
-    req->getOFcall().rwalk.setSize(i);
+    req->getOFcall().getRwalk().setSize(i);
     req->respond(nullptr);
 }
 

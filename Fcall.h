@@ -212,6 +212,8 @@ namespace jyq {
         FRStat   _rstat;
         FIO      _io;
         const auto& getHeader() const noexcept { return _hdr; }
+        auto& getRauth() noexcept { return _rauth; }
+        auto& getTflush() noexcept { return _tflush; }
         auto& getHeader() noexcept { return _hdr; }
         auto& getVersion() noexcept { return _version; }
         auto& getTversion() noexcept { return _version; }

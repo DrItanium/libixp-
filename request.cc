@@ -161,15 +161,15 @@ Req9::handle() {
                 static std::string str9p("9P");
                 static std::string str9p2000("9P2000");
                 static std::string strUnknown("unknown");
-                std::string ver(getIFcall().version.getVersion());
+                std::string ver(getIFcall().getVersion().getVersion());
                 if(!strcmp(ver.c_str(), str9p.c_str())) {
-                    getOFcall().version.setVersion(str9p.data());
+                    getOFcall().getVersion().setVersion(str9p.data());
                 } else if(!strcmp(ver.c_str(), str9p2000.c_str())) {
-                    getOFcall().version.setVersion(str9p2000.data());
+                    getOFcall().getVersion().setVersion(str9p2000.data());
                 } else {
-                    getOFcall().version.setVersion(strUnknown.data());
+                    getOFcall().getVersion().setVersion(strUnknown.data());
                 }
-                getOFcall().version.setSize(getIFcall().version.size());
+                getOFcall().getVersion().setSize(getIFcall().getVersion().size());
                 respond(nullptr);
             } },
         {FType::TAttach, 
@@ -197,7 +197,7 @@ Req9::handle() {
             } },
         { FType::TFlush, 
             [&p9conn, srv = p9conn.getSrv(), this]() {
-                if (oldreq = p9conn.retrieveTag(getIFcall().tflush.getOldTag()); !oldreq) {
+                if (oldreq = p9conn.retrieveTag(getIFcall().getTflush().getOldTag()); !oldreq) {
                     respond(Enotag);
                 } else {
                     if(!srv->flush) {
@@ -227,7 +227,7 @@ Req9::handle() {
                     respond(Enofid);
                 } else if ((fid->qid.getType()&uint8_t(QType::DIR)) && (getIFcall().getTopen().getMode()|uint8_t(OMode::RCLOSE)) != (uint8_t(OMode::READ)|uint8_t(OMode::RCLOSE))) {
                     respond(Eisdir);
-                } else if (getOFcall().ropen.setQid(fid->qid); !p9conn.getSrv()->open) {
+                } else if (getOFcall().getRopen().setQid(fid->qid); !p9conn.getSrv()->open) {
                     respond(Enofunc);
                 } else {
                     srv->open(this);
@@ -275,12 +275,12 @@ Req9::handle() {
                     respond("cannot walk from an open fid");
                     return;
                 }
-                if(getIFcall().twalk.size() && !(fid->qid.getType()&uint8_t(QType::DIR))) {
+                if(getIFcall().getTwalk().size() && !(fid->qid.getType()&uint8_t(QType::DIR))) {
                     respond(Enotdir);
                     return;
                 }
-                if((getIFcall().getFid() != getIFcall().twalk.getNewFid())) {
-                    if (newfid = createfid(p9conn.getFidMap(), getIFcall().twalk.getNewFid(), p9conn); !newfid) {
+                if((getIFcall().getFid() != getIFcall().getTwalk().getNewFid())) {
+                    if (newfid = createfid(p9conn.getFidMap(), getIFcall().getTwalk().getNewFid(), p9conn); !newfid) {
                         respond(Edupfid);
                         return;
                     }
@@ -311,15 +311,15 @@ Req9::handle() {
             [&p9conn, srv = p9conn.getSrv(), this]() {
                 if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
-                } else if(~getIFcall().twstat.getStat().getType()) {
+                } else if(~getIFcall().getTwstat().getStat().getType()) {
                     respond("wstat of type");
-                } else if(~getIFcall().twstat.getStat().getDev()) {
+                } else if(~getIFcall().getTwstat().getStat().getDev()) {
                     respond("wstat of dev");
-                } else if(~getIFcall().twstat.getStat().getQid().getType() || (ulong)~getIFcall().twstat.getStat().getQid().getVersion() || ~getIFcall().twstat.getStat().getQid().getPath()) {
+                } else if(~getIFcall().getTwstat().getStat().getQid().getType() || (ulong)~getIFcall().getTwstat().getStat().getQid().getVersion() || ~getIFcall().getTwstat().getStat().getQid().getPath()) {
                     respond("wstat of qid");
-                } else if(getIFcall().twstat.getStat().getMuid() && getIFcall().twstat.getStat().getMuid()[0]) {
+                } else if(getIFcall().getTwstat().getStat().getMuid() && getIFcall().getTwstat().getStat().getMuid()[0]) {
                     respond("wstat of muid");
-                } else if(~getIFcall().twstat.getStat().getMode() && ((getIFcall().twstat.getStat().getMode()&(uint32_t)(DMode::DIR))>>24) != (fid->qid.getType()&uint8_t(QType::DIR))) {
+                } else if(~getIFcall().getTwstat().getStat().getMode() && ((getIFcall().getTwstat().getStat().getMode()&(uint32_t)(DMode::DIR))>>24) != (fid->qid.getType()&uint8_t(QType::DIR))) {
                     respond("wstat on DMDIR bit");
                 } else if(!srv->wstat) {
                     respond(Enofunc);
@@ -358,48 +358,48 @@ Req9::respond(const char *error) {
 	switch(getIFcall().getType()) {
 	case FType::TVersion:
 		assert(error == nullptr);
-		free(getIFcall().version.getVersion());
+		free(getIFcall().getVersion().getVersion());
         {
             concurrency::Locker<Mutex> theRlock(p9conn->getRLock());
             concurrency::Locker<Mutex> theWlock(p9conn->getWLock());
-		    msize = jyq::min<int>(getOFcall().version.size(), maximum::Msg);
+		    msize = jyq::min<int>(getOFcall().getVersion().size(), maximum::Msg);
             p9conn->alloc(msize);
         }
-        getOFcall().version.setSize(msize);
+        getOFcall().getVersion().setSize(msize);
 		break;
 	case FType::TAttach:
 		if(error) {
             destroyfid(*p9conn, fid->fid);
         }
-		free(getIFcall().tattach.getUname());
-		free(getIFcall().tattach.getAname());
+		free(getIFcall().getTattach().getUname());
+		free(getIFcall().getTattach().getAname());
 		break;
 	case FType::TOpen:
 	case FType::TCreate:
 		if(!error) {
-			getOFcall().ropen.setIoUnit(p9conn->getRMsg().size() - 24);
+			getOFcall().getRopen().setIoUnit(p9conn->getRMsg().size() - 24);
 			fid->iounit = getOFcall().getRopen().getIoUnit();
 			fid->omode = getIFcall().getTopen().getMode();
 			fid->qid = getOFcall().getRopen().getQid();
 		}
-		free(getIFcall().tcreate.getName());
+		free(getIFcall().getTcreate().getName());
 		break;
 	case FType::TWalk:
 		if(error || getOFcall().getRwalk().size() < getIFcall().getTwalk().size()) {
-			if(getIFcall().getFid() != getIFcall().twalk.getNewFid() && newfid) {
+			if(getIFcall().getFid() != getIFcall().getTwalk().getNewFid() && newfid) {
 				destroyfid(*p9conn, newfid->fid);
             }
-			if(!error && getOFcall().rwalk.empty()) {
+			if(!error && getOFcall().getRwalk().empty()) {
 				error = Enofile.c_str();
             }
 		}else{
-            if (getOFcall().rwalk.empty()) {
+            if (getOFcall().getRwalk().empty()) {
 				newfid->qid = fid->qid;
             } else {
-				newfid->qid = getOFcall().rwalk.getWqid()[getOFcall().rwalk.size()-1];
+				newfid->qid = getOFcall().getRwalk().getWqid()[getOFcall().getRwalk().size()-1];
             }
 		}
-		free(*getIFcall().twalk.getWname());
+		free(*getIFcall().getTwalk().getWname());
 		break;
 	case FType::TWrite:
 		free(getIFcall().getTWrite().getData());
@@ -415,12 +415,12 @@ Req9::respond(const char *error) {
         }
 		break;
 	case FType::TFlush:
-        if (oldreq = p9conn->retrieveTag(getIFcall().tflush.getOldTag()); oldreq) {
+        if (oldreq = p9conn->retrieveTag(getIFcall().getTflush().getOldTag()); oldreq) {
             oldreq->respond(Eintr);
         }
 		break;
 	case FType::TWStat:
-		//Stat::free(&getIFcall().twstat.getStat());
+		//Stat::free(&getIFcall().getTwstat().getStat());
 		break;
 	case FType::TRead:
 	case FType::TStat:
@@ -439,7 +439,7 @@ Req9::respond(const char *error) {
         getOFcall().setType(FType(((uint8_t)getIFcall().getType()) + 1));
     } else {
         getOFcall().setType(FType::RError);
-		getOFcall().error.setEname((char*)error);
+		getOFcall().getError().setEname((char*)error);
 	}
 
 	if(printfcall) {
@@ -458,7 +458,7 @@ Req9::respond(const char *error) {
 
 	switch(getOFcall().getType()) {
 	case FType::RStat:
-		free(getOFcall().rstat.getStat());
+		free(getOFcall().getRstat().getStat());
 		break;
 	case FType::RRead:
 		free(getOFcall().getRRead().getData());
@@ -491,7 +491,7 @@ cleanupconn(Conn *c) {
                     context.emplace_back();
                     context.back().getIFcall().setType(FType::TFlush);
                     context.back().getIFcall().setNoTag();
-                    context.back().getIFcall().tflush.setOldTag(arg->second.getIFcall().getTag());
+                    context.back().getIFcall().getTflush().setOldTag(arg->second.getIFcall().getTag());
                     context.back().setConn(arg->second.getConn());
                 }, collection);
 	}
