@@ -211,6 +211,8 @@ namespace jyq {
         FTWStat  twstat;
         FRStat   rstat;
         FIO      io;
+        const auto& getHeader() const noexcept { return hdr; }
+        auto& getHeader() noexcept { return hdr; }
         auto& getVersion() noexcept { return version; }
         auto& getTversion() noexcept { return version; }
         auto& getRversion() noexcept { return version; }
@@ -230,14 +232,14 @@ namespace jyq {
         constexpr auto getType() const noexcept { return hdr.getType(); }
         constexpr auto getFid() const noexcept { return hdr.getFid(); }
         constexpr auto getTag() const noexcept { return hdr.getTag(); }
-        void setType(FType type) noexcept { hdr.setType(type); }
-        void setFid(uint32_t value) noexcept { hdr.setFid(value); }
+        void setType(FType type) noexcept { getHeader().setType(type); }
+        void setFid(uint32_t value) noexcept { getHeader().setFid(value); }
+        void setTag(uint16_t value) noexcept { getHeader().setTag(value); }
+        void setNoTag() noexcept { setTag(NoTag); }
         void setTypeAndFid(FType t, uint32_t fid) noexcept {
             setType(t);
             setFid(fid);
         }
-        void setTag(uint16_t value) noexcept { hdr.setTag(value); }
-        void setNoTag() noexcept { setTag(NoTag); }
         Fcall() = default;
         Fcall(FType type) {
             setType(type);
