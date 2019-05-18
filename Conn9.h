@@ -27,13 +27,15 @@ struct Conn9 {
     TagMap    tagmap;
     Fid::Map  fidmap;
 	Srv9*	srv;
-	Conn*	conn;
     private:
+	Conn*	_conn;
 	Mutex	_rlock;
 	Mutex	_wlock;
     Msg		_rmsg;
     Msg		_wmsg;
     public:
+    auto getConn() noexcept { return _conn; }
+    void setConn(Conn* value) noexcept { _conn = value; }
     Msg& getRMsg() noexcept { return _rmsg; }
     Msg& getWMsg() noexcept { return _wmsg; }
     Mutex& getRLock() noexcept { return _rlock; }

@@ -131,7 +131,7 @@ handlefcall(Conn *c) {
     req.setConn(p9conn);
 	req.srv = p9conn->srv;
     req.setIFcall(fcall);
-	p9conn->conn = c;
+    p9conn->setConn(c);
 
     if (auto result = p9conn->tagmap.emplace(fcall.getTag(), req); result.second) {
         result.first->second.handle();
@@ -448,11 +448,11 @@ Req9::respond(const char *error) {
 
     p9conn->removeTag(getIFcall().getTag());
 
-	if(p9conn->conn) {
+    if (p9conn->getConn()) {
         concurrency::Locker<Mutex> theLock(p9conn->getWLock());
         msize = p9conn->getWMsg().pack(getOFcall());
-        if (p9conn->conn->getConnection().sendmsg(p9conn->getWMsg()) != msize) {
-			hangup(p9conn->conn);
+        if (p9conn->getConn()->getConnection().sendmsg(p9conn->getWMsg()) != msize) {
+			hangup(p9conn->getConn());
         }
 	}
 
@@ -474,7 +474,7 @@ static void
 cleanupconn(Conn *c) {
     using ReqList = std::list<Req9>;
     auto p9conn = std::any_cast<Conn9*>(c->aux);
-	p9conn->conn = nullptr;
+    p9conn->setConn(nullptr);
     ReqList collection;
     if (p9conn->referenceCountGreaterThan(1)) {
         p9conn->fidExec<ReqList&>([](auto context, Fid::Map::iterator arg) {
