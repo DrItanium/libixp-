@@ -212,9 +212,12 @@ namespace jyq {
         FRWalk   rwalk;
         FTWStat  twstat;
         FRStat   rstat;
-        FIO      twrite, rwrite, 
-                 tread, rread,
-                 io;
+        FIO      io;
+        auto& getTWrite() noexcept { return io; }
+        auto& getRWrite() noexcept { return io; }
+        auto& getTRead() noexcept { return io; }
+        auto& getRRead() noexcept { return io; }
+        auto& getIO() noexcept { return io; }
         //static void free(Fcall*);
         constexpr auto getType() const noexcept { return hdr.getType(); }
         constexpr auto getFid() const noexcept { return hdr.getFid(); }

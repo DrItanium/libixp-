@@ -97,18 +97,20 @@ _pread(CFid *f, char *buf, long count, int64_t offset, std::function<std::shared
 	    Fcall fcall;
         auto n = min<int>(count-len, f->iounit);
         fcall.setTypeAndFid(FType::TRead, f->fid);
-        fcall.tread.setOffset(offset);
-        fcall.tread.setSize(n);
+        auto tread = fcall.getTRead();
+        tread.setOffset(offset);
+        tread.setSize(n);
         if (auto result = dofcall(fcall); !result) {
             return -1;
-        } else if (result->rread.size() > n) {
+        } else if (result->getRRead().size() > n) {
             return -1;
         } else {
-            memcpy(buf+len, result->rread.getData(), result->rread.size());
-            offset += result->rread.size();
-            len += result->rread.size();
+            auto& rread = result->getRRead();
+            memcpy(buf+len, rread.getData(), rread.size());
+            offset += rread.size();
+            len += rread.size();
 
-            if(result->rread.size() < n) {
+            if(rread.size() < n) {
                 break;
             }
         }
@@ -125,17 +127,18 @@ _pwrite(CFid *f, const void *buf, long count, int64_t offset, DoFcallFunc dofcal
         Fcall fcall;
 		n = min<int>(count-len, f->iounit);
         fcall.setTypeAndFid(FType::TWrite, f->fid);
-        fcall.twrite.setOffset(offset);
-        fcall.twrite.setData((char*)buf + len);
-        fcall.twrite.setSize(n);
+        auto& twrite = fcall.getTWrite();
+        twrite.setOffset(offset);
+        twrite.setData((char*)buf + len);
+        twrite.setSize(n);
         if (auto result = dofcall(fcall); !result) {
             return -1;
         } else {
+            auto& rwrite = result->getRWrite();
+            offset += rwrite.size();
+            len += rwrite.size();
 
-            offset += result->rwrite.size();
-            len += result->rwrite.size();
-
-            if(result->rwrite.size() < n) {
+            if(rwrite.size() < n) {
                 break;
             }
         }

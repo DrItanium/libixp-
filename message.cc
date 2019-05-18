@@ -91,8 +91,8 @@ Fcall::reset() {
         rstat.purgeStat();
 		break;
     case FType::RRead:
-		::free(rread.getData());
-        rread.setData(nullptr);
+        ::free(getRRead().getData());
+        getRRead().setData(nullptr);
 		break;
     case FType::RVersion:
         ::free(version.getVersion());

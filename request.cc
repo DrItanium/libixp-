@@ -402,7 +402,7 @@ Req9::respond(const char *error) {
 		free(*getIFcall().twalk.getWname());
 		break;
 	case FType::TWrite:
-		free(getIFcall().twrite.getData());
+		free(getIFcall().getTWrite().getData());
 		break;
 	case FType::TRemove:
 		if(fid) {
@@ -461,7 +461,7 @@ Req9::respond(const char *error) {
 		free(getOFcall().rstat.getStat());
 		break;
 	case FType::RRead:
-		free(getOFcall().rread.getData());
+		free(getOFcall().getRRead().getData());
 		break;
     default:
         break;
