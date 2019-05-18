@@ -28,14 +28,16 @@ struct Conn9 {
     Fid::Map  fidmap;
 	Srv9*	srv;
 	Conn*	conn;
-	Mutex	rlock;
-	Mutex	wlock;
     private:
-	Msg		_rmsg;
-	Msg		_wmsg;
+	Mutex	_rlock;
+	Mutex	_wlock;
+    Msg		_rmsg;
+    Msg		_wmsg;
     public:
     Msg& getRMsg() noexcept { return _rmsg; }
     Msg& getWMsg() noexcept { return _wmsg; }
+    Mutex& getRLock() noexcept { return _rlock; }
+    Mutex& getWLock() noexcept { return _wlock; }
     void alloc(uint n);
     constexpr auto getReferenceCount() const noexcept { return _ref; }
     constexpr auto referenceCountGreaterThan(int count) const noexcept { return _ref > count; }

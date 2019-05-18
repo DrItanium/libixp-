@@ -52,7 +52,7 @@ static std::string
 static void
 decref_p9conn(Conn9 *p9conn) {
     {
-        concurrency::Locker<Mutex> theLock(p9conn->wlock);
+        concurrency::Locker<Mutex> theLock(p9conn->getWLock());
         p9conn->operator--();
         if (p9conn->referenceCountGreaterThan(0)) {
             return;
@@ -113,18 +113,18 @@ handlefcall(Conn *c) {
 
 	auto p9conn = std::any_cast<Conn9*>(c->aux);
 
-    p9conn->rlock.lock();
+    p9conn->getRLock().lock();
     if (c->recvmsg(p9conn->getRMsg()) == 0) {
-        p9conn->rlock.unlock();
+        p9conn->getRLock().unlock();
         hangup(c);
         return;
     }
     if (p9conn->getRMsg().unpack(fcall) == 0) {
-        p9conn->rlock.unlock();
+        p9conn->getRLock().unlock();
         hangup(c);
         return;
     }
-    p9conn->rlock.unlock();
+    p9conn->getRLock().unlock();
 
     p9conn->operator++();
     Req9 req;
@@ -360,8 +360,8 @@ Req9::respond(const char *error) {
 		assert(error == nullptr);
 		free(getIFcall().version.getVersion());
         {
-            concurrency::Locker<Mutex> theRlock(p9conn->rlock);
-            concurrency::Locker<Mutex> theWlock(p9conn->wlock);
+            concurrency::Locker<Mutex> theRlock(p9conn->getRLock());
+            concurrency::Locker<Mutex> theWlock(p9conn->getWLock());
 		    msize = jyq::min<int>(getOFcall().version.size(), maximum::Msg);
             p9conn->alloc(msize);
         }
@@ -449,7 +449,7 @@ Req9::respond(const char *error) {
     p9conn->removeTag(getIFcall().getTag());
 
 	if(p9conn->conn) {
-        concurrency::Locker<Mutex> theLock(p9conn->wlock);
+        concurrency::Locker<Mutex> theLock(p9conn->getWLock());
         msize = p9conn->getWMsg().pack(getOFcall());
         if (p9conn->conn->getConnection().sendmsg(p9conn->getWMsg()) != msize) {
 			hangup(p9conn->conn);
