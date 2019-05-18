@@ -133,7 +133,7 @@ handlefcall(Conn *c) {
     req.setIFcall(fcall);
     p9conn->setConn(c);
 
-    if (auto result = p9conn->tagmap.emplace(fcall.getTag(), req); result.second) {
+    if (auto result = p9conn->getTagMap().emplace(fcall.getTag(), req); result.second) {
         result.first->second.handle();
     } else {
         req.respond(Eduptag);
@@ -141,12 +141,12 @@ handlefcall(Conn *c) {
 }
 Req9*
 Conn9::retrieveTag(uint16_t id) {
-    return tagmap.get(id);
+    return _tagmap.get(id);
 }
 
 Fid*
 Conn9::retrieveFid(int id) {
-    return fidmap.get(id);
+    return _fidmap.get(id);
 }
 void
 Req9::handle() {
@@ -174,7 +174,7 @@ Req9::handle() {
             } },
         {FType::TAttach, 
             [&p9conn, srv = p9conn.getSrv(), this]() {
-                auto newfid = createfid(p9conn.fidmap, getIFcall().getFid(), p9conn);
+                auto newfid = createfid(p9conn.getFidMap(), getIFcall().getFid(), p9conn);
                 fid = newfid;
                 if (!fid) {
                     respond(Edupfid);
@@ -280,7 +280,7 @@ Req9::handle() {
                     return;
                 }
                 if((getIFcall().getFid() != getIFcall().twalk.getNewFid())) {
-                    if (newfid = createfid(p9conn.fidmap, getIFcall().twalk.getNewFid(), p9conn); !newfid) {
+                    if (newfid = createfid(p9conn.getFidMap(), getIFcall().twalk.getNewFid(), p9conn); !newfid) {
                         respond(Edupfid);
                         return;
                     }

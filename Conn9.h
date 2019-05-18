@@ -24,9 +24,9 @@ namespace jyq {
 struct Srv9;
 struct Conn9 {
     using TagMap = jyq::Map<uint16_t, Req9>;
-    TagMap    tagmap;
-    Fid::Map  fidmap;
     private:
+    TagMap    _tagmap;
+    Fid::Map  _fidmap;
     Srv9*   _srv;
 	Conn*	_conn;
 	Mutex	_rlock;
@@ -34,6 +34,8 @@ struct Conn9 {
     Msg		_rmsg;
     Msg		_wmsg;
     public:
+    Fid::Map& getFidMap() noexcept { return _fidmap; }
+    TagMap& getTagMap() noexcept { return _tagmap; }
     auto getSrv() noexcept { return _srv; }
     void setSrv(Srv9* value) { _srv = value; }
     auto getConn() noexcept { return _conn; }
@@ -54,11 +56,11 @@ struct Conn9 {
     bool removeFid(int id);
     template<typename T>
     void tagExec(std::function<void(T, TagMap::iterator)> op, T context) {
-        tagmap.exec<T>(op, context);
+        _tagmap.exec<T>(op, context);
     }
     template<typename T>
     void fidExec(std::function<void(T, Fid::Map::iterator)> op, T context) {
-        fidmap.exec<T>(op, context);
+        _fidmap.exec<T>(op, context);
     }
 
     /**
