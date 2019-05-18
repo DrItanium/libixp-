@@ -30,8 +30,13 @@ struct Conn9 {
 	Conn*	conn;
 	Mutex	rlock;
 	Mutex	wlock;
-	Msg		rmsg;
-	Msg		wmsg;
+    private:
+	Msg		_rmsg;
+	Msg		_wmsg;
+    public:
+    Msg& getRMsg() noexcept { return _rmsg; }
+    Msg& getWMsg() noexcept { return _wmsg; }
+    void alloc(uint n);
     constexpr auto getReferenceCount() const noexcept { return _ref; }
     constexpr auto referenceCountGreaterThan(int count) const noexcept { return _ref > count; }
     constexpr auto referenceCountIs(int count) const noexcept { return _ref == count; }

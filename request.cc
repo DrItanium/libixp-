@@ -114,12 +114,12 @@ handlefcall(Conn *c) {
 	auto p9conn = std::any_cast<Conn9*>(c->aux);
 
     p9conn->rlock.lock();
-    if (c->recvmsg(p9conn->rmsg) == 0) {
+    if (c->recvmsg(p9conn->getRMsg()) == 0) {
         p9conn->rlock.unlock();
         hangup(c);
         return;
     }
-    if (p9conn->rmsg.unpack(fcall) == 0) {
+    if (p9conn->getRMsg().unpack(fcall) == 0) {
         p9conn->rlock.unlock();
         hangup(c);
         return;
@@ -363,8 +363,7 @@ Req9::respond(const char *error) {
             concurrency::Locker<Mutex> theRlock(p9conn->rlock);
             concurrency::Locker<Mutex> theWlock(p9conn->wlock);
 		    msize = jyq::min<int>(getOFcall().version.size(), maximum::Msg);
-            p9conn->rmsg.alloc(msize);
-            p9conn->wmsg.alloc(msize);
+            p9conn->alloc(msize);
         }
         getOFcall().version.setSize(msize);
 		break;
@@ -378,7 +377,7 @@ Req9::respond(const char *error) {
 	case FType::TOpen:
 	case FType::TCreate:
 		if(!error) {
-			getOFcall().ropen.setIoUnit(p9conn->rmsg.size() - 24);
+			getOFcall().ropen.setIoUnit(p9conn->getRMsg().size() - 24);
 			fid->iounit = getOFcall().ropen.getIoUnit();
 			fid->omode = getIFcall().topen.getMode();
 			fid->qid = getOFcall().ropen.getQid();
@@ -451,8 +450,8 @@ Req9::respond(const char *error) {
 
 	if(p9conn->conn) {
         concurrency::Locker<Mutex> theLock(p9conn->wlock);
-        msize = p9conn->wmsg.pack(getOFcall());
-        if (p9conn->conn->getConnection().sendmsg(p9conn->wmsg) != msize) {
+        msize = p9conn->getWMsg().pack(getOFcall());
+        if (p9conn->conn->getConnection().sendmsg(p9conn->getWMsg()) != msize) {
 			hangup(p9conn->conn);
         }
 	}
@@ -537,9 +536,16 @@ Conn::serve9conn() {
         Conn9 p9conn;
         ++p9conn;
         p9conn.srv = std::any_cast<decltype(p9conn.srv)>(this->aux);
-        p9conn.rmsg.alloc(1024);
-        p9conn.wmsg.alloc(1024);
+        p9conn.alloc(1024);
+        //p9conn.rmsg.alloc(1024);
+        //p9conn.wmsg.alloc(1024);
         srv.listen(fd, &p9conn, handlefcall, cleanupconn);
     }
+}
+
+void
+Conn9::alloc(uint n) {
+    _rmsg.alloc(n);
+    _wmsg.alloc(n);
 }
 } // end namespace jyq
