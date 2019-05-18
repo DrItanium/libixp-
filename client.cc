@@ -426,7 +426,7 @@ Client::open(const char *path, uint8_t mode) {
     }
 
     fcall.setTypeAndFid(FType::TOpen, f->fid);
-    fcall.topen.setMode(mode);
+    fcall.getTopen().setMode(mode);
 
 	if(!dofcall(fcall)) {
 		clunk(f);

@@ -199,20 +199,28 @@ namespace jyq {
      */
     union Fcall {
         FHdr     hdr;
-        FVersion version, tversion,
-                 rversion;
+        FVersion version;
         FTFlush  tflush;
-        FROpen   ropen, rcreate,
-                 rattach;
+        FROpen   ropen;
         FError   error;
         FRAuth   rauth;
-        FAttach  tattach, tauth;
-        FTCreate tcreate, topen;
+        FAttach  tattach;
+        FTCreate tcreate;
         FTWalk   twalk;
         FRWalk   rwalk;
         FTWStat  twstat;
         FRStat   rstat;
         FIO      io;
+        auto& getVersion() noexcept { return version; }
+        auto& getTversion() noexcept { return version; }
+        auto& getRversion() noexcept { return version; }
+        auto& getRopen() noexcept { return ropen; }
+        auto& getRcreate() noexcept { return ropen; }
+        auto& getRattach() noexcept { return ropen; }
+        auto& getTattach() noexcept { return tattach; }
+        auto& getTauth() noexcept { return tattach; }
+        auto& getTcreate() noexcept { return tcreate; }
+        auto& getTopen() noexcept { return tcreate; }
         auto& getTWrite() noexcept { return io; }
         auto& getRWrite() noexcept { return io; }
         auto& getTRead() noexcept { return io; }

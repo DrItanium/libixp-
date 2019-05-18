@@ -217,13 +217,13 @@ Fcall::packUnpack(Msg& msg) noexcept {
         version.packUnpack(msg);
 		break;
 	case FType::TAuth:
-        tauth.packUnpack(msg);
+        getTauth().packUnpack(msg);
 		break;
 	case FType::RAuth:
         rauth.packUnpack(msg);
 		break;
 	case FType::RAttach:
-        rattach.packUnpack(msg);
+        getRattach().packUnpack(msg);
 		break;
 	case FType::TAttach:
         tattach.packUnpack(msg);
@@ -241,7 +241,7 @@ Fcall::packUnpack(Msg& msg) noexcept {
         rwalk.packUnpack(msg);
 		break;
 	case FType::TOpen:
-        topen.packUnpack(msg);
+        getTopen().packUnpack(msg);
 		break;
 	case FType::ROpen:
 	case FType::RCreate:
