@@ -59,7 +59,7 @@ namespace jyq {
         public:
             std::vector<Rpc*> wait;
             Rpc*		muxer;
-            Rpc		sleep;
+            Rpc         sleep;
         private:
             int		_mintag;
             int		_maxtag;

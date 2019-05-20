@@ -15,7 +15,7 @@
 #include "PrintFunctions.h"
 
 namespace jyq {
-Rpc::Rpc(Client& m) : _mux(m) {
+RpcBody::RpcBody(Client& m) : _mux(m) {
     _waiting = true;
     _r.setMutex(&m.getLock());
     _p = nullptr;
@@ -58,8 +58,8 @@ Client::gettag(Rpc &r)
     auto Found = [this, &r](auto index) {
         _nwait++;
         wait[index] = &r;
-        r.setTag(index + _mintag);
-        return r.getTag();
+        r.getContents().setTag(index + _mintag);
+        return r.getContents().getTag();
     };
 	for(;;){
 		/* wait for a free tag */
@@ -111,7 +111,7 @@ Client::puttag(Rpc& r)
     r.getRendez().deactivate();
 }
 bool
-Rpc::sendrpc(Fcall& f) {
+RpcBody::sendrpc(Fcall& f) {
     { 
         concurrency::Locker<Mutex> lk(_mux.getLock());
         _tag = _mux.gettag(this);
@@ -130,7 +130,7 @@ Rpc::sendrpc(Fcall& f) {
     return true;
 }
 int
-Rpc::sendrpc(Fcall *f)
+RpcBody::sendrpc(Fcall *f)
 {
 	auto ret = 0;
 	/* assign the tag, add selves to response queue */
@@ -171,7 +171,7 @@ Client::dispatchandqlock(std::shared_ptr<Fcall> f)
     r2->getRendez().wake();
 }
 void
-Rpc::enqueueSelf(Rpc& other) {
+RpcBody::enqueueSelf(Rpc& other) {
 	_next = other._next;
 	_prev = &other;
 	_next->_prev = this;
@@ -179,10 +179,11 @@ Rpc::enqueueSelf(Rpc& other) {
 }
 void
 Client::enqueue(Rpc* r) {
+    
     r->enqueueSelf(sleep);
 }
 void
-Rpc::dequeueSelf() {
+RpcBody::dequeueSelf() {
 	_next->_prev = _prev;
 	_prev->_next = _next;
 	_prev = nullptr;
