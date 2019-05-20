@@ -55,7 +55,6 @@ int
 Client::gettag(Rpc &r)
 {
 	int i, mw;
-	Rpc **w;
     auto Found = [this, &r](auto index) {
         _nwait++;
         wait[index] = &r;
@@ -72,12 +71,7 @@ Client::gettag(Rpc &r)
                 } else {
 					mw <<= 1;
                 }
-				w = (decltype(w))realloc(wait, mw * sizeof *w);
-                if (!w) {
-					return -1;
-                }
-				memset(w+_mwait, 0, (mw-_mwait) * sizeof *w);
-				wait = w;
+                wait.resize(mw, nullptr);
 				_freetag = _mwait;
 				_mwait = mw;
 				break;
@@ -86,7 +80,7 @@ Client::gettag(Rpc &r)
 		}
 
 		i=_freetag;
-		if(wait[i] == 0) {
+		if(wait[i] == nullptr) {
             return Found(i);
         }
 		for(; i<_mwait; i++) {

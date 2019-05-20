@@ -57,7 +57,7 @@ namespace jyq {
             Mutex	_wlock;
             Rendez	_tagrend;
         public:
-            Rpc**	wait;
+            std::vector<Rpc*> wait;
             Rpc*		muxer;
             Rpc		sleep;
         private:

@@ -253,7 +253,6 @@ Client::~Client() {
     fd.shutdown(SHUT_RDWR);
     fd.close();
 
-    free(wait);
 
     if (_rmsg.data) {
         delete [] _rmsg.data;
