@@ -410,7 +410,6 @@ pending_clunk(Req9 *req) {
 	PendingLink *pend_link;
 	RequestLink *req_link;
 	Req9 *r;
-	Queue *queue;
 	bool more;
 
 	auto file = std::any_cast<FileId*>(req->fid->aux);
