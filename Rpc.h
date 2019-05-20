@@ -42,14 +42,13 @@ namespace jyq {
     };
     struct RpcBody {
         public:
-            RpcBody(Client& m);
+            //RpcBody(Client& m);
+            RpcBody(Mutex& m);
             ~RpcBody() = default;
-            int sendrpc(Fcall *f);
-            bool sendrpc(Fcall& f); // can't make this const right now since modification to input happens...
+            //int sendrpc(Fcall *f);
+            //bool sendrpc(Fcall& f); // can't make this const right now since modification to input happens...
             Rendez& getRendez() noexcept { return _r; }
             const Rendez& getRendez() const noexcept { return _r; }
-            Client& getMux() noexcept { return _mux; }
-            const Client& getMux() const noexcept { return _mux; }
             constexpr auto getTag() const noexcept { return _tag; }
             constexpr auto isWaiting() const noexcept { return _waiting; }
             constexpr auto isAsync() const noexcept { return _async; }
@@ -59,7 +58,6 @@ namespace jyq {
             void setP(std::shared_ptr<Fcall> value) noexcept { _p = value; }
             auto getP() noexcept { return _p; }
         private:
-            Client& _mux;
             Rendez	_r;
             uint    _tag;
             std::shared_ptr<Fcall> _p;

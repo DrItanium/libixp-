@@ -15,11 +15,7 @@
 #include "PrintFunctions.h"
 
 namespace jyq {
-RpcBody::RpcBody(Client& m) : _mux(m) {
-    _waiting = true;
-    _r.setMutex(&m.getLock());
-    _p = nullptr;
-}
+RpcBody::RpcBody(Mutex& m) : _r(&m), _tag(0), _p(nullptr), _waiting(true), _async(false) { }
 
 Fcall*
 Client::muxrecv()
@@ -111,46 +107,23 @@ Client::puttag(Rpc& r)
     r->getContents().getRendez().deactivate();
 }
 bool
-RpcBody::sendrpc(Fcall& f) {
+Client::sendrpc(Rpc& r, Fcall& f) {
     { 
-        concurrency::Locker<Mutex> lk(_mux.getLock());
-        _tag = _mux.gettag(this);
-        f.setTag(_tag);
-        _mux.enqueue(this);
+        concurrency::Locker<Mutex> lk(getLock());
+        r->getContents().setTag(gettag(r));
+        f.setTag(r->getContents().getTag());
+        enqueue(r);
     }
     { 
-        concurrency::Locker<Mutex> a(_mux.getWriteLock());
-        if (!_mux.getWmsg().pack(f) || !_mux.getConnection().sendmsg(_mux.getWmsg())) {
-            concurrency::Locker<Mutex> lk(_mux.getLock());
-            _mux.dequeue(this);
-            _mux.puttag(this);
+        concurrency::Locker<Mutex> a(getWriteLock());
+        if (!getWmsg().pack(f) || !getConnection().sendmsg(getWmsg())) {
+            concurrency::Locker<Mutex> lk(getLock());
+            dequeue(r);
+            puttag(r);
             return false;
         }
     }
     return true;
-}
-int
-RpcBody::sendrpc(Fcall *f)
-{
-	auto ret = 0;
-	/* assign the tag, add selves to response queue */
-    {
-        concurrency::Locker<Mutex> lk(_mux.getLock());
-        _tag = _mux.gettag(this);
-        f->setTag(_tag);
-        _mux.enqueue(this);
-    }
-
-    {
-        concurrency::Locker<Mutex> a(_mux.getWriteLock());
-        if (!_mux.getWmsg().pack(*f) || !_mux.getConnection().sendmsg(_mux.getWmsg())) {
-            concurrency::Locker<Mutex> lk(_mux.getLock());
-            _mux.dequeue(this);
-            _mux.puttag(this);
-            ret = -1;
-        }
-    }
-    return ret;
 }
 
 void
@@ -187,10 +160,10 @@ Client::dequeue(Rpc& r) {
 std::shared_ptr<Fcall>
 Client::muxrpc(Fcall& tx) 
 {
-    Rpc r = std::make_shared<BareRpc>(*this);
+    Rpc r = std::make_shared<BareRpc>(getLock());
     std::shared_ptr<Fcall> p;
 
-    if (!r->getContents().sendrpc(tx)) {
+    if (!sendrpc(r, tx)) {
         return nullptr;
     }
     _lk.lock();

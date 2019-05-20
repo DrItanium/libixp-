@@ -90,6 +90,7 @@ namespace jyq {
             int gettag(Rpc& r);
             void puttag(Rpc& r);
             void puttag(Rpc* r) { return puttag(*r); }
+            bool sendrpc(Rpc& r, Fcall& f);
         private:
             Fcall* muxrecv();
             void electmuxer();
