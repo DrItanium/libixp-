@@ -13,33 +13,6 @@
 #include "Fcall.h"
 
 namespace jyq {
-    struct Client;
-    template<typename T>
-    class DoubleLinkedListNode {
-        public:
-            using Self = DoubleLinkedListNode<T>;
-            using Link = std::shared_ptr<Self>;
-        public:
-            DoubleLinkedListNode(T value) : _contents(value) { }
-            T& getContents() noexcept { return _contents; }
-            const T& getContents() const noexcept { return _contents; }
-            auto getNext() noexcept { return _next; }
-            auto getPrevious() noexcept { return _prev; }
-            void setNext(Link value) noexcept { _next = value; }
-            void setPrevious(Link value) noexcept { _prev = value; }
-            auto hasNext() const noexcept { return _next; }
-            auto hasPrevious() const noexcept { return _prev; }
-            void clearLinks() noexcept {
-                _next.reset();
-                _prev.reset();
-            }
-        private:
-            T _contents;
-            Link _next;
-            Link _prev;
-
-
-    };
     struct RpcBody {
         public:
             RpcBody(Mutex& m);
