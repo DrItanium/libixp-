@@ -7,29 +7,26 @@
 #include "jyq.h"
 namespace jyq {
 struct Dirtab;
-struct PendingLink;
 struct Pending;
 using Queue = std::list<std::string>;
-struct RequestLink;
-struct FileId;
 using FileIdU = void*;
-using LookupFn = std::function<FileId*(FileId*, char*)>;
 
-struct PendingLink {
+
+struct PendingLinkBody {
 	/* Private members */
-	PendingLink*	next;
-	PendingLink*	prev;
 	Fid*		fid;
     Queue queue;
 	Pending*	pending;
 };
+using RawPendingLink = DoubleLinkedListNode<PendingLinkBody>;
+using PendingLink = std::shared_ptr<RawPendingLink>;
 
-struct RequestLink {
+struct RequestLinkBody {
 	/* Private members */
-	RequestLink*	next;
-	RequestLink*	prev;
 	Req9*	req;
 };
+using RawRequestLink = DoubleLinkedListNode<RequestLinkBody>;
+using RequestLink = std::shared_ptr<RawRequestLink>;
 
 struct Pending {
 	/* Private members */
@@ -45,8 +42,7 @@ struct Dirtab {
 	uint	flags;
 };
 
-struct FileId {
-	FileId*	next;
+struct FileIdBody {
 	FileIdU	p;
 	bool		pending;
 	uint		id;
@@ -55,6 +51,9 @@ struct FileId {
 	uint		nref;
 	char		volatil;
 };
+using RawFileId = SingleLinkedListNode<FileIdBody>;
+using FileId = std::shared_ptr<RawFileId>;
+using LookupFn = std::function<FileId*(FileId*, char*)>;
 
 constexpr auto FLHide = 1;
 

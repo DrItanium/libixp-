@@ -164,6 +164,26 @@ namespace jyq {
             std::string _message;
     };
     template<typename T>
+    class SingleLinkedListNode {
+        public:
+            using Self = SingleLinkedListNode<T>;
+            using Link = std::shared_ptr<Self>;
+        public:
+            SingleLinkedListNode(T value) : _contents(value) { }
+            T& getContents() noexcept { return _contents; }
+            const T& getContents() const noexcept { return _contents; }
+            auto getNext() noexcept { return _next; }
+            void setNext(Link value) noexcept { _next = value; }
+            auto hasNext() const noexcept { return _next; }
+            void clearLinks() noexcept {
+                _next.reset();
+            }
+        private:
+            T _contents;
+            Link _next;
+
+    };
+    template<typename T>
     class DoubleLinkedListNode {
         public:
             using Self = DoubleLinkedListNode<T>;
