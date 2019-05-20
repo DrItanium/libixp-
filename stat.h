@@ -10,18 +10,6 @@ namespace jyq {
     struct Msg;
     /* stat structure */
     struct Stat {
-        private:
-            uint16_t	_type;
-            uint32_t	_dev;
-            Qid         _qid;
-            uint32_t	_mode;
-            uint32_t	_atime;
-            uint32_t	_mtime;
-            uint64_t	_length;
-            char*	_name;
-            char*	_uid;
-            char*	_gid;
-            char*	_muid;
         public:
             uint16_t    size() noexcept;
             ~Stat();
@@ -52,6 +40,18 @@ namespace jyq {
             const char* getMuid() const noexcept { return _muid; }
             char* getMuid() noexcept { return _muid; }
             void setMuid(char* value) noexcept { _muid = value; }
+        private:
+            uint16_t	_type;
+            uint32_t	_dev;
+            Qid         _qid;
+            uint32_t	_mode;
+            uint32_t	_atime;
+            uint32_t	_mtime;
+            uint64_t	_length;
+            char*	_name;
+            char*	_uid;
+            char*	_gid;
+            char*	_muid;
     };
 } // end namespace jyq
 #endif // end LIBJYQ_STAT_H__
