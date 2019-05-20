@@ -31,26 +31,14 @@ static FileId*	free_fileid;
  * See also:
  *	F<srv_clonefiles>, F<srv_freefile>
  */
-FileId*
+FileId
 srv_getfile(void) {
-	FileId *file;
-	int i;
-
-	if(!free_fileid) {
-		i = 15;
-        file = new FileId[i];
-		for(; i; i--) {
-			file->next = free_fileid;
-			free_fileid = file++;
-		}
-	}
-	file = free_fileid;
-	free_fileid = file->next;
-	file->p = nullptr;
-	file->volatil = 0;
-	file->nref = 1;
-	file->next = nullptr;
-	file->pending = false;
+    FileId file = std::make_shared<RawFileId>();
+    file->getContents().p = nullptr;
+    file->getContents().volatil = 0;
+    file->getContents().nref = 1;
+    file->setNext(nullptr);
+    file->getContents().pending = false;
 	return file;
 }
 
@@ -65,11 +53,6 @@ srv_getfile(void) {
  */
 void
 srv_freefile(FileId *fileid) {
-	if(--fileid->nref)
-		return;
-	free(fileid->tab.name);
-	fileid->next = free_fileid;
-	free_fileid = fileid;
 }
 
 /**
@@ -81,16 +64,17 @@ srv_freefile(FileId *fileid) {
  * See also:
  *	F<srv_getfile>
  */
-FileId*
-srv_clonefiles(FileId *fileid) {
-	FileId *r;
+FileId
+srv_clonefiles(FileId& fileid) {
 
-	r = srv_getfile();
-	memcpy(r, fileid, sizeof *r);
-	r->tab.name = jyq::estrdup(r->tab.name);
-	r->nref = 1;
-	for(fileid=fileid->next; fileid; fileid=fileid->next)
-		assert(fileid->nref++);
+    FileId r = std::make_shared<RawFileId>(fileid->getContents());
+    r->getContents().nref = 1;
+    for (auto curr = r->getNext(); curr; curr = curr->getNext()) {
+        curr->getContents().nref++;
+        if (curr == 0) {
+            throw Exception("Reference count overflow!");
+        }
+    }
 	return r;
 }
 
@@ -139,7 +123,7 @@ srv_writebuf(Req9 *req, char **buf, uint *len, uint max) {
 	file = std::any_cast<decltype(file)>(req->fid->aux);
 
 	offset = req->getIFcall().getIO().getOffset();
-	if(file->tab.perm & uint32_t(DMode::APPEND))
+	if((*file)->getContents().tab.perm & uint32_t(DMode::APPEND))
 		offset = *len;
 
 	if(offset > *len || req->getIFcall().getIO().empty()) {
@@ -219,7 +203,7 @@ srv_writectl(Req9 *req, std::function<char*(void*, Msg*)> fn) {
 		*p = '\0';
 
         Msg msg(s, p-s, Msg::Mode::Pack);
-		s = fn(file->p, &msg);
+		s = fn((*file)->getContents().p, &msg);
 		if(s)
 			err = s;
 		s = p + 1;
@@ -270,11 +254,12 @@ srv_writectl(Req9 *req, std::function<char*(void*, Msg*)> fn) {
 void
 pending_respond(Req9 *req) {
 	auto file = std::any_cast<FileId*>(req->fid->aux);
-	assert(file->pending);
-	auto p = (PendingLink*)file->p;
-    if (!p->queue.empty()) {
-        std::string front(p->queue.front());
-        p->queue.pop_front();
+	assert((*file)->getContents().pending);
+	auto p = (PendingLink*)((*file)->getContents().p);
+
+    if (auto& queue = (*p)->getContents().queue; !queue.empty()) {
+        std::string front(queue.front());
+        queue.pop_front();
         auto buf = new char[front.size()+1];
         buf[front.size()] = '\0';
         front.copy(buf, front.size());
@@ -282,24 +267,24 @@ pending_respond(Req9 *req) {
 		req->getOFcall().getIO().setSize(front.length() + 1);
 		if(req->getAux().has_value()) {
             auto req_link = std::any_cast<RequestLink*>(req->getAux());
-			req_link->next->prev = req_link->prev;
-			req_link->prev->next = req_link->next;
-            delete req_link;
+            (*req_link)->unlink();
 		}
 		req->respond(nullptr);
 	} else {
-        auto req_link = new RequestLink();
-		req_link->req = req;
-		req_link->next = &p->pending->req;
-		req_link->prev = req_link->next->prev;
-		req_link->next->prev = req_link;
-		req_link->prev->next = req_link;
-		req->getAux() = req_link;
+        RequestLink reqLink = std::make_shared<RawRequestLink>();
+        reqLink->setNext((*p)->getContents().pending->req);
+        reqLink->setPrevious(reqLink->getNext()->getPrevious());
+        reqLink->getNext()->setPrevious(reqLink);
+        reqLink->getPrevious()->setNext(reqLink);
+		req->getAux() = reqLink;
 	}
 }
 
 void
 pending_write(Pending* pending, const std::string& dat) {
+    if (dat.empty()) {
+        return;
+    }
     pending_write(pending, dat.c_str(), dat.length());
 }
 void
@@ -311,30 +296,31 @@ pending_write(Pending *pending, const char *dat, long ndat) {
 		return;
     }
 
-    if (!pending->req.next) {
-		pending->req.next = &pending->req;
-		pending->req.prev = &pending->req;
-		pending->fids.prev = &pending->fids;
-		pending->fids.next = &pending->fids;
+    if (!pending->req->getNext()) {
+        pending->req->setNext(pending->req);
+        pending->req->setPrevious(pending->req);
+        pending->fids->setPrevious(pending->fids);
+        pending->fids->setNext(pending->fids);
 	}
-    for (PendingLink* pp = pending->fids.next; pp != &pending->fids; pp = pp->next) {
+    for (PendingLink pp = pending->fids->getNext(); pp != pending->fids; pp = pp->getNext()) {
         std::string entry(dat, ndat);
-        pp->queue.emplace_back(entry);
+        pp->getContents().queue.emplace_back(entry);
 	}
 
-	req_link.next = &req_link;
-	req_link.prev = &req_link;
-	if(pending->req.next != &pending->req) {
-		req_link.next = pending->req.next;
-		req_link.prev = pending->req.prev;
-		pending->req.prev = &pending->req;
-		pending->req.next = &pending->req;
+    RequestLink reqLink = std::make_shared<RawRequestLink>();
+    reqLink->setNext(reqLink);
+    reqLink->setPrevious(reqLink);
+    if (pending->req->getNext() != pending->req) {
+        reqLink->setNext(pending->req->getNext());
+        reqLink->setPrevious(pending->req->getPrevious());
+        pending->req->setPrevious(pending->req);
+        pending->req->setNext(pending->req);
 	}
-	req_link.prev->next = &req_link;
-	req_link.next->prev = &req_link;
+    reqLink->getPrevious()->setNext(reqLink);
+    reqLink->getNext()->setPrevious(reqLink);
 
-	while((rp = req_link.next) != &req_link) {
-		pending_respond(rp->req);
+    for (auto rp = reqLink->getNext(); rp != reqLink; ) {
+        pending_respond(rp->getContents().req);
     }
 }
 

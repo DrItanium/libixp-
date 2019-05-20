@@ -169,6 +169,7 @@ namespace jyq {
             using Self = SingleLinkedListNode<T>;
             using Link = std::shared_ptr<Self>;
         public:
+            SingleLinkedListNode() = default;
             SingleLinkedListNode(T value) : _contents(value) { }
             T& getContents() noexcept { return _contents; }
             const T& getContents() const noexcept { return _contents; }
@@ -189,6 +190,7 @@ namespace jyq {
             using Self = DoubleLinkedListNode<T>;
             using Link = std::shared_ptr<Self>;
         public:
+            DoubleLinkedListNode() = default;
             DoubleLinkedListNode(T value) : _contents(value) { }
             T& getContents() noexcept { return _contents; }
             const T& getContents() const noexcept { return _contents; }
@@ -201,6 +203,15 @@ namespace jyq {
             void clearLinks() noexcept {
                 _next.reset();
                 _prev.reset();
+            }
+            void unlink() noexcept {
+                if (_prev) {
+                    _prev->setNext(_next);
+                }
+                if (_next) {
+                    _next->setPrevious(_prev);
+                }
+                clearLinks();
             }
         private:
             T _contents;

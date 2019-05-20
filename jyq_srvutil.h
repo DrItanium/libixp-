@@ -35,7 +35,7 @@ struct Pending {
 };
 
 struct Dirtab {
-	char*	name;
+    std::string name;
 	uint8_t	qtype;
 	uint	type;
 	uint	perm;
@@ -66,16 +66,16 @@ int  pending_vprint(Pending*, const char*, va_list ap);
 int  pending_vprint(Pending*, const std::string&, va_list ap);
 void	pending_write(Pending*, const char*, long);
 void    pending_write(Pending*, const std::string&);
-FileId*	srv_clonefiles(FileId*);
+FileId	srv_clonefiles(FileId&);
 void	srv_data2cstring(Req9*);
-void	srv_freefile(FileId*);
+void	srv_freefile(FileId&);
 void	srv_readbuf(Req9*, char*, uint);
 void	srv_readdir(Req9*, LookupFn, std::function<void(Stat*, FileId*)>);
-bool	srv_verifyfile(FileId*, LookupFn);
+bool	srv_verifyfile(FileId&, LookupFn);
 void	srv_walkandclone(Req9*, LookupFn);
 void	srv_writebuf(Req9*, char**, uint*, uint);
 char*	srv_writectl(Req9*, std::function<char*(void*, Msg*)>);
-FileId* srv_getfile(void);
+FileId srv_getfile(void);
 
 } // end namespace jyq
 #endif
