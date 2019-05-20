@@ -116,14 +116,13 @@ srv_readbuf(Req9 *req, char *buf, uint len) {
 
 void
 srv_writebuf(Req9 *req, char **buf, uint *len, uint max) {
-	FileId *file;
 	char *p;
 	uint offset, count;
 
-	file = std::any_cast<decltype(file)>(req->fid->aux);
+	auto file = std::any_cast<FileId>(req->fid->aux);
 
 	offset = req->getIFcall().getIO().getOffset();
-	if((*file)->getContents().tab.perm & uint32_t(DMode::APPEND))
+	if(file->getContents().tab.perm & uint32_t(DMode::APPEND))
 		offset = *len;
 
 	if(offset > *len || req->getIFcall().getIO().empty()) {
@@ -186,7 +185,7 @@ srv_data2cstring(Req9 *req) {
  */
 char*
 srv_writectl(Req9 *req, std::function<char*(void*, Msg*)> fn) {
-	FileId* file = std::any_cast<FileId*>(req->fid->aux);
+	auto file = std::any_cast<FileId>(req->fid->aux);
 
 	srv_data2cstring(req);
     auto s = req->getIFcall().getIO().getData();
@@ -203,7 +202,7 @@ srv_writectl(Req9 *req, std::function<char*(void*, Msg*)> fn) {
 		*p = '\0';
 
         Msg msg(s, p-s, Msg::Mode::Pack);
-		s = fn((*file)->getContents().p, &msg);
+		s = fn(file->getContents().p, &msg);
 		if(s)
 			err = s;
 		s = p + 1;
@@ -253,9 +252,9 @@ srv_writectl(Req9 *req, std::function<char*(void*, Msg*)> fn) {
 
 void
 pending_respond(Req9 *req) {
-	auto file = std::any_cast<FileId*>(req->fid->aux);
-	assert((*file)->getContents().pending);
-	auto p = (PendingLink*)((*file)->getContents().p);
+	auto file = std::any_cast<FileId>(req->fid->aux);
+	assert(file->getContents().pending);
+	auto p = (PendingLink*)(file->getContents().p);
 
     if (auto& queue = (*p)->getContents().queue; !queue.empty()) {
         std::string front(queue.front());
@@ -266,8 +265,8 @@ pending_respond(Req9 *req) {
         req->getOFcall().getIO().setData(buf);
 		req->getOFcall().getIO().setSize(front.length() + 1);
 		if(req->getAux().has_value()) {
-            auto req_link = std::any_cast<RequestLink*>(req->getAux());
-            (*req_link)->unlink();
+            auto req_link = std::any_cast<RequestLink>(req->getAux());
+            req_link->unlink();
 		}
 		req->respond(nullptr);
 	} else {
@@ -290,7 +289,6 @@ pending_write(Pending* pending, const std::string& dat) {
 void
 pending_write(Pending *pending, const char *dat, long ndat) {
 	RequestLink req_link;
-	RequestLink *rp;
 
 	if(ndat == 0) {
 		return;
@@ -348,39 +346,32 @@ pending_print(Pending *pending, const char *fmt, ...) {
 
 void
 pending_pushfid(Pending *pending, Fid *fid) {
-	PendingLink *pend_link;
 
-    if (!pending->req.next) {
-		pending->req.next = &pending->req;
-		pending->req.prev = &pending->req;
-		pending->fids.prev = &pending->fids;
-		pending->fids.next = &pending->fids;
+    if (!pending->req->getNext()) {
+
+        RawRequestLink::circularLink(pending->req);
+        RawPendingLink::circularLink(pending->fids);
 	}
 
-	auto file = std::any_cast<FileId*>(fid->aux);
-    pend_link = new PendingLink();
-	pend_link->fid = fid;
-	pend_link->pending = pending;
-	pend_link->next = &pending->fids;
-	pend_link->prev = pend_link->next->prev;
-	pend_link->next->prev = pend_link;
-	pend_link->prev->next = pend_link;
-	file->pending = true;
-	file->p = pend_link;
+	auto file = std::any_cast<FileId>(fid->aux);
+    PendingLink pendLink = std::make_shared<RawPendingLink>();
+    pendLink->getContents().fid = fid;
+    pendLink->getContents().pending = pending;
+    pendLink->setNext(pending->fids);
+    pendLink->setPrevious(pendLink->getNext()->getPrevious());
+    pendLink->getNext()->setPrevious(pendLink);
+    pendLink->getPrevious()->setNext(pendLink);
+    file->getContents().pending = true;
+    file->getContents().p = &pendLink;
 }
 
 static void
 _pending_flush(Req9 *req) {
-	RequestLink *req_link;
-
-	auto file = std::any_cast<FileId*>(req->fid->aux);
-	if(file->pending) {
-		req_link = std::any_cast<decltype(req_link)>(req->getAux());
-		if(req_link) {
-			req_link->prev->next = req_link->next;
-			req_link->next->prev = req_link->prev;
-            delete req_link;
-		}
+	auto file = std::any_cast<FileId>(req->fid->aux);
+	if(file->getContents().pending) {
+		if (auto req_link = std::any_cast<RequestLink>(req->getAux()); req_link) {
+            req_link->unlink();
+        }
 	}
 }
 
@@ -392,31 +383,26 @@ pending_flush(Req9 *req) {
 
 bool
 pending_clunk(Req9 *req) {
-	Pending *pending;
-	PendingLink *pend_link;
-	RequestLink *req_link;
-	Req9 *r;
-	bool more;
 
-	auto file = std::any_cast<FileId*>(req->fid->aux);
-	pend_link = (decltype(pend_link))file->p;
+	auto file = std::any_cast<FileId>(req->fid->aux);
+    PendingLink pendLink = std::any_cast<PendingLink>(file->getContents().p);
 
-	pending = pend_link->pending;
-	for(req_link=pending->req.next; req_link != &pending->req;) {
-		r = req_link->req;
-		req_link = req_link->next;
-		if(r->fid == pend_link->fid) {
+    auto pending = pendLink->getContents().pending;
+    Req9* r = nullptr;
+	for(auto reqLink =pending->req->getNext(); reqLink != pending->req;) {
+        r = reqLink->getContents().req;
+        reqLink = reqLink->getNext();
+        if (r->fid == pendLink->getContents().fid) {
 			_pending_flush(r);
 			r->respond("interrupted");
 		}
 	}
 
-	pend_link->prev->next = pend_link->next;
-	pend_link->next->prev = pend_link->prev;
+    pendLink->unlink();
 
-    pend_link->queue.clear();
-	more = (pend_link->pending->fids.next == &pend_link->pending->fids);
-	free(pend_link);
+    pendLink->getContents().queue.clear();
+    auto more = (pendLink->getContents().pending->fids->getNext() == 
+                 pendLink->getContents().pending->fids);
     r->respond(nullptr);
 	return more;
 }
@@ -457,19 +443,17 @@ pending_clunk(Req9 *req) {
  *	S<FileId>, S<getfile>, S<freefile>
  */
 bool
-srv_verifyfile(FileId *file, LookupFn lookup) {
-	FileId *tfile;
-	int ret;
+srv_verifyfile(FileId& file, LookupFn lookup) {
+    if (!file->hasNext()) {
+        return true;
+    }
 
-	if(!file->next)
-		return true;
-
-	ret = false;
-	if(srv_verifyfile(file->next, lookup)) {
-		tfile = lookup(file->next, file->tab.name);
-		if(tfile) {
-			if(!tfile->volatil || tfile->p == file->p)
-				ret = true;
+	auto ret = false;
+	if(auto next = file->getNext(); srv_verifyfile(next, lookup)) {
+		if (auto tfile = lookup(file->getNext(), file->getContents().tab.name); tfile) {
+            if (!tfile->getContents().volatil || tfile->getContents().p == file->getContents().p) {
+                ret = true;
+            }
 			srv_freefile(tfile);
 		}
 	}
@@ -477,11 +461,10 @@ srv_verifyfile(FileId *file, LookupFn lookup) {
 }
 
 void
-srv_readdir(Req9 *req, LookupFn lookup, std::function<void(Stat*, FileId*)> dostat) {
-	FileId *tfile;
+srv_readdir(Req9 *req, LookupFn lookup, std::function<void(Stat*, FileId&)> dostat) {
 	Stat stat;
 
-	auto file = std::any_cast<FileId*>(req->fid->aux);
+	auto file = std::any_cast<FileId>(req->fid->aux);
 
 	ulong size = req->getIFcall().getIO().size();
 	if(size > req->fid->iounit)
@@ -489,11 +472,11 @@ srv_readdir(Req9 *req, LookupFn lookup, std::function<void(Stat*, FileId*)> dost
     auto buf = new char[size];
     Msg msg(buf, size, Msg::Mode::Pack);
 
-	file = lookup(file, nullptr);
-	tfile = file;
+	file = lookup(file, "");
+	auto tfile = file;
 	/* Note: The first file is ".", so we skip it. */
 	uint64_t offset = 0;
-	for(file=file->next; file; file=file->next) {
+	for(file=file->getNext(); file; file=file->getNext()) {
 		dostat(&stat, file);
         ulong n = stat.size();
 		if(offset >= req->getIFcall().getIO().getOffset()) {
@@ -505,7 +488,7 @@ srv_readdir(Req9 *req, LookupFn lookup, std::function<void(Stat*, FileId*)> dost
 		offset += n;
 	}
 	while((file = tfile)) {
-		tfile=tfile->next;
+		tfile=tfile->getNext();
 		srv_freefile(file);
 	}
 	req->getOFcall().getIO().setSize(msg.pos - msg.data);
@@ -515,34 +498,35 @@ srv_readdir(Req9 *req, LookupFn lookup, std::function<void(Stat*, FileId*)> dost
 
 void
 srv_walkandclone(Req9 *req, LookupFn lookup) {
-	FileId *tfile;
+	FileId tfile;
 	int i;
 
-	auto file = (FileId*)srv_clonefiles(std::any_cast<FileId*>(req->fid->aux));
+    auto fid = std::any_cast<FileId>(req->fid->aux);
+	auto file = srv_clonefiles(fid);
 	for(i=0; i < req->getIFcall().getTwalk().size(); i++) {
 		if(!strcmp(req->getIFcall().getTwalk().getWname()[i], "..")) {
-			if(file->next) {
+			if(file->hasNext()) {
 				tfile = file;
-				file = file->next;
+				file = file->getNext();
 				srv_freefile(tfile);
 			}
 		}else{
 			tfile = lookup(file, req->getIFcall().getTwalk().getWname()[i]);
 			if(!tfile)
 				break;
-			assert(!tfile->next);
+			assert(!tfile->hasNext());
 			if(strcmp(req->getIFcall().getTwalk().getWname()[i], ".")) {
-				tfile->next = file;
+				tfile->setNext(file);
 				file = tfile;
 			}
 		}
-		req->getOFcall().getRwalk().getWqid()[i].setType(file->tab.qtype);
-		req->getOFcall().getRwalk().getWqid()[i].setPath(computeQIDValue(file->tab.type, file->id));
+		req->getOFcall().getRwalk().getWqid()[i].setType(file->getContents().tab.qtype);
+		req->getOFcall().getRwalk().getWqid()[i].setPath(computeQIDValue(file->getContents().tab.type, file->getContents().id));
 	}
 	/* There should be a way to do this on freefid() */
 	if(i < req->getIFcall().getTwalk().size()) {
 		while((tfile = file)) {
-			file=file->next;
+			file=file->getNext();
 			srv_freefile(tfile);
 		}
         req->respond(Enofile);
@@ -553,7 +537,7 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
 		tfile = std::any_cast<decltype(tfile)>(req->fid->aux);
 		req->fid->aux = file;
 		while((file = tfile)) {
-			tfile = tfile->next;
+			tfile = tfile->getNext();
 			srv_freefile(file);
 		}
 	} else {

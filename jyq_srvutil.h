@@ -43,17 +43,17 @@ struct Dirtab {
 };
 
 struct FileIdBody {
-	FileIdU	p;
+	void* p; // this needs to be here for a special purpose
 	bool		pending;
 	uint		id;
 	uint		index;
-	Dirtab	tab;
+	Dirtab      tab;
 	uint		nref;
 	char		volatil;
 };
 using RawFileId = SingleLinkedListNode<FileIdBody>;
 using FileId = std::shared_ptr<RawFileId>;
-using LookupFn = std::function<FileId*(FileId*, char*)>;
+using LookupFn = std::function<FileId(FileId, const std::string&)>;
 
 constexpr auto FLHide = 1;
 
@@ -70,7 +70,7 @@ FileId	srv_clonefiles(FileId&);
 void	srv_data2cstring(Req9*);
 void	srv_freefile(FileId&);
 void	srv_readbuf(Req9*, char*, uint);
-void	srv_readdir(Req9*, LookupFn, std::function<void(Stat*, FileId*)>);
+void	srv_readdir(Req9*, LookupFn, std::function<void(Stat*, FileId&)>);
 bool	srv_verifyfile(FileId&, LookupFn);
 void	srv_walkandclone(Req9*, LookupFn);
 void	srv_writebuf(Req9*, char**, uint*, uint);

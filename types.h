@@ -190,6 +190,11 @@ namespace jyq {
             using Self = DoubleLinkedListNode<T>;
             using Link = std::shared_ptr<Self>;
         public:
+            static void circularLink(Link link) {
+                link->_next = link;
+                link->_prev = link;
+            }
+        public:
             DoubleLinkedListNode() = default;
             DoubleLinkedListNode(T value) : _contents(value) { }
             T& getContents() noexcept { return _contents; }
@@ -218,6 +223,7 @@ namespace jyq {
             Link _next;
             Link _prev;
     };
+
 } // end namespace jyq
 
 #endif // end LIBJYQ_TYPES_H__
