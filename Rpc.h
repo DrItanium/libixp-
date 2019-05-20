@@ -29,6 +29,10 @@ namespace jyq {
             void setPrevious(Link value) noexcept { _prev = value; }
             auto hasNext() const noexcept { return _next; }
             auto hasPrevious() const noexcept { return _prev; }
+            void clearLinks() noexcept {
+                _next.reset();
+                _prev.reset();
+            }
         private:
             T _contents;
             Link _next;

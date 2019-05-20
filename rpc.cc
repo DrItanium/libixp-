@@ -42,14 +42,14 @@ void
 Client::electmuxer()
 {
 	/* if there is anyone else sleeping, wake them to mux */
-	for(auto rpc=sleep.getNext(); rpc != &sleep; rpc = rpc->getNext()){
-        if (!rpc->isAsync()) {
-			muxer = rpc;
-			concurrency::threadModel->wake(&rpc->getRendez());
+    for(auto rpc=sleep->getNext(); rpc != sleep; rpc = rpc->getNext()) {
+        if (!rpc->getContents().isAsync()) {
+            muxer = rpc;
+			concurrency::threadModel->wake(&rpc->getContents().getRendez());
 			return;
 		}
 	}
-	muxer = nullptr;
+    muxer.reset();
 }
 int 
 Client::gettag(Rpc &r)
@@ -57,9 +57,9 @@ Client::gettag(Rpc &r)
 	int i, mw;
     auto Found = [this, &r](auto index) {
         _nwait++;
-        wait[index] = &r;
-        r.getContents().setTag(index + _mintag);
-        return r.getContents().getTag();
+        wait[index] = r;
+        r->getContents().setTag(index + _mintag);
+        return r->getContents().getTag();
     };
 	for(;;){
 		/* wait for a free tag */
@@ -102,13 +102,13 @@ Client::gettag(Rpc &r)
 void
 Client::puttag(Rpc& r)
 {
-	auto i = r.getTag() - _mintag;
-	assert(wait[i] == &r);
+	auto i = r->getContents().getTag() - _mintag;
+	assert(wait[i] == r);
 	wait[i] = nullptr;
 	_nwait--;
 	_freetag = i;
     _tagrend.wake();
-    r.getRendez().deactivate();
+    r->getContents().getRendez().deactivate();
 }
 bool
 RpcBody::sendrpc(Fcall& f) {
@@ -166,66 +166,57 @@ Client::dispatchandqlock(std::shared_ptr<Fcall> f)
     if (!r2 || !(r2->getPrevious())) {
         throw Exception("libjyq: received message with bad tag\n");
 	}
-	r2->setP(f);
+	r2->getContents().setP(f);
     dequeue(r2);
-    r2->getRendez().wake();
+    r2->getContents().getRendez().wake();
 }
 void
-RpcBody::enqueueSelf(Rpc& other) {
-	_next = other._next;
-	_prev = &other;
-	_next->_prev = this;
-	_prev->_next = this;
+Client::enqueue(Rpc& r) {
+    r->setNext(sleep->getNext());
+    r->setPrevious(sleep);
+    r->getNext()->setPrevious(r);
+    r->getPrevious()->setNext(r);
 }
+
 void
-Client::enqueue(Rpc* r) {
-    
-    r->enqueueSelf(sleep);
-}
-void
-RpcBody::dequeueSelf() {
-	_next->_prev = _prev;
-	_prev->_next = _next;
-	_prev = nullptr;
-	_next = nullptr;
-}
-void
-Client::dequeue(Rpc* r) {
-    r->dequeueSelf();
+Client::dequeue(Rpc& r) {
+    r->getNext()->setPrevious(r->getPrevious());
+    r->getPrevious()->setNext(r->getNext());
+    r->clearLinks();
 }
 std::shared_ptr<Fcall>
 Client::muxrpc(Fcall& tx) 
 {
-    Rpc r(*this);
+    Rpc r = std::make_shared<BareRpc>(*this);
     std::shared_ptr<Fcall> p;
 
-    if (!r.sendrpc(tx)) {
+    if (!r->getContents().sendrpc(tx)) {
         return nullptr;
     }
     _lk.lock();
 	/* wait for our packet */
-	while(muxer && muxer != &r && !r.getP()) {
-        r.getRendez().sleep();
+	while(muxer.lock() && (muxer.lock() != r) && !r->getContents().getP()) {
+        r->getContents().getRendez().sleep();
     }
 
 	/* if not done, there's no muxer; start muxing */
-	if(!r.getP()){
-		assert(muxer == nullptr || muxer == &r);
-		muxer = &r;
-		while(!r.getP()){
+	if(!r->getContents().getP()){
+        assert(muxer.lock() == nullptr || muxer.lock() == r);
+        muxer = r;
+		while(!r->getContents().getP()){
             _lk.unlock();
             p.reset(muxrecv());
             if (!p) {
 				/* eof -- just give up and pass the buck */
                 _lk.lock();
-                dequeue(&r);
+                dequeue(r);
 				break;
 			}
 			dispatchandqlock(p);
 		}
 		electmuxer();
 	}
-	p = r.getP();
+    p = r->getContents().getP();
 	puttag(&r);
     _lk.unlock();
     if (!p) {
