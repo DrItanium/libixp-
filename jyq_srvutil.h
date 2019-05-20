@@ -2,12 +2,14 @@
 #define LIBJYQ_SRVUTIL_H__
 
 #include <functional>
+#include <list>
+#include <string>
 #include "jyq.h"
 namespace jyq {
 struct Dirtab;
 struct PendingLink;
 struct Pending;
-struct Queue;
+using Queue = std::list<std::string>;
 struct RequestLink;
 struct FileId;
 using FileIdU = void*;
@@ -18,7 +20,7 @@ struct PendingLink {
 	PendingLink*	next;
 	PendingLink*	prev;
 	Fid*		fid;
-	Queue*	queue;
+    Queue queue;
 	Pending*	pending;
 };
 

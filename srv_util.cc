@@ -15,11 +15,6 @@
 
 namespace jyq {
 static std::string  Enofile("file not found");
-struct Queue {
-	Queue*	link;
-	char*		dat;
-	long		len;
-};
 
 constexpr auto computeQIDValue(int64_t t, int64_t i) noexcept {
     return int64_t((t & 0xFF)<<32) | int64_t(i & 0xFFFF'FFFF);
@@ -274,28 +269,26 @@ srv_writectl(Req9 *req, std::function<char*(void*, Msg*)> fn) {
 
 void
 pending_respond(Req9 *req) {
-	PendingLink *p;
-	RequestLink *req_link;
-	Queue *queue;
-
 	auto file = std::any_cast<FileId*>(req->fid->aux);
 	assert(file->pending);
-	p = (decltype(p))file->p;
-	if(p->queue) {
-		queue = p->queue;
-		p->queue = queue->link;
-        req->getOFcall().getIO().setData(queue->dat);
-		req->getOFcall().getIO().setSize(queue->len);
+	auto p = (PendingLink*)file->p;
+    if (!p->queue.empty()) {
+        std::string front(p->queue.front());
+        p->queue.pop_front();
+        auto buf = new char[front.size()+1];
+        buf[front.size()] = '\0';
+        front.copy(buf, front.size());
+        req->getOFcall().getIO().setData(buf);
+		req->getOFcall().getIO().setSize(front.length() + 1);
 		if(req->getAux().has_value()) {
-            req_link = std::any_cast<decltype(req_link)>(req->getAux());
+            auto req_link = std::any_cast<RequestLink*>(req->getAux());
 			req_link->next->prev = req_link->prev;
 			req_link->prev->next = req_link->next;
             delete req_link;
 		}
 		req->respond(nullptr);
-        delete queue;
-	}else {
-        req_link = new RequestLink();
+	} else {
+        auto req_link = new RequestLink();
 		req_link->req = req;
 		req_link->next = &p->pending->req;
 		req_link->prev = req_link->next->prev;
@@ -312,12 +305,11 @@ pending_write(Pending* pending, const std::string& dat) {
 void
 pending_write(Pending *pending, const char *dat, long ndat) {
 	RequestLink req_link;
-	Queue **qp, *queue;
-	PendingLink *pp;
 	RequestLink *rp;
 
-	if(ndat == 0)
+	if(ndat == 0) {
 		return;
+    }
 
     if (!pending->req.next) {
 		pending->req.next = &pending->req;
@@ -325,15 +317,9 @@ pending_write(Pending *pending, const char *dat, long ndat) {
 		pending->fids.prev = &pending->fids;
 		pending->fids.next = &pending->fids;
 	}
-
-	for(pp=pending->fids.next; pp != &pending->fids; pp=pp->next) {
-		for(qp=&pp->queue; *qp; qp=&qp[0]->link)
-			;
-        queue = new Queue();
-        queue->dat = new char[ndat];
-		memcpy(queue->dat, dat, ndat);
-		queue->len = ndat;
-		*qp = queue;
+    for (PendingLink* pp = pending->fids.next; pp != &pending->fids; pp = pp->next) {
+        std::string entry(dat, ndat);
+        pp->queue.emplace_back(entry);
 	}
 
 	req_link.next = &req_link;
@@ -407,7 +393,7 @@ _pending_flush(Req9 *req) {
 		if(req_link) {
 			req_link->prev->next = req_link->next;
 			req_link->next->prev = req_link->prev;
-			free(req_link);
+            delete req_link;
 		}
 	}
 }
@@ -443,11 +429,7 @@ pending_clunk(Req9 *req) {
 	pend_link->prev->next = pend_link->next;
 	pend_link->next->prev = pend_link->prev;
 
-	while((queue = pend_link->queue)) {
-		pend_link->queue = queue->link;
-		free(queue->dat);
-		free(queue);
-	}
+    pend_link->queue.clear();
 	more = (pend_link->pending->fids.next == &pend_link->pending->fids);
 	free(pend_link);
     r->respond(nullptr);
