@@ -42,11 +42,8 @@ namespace jyq {
     };
     struct RpcBody {
         public:
-            //RpcBody(Client& m);
             RpcBody(Mutex& m);
             ~RpcBody() = default;
-            //int sendrpc(Fcall *f);
-            //bool sendrpc(Fcall& f); // can't make this const right now since modification to input happens...
             Rendez& getRendez() noexcept { return _r; }
             const Rendez& getRendez() const noexcept { return _r; }
             constexpr auto getTag() const noexcept { return _tag; }
