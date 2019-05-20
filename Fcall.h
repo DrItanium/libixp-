@@ -8,6 +8,7 @@
 #include <array>
 #include <functional>
 #include <memory>
+#include <variant>
 #include "types.h"
 #include "qid.h"
 #include "stat.h"
@@ -235,7 +236,6 @@ namespace jyq {
         auto& getError() noexcept { return _error; }
         auto& getTwstat() noexcept { return _twstat; }
         auto& getRstat() noexcept { return _rstat; }
-        //static void free(Fcall*);
         constexpr auto getType() const noexcept { return _hdr.getType(); }
         constexpr auto getFid() const noexcept { return _hdr.getFid(); }
         constexpr auto getTag() const noexcept { return _hdr.getTag(); }
@@ -258,6 +258,7 @@ namespace jyq {
         ~Fcall();
         void packUnpack(Msg& msg) noexcept;
     };
+    using FcallVariant = std::variant<FVersion, FTFlush, FROpen, FError, FRAuth, FAttach, FTCreate, FTWalk, FRWalk, FTWStat, FRStat, FIO>;
     using DoFcallFunc = std::function<std::shared_ptr<Fcall>(Fcall&)>;
 } // end namespace jyq
 #endif // end LIBJYQ_FCALL_H__
