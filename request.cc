@@ -162,9 +162,9 @@ Req9::handle() {
                 static std::string str9p2000("9P2000");
                 static std::string strUnknown("unknown");
                 std::string ver(getIFcall().getVersion().getVersion());
-                if(!strcmp(ver.c_str(), str9p.c_str())) {
+                if (ver == str9p) {
                     getOFcall().getVersion().setVersion(str9p.data());
-                } else if(!strcmp(ver.c_str(), str9p2000.c_str())) {
+                } else if(ver == str9p2000) {
                     getOFcall().getVersion().setVersion(str9p2000.data());
                 } else {
                     getOFcall().getVersion().setVersion(strUnknown.data());
