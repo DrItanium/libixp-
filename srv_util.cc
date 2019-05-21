@@ -1,7 +1,6 @@
 /* Copyright ©2006-2010 Kris Maglione <maglione.k at Gmail>
  * See LICENSE file for license details.
  */
-#include <cassert>
 #include <ctype.h>
 #include <cstdarg>
 #include <cstdbool>
@@ -251,7 +250,9 @@ srv_writectl(Req9 *req, std::function<char*(void*, Msg*)> fn) {
 void
 pending_respond(Req9 *req) {
 	auto file = std::any_cast<FileId>(req->fid->aux);
-	assert(file->getContents().pending);
+    if (!file->getContents().pending) {
+        throw Exception("Given file's contents not marked as pending!");
+    }
 	auto p = (PendingLink*)(file->getContents().p);
 
     if (auto& queue = (*p)->getContents().queue; !queue.empty()) {
@@ -512,7 +513,10 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
 			tfile = lookup(file, req->getIFcall().getTwalk().getWname()[i]);
 			if(!tfile)
 				break;
-			assert(!tfile->hasNext());
+            if (tfile->hasNext()) {
+			    //assert(!tfile->hasNext());
+                throw Exception("tfile has next!");
+            }
 			if(strcmp(req->getIFcall().getTwalk().getWname()[i], ".")) {
 				tfile->setNext(file);
 				file = tfile;
