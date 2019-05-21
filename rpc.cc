@@ -2,7 +2,6 @@
  * Copyright (c) 2003 Russ Cox, Massachusetts Institute of Technology
  * Distributed under the same terms as libjyq.
  */
-#include <cassert>
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
@@ -99,7 +98,10 @@ void
 Client::puttag(Rpc& r)
 {
 	auto i = r->getContents().getTag() - _mintag;
-	assert(wait[i] == r);
+    if (wait[i] != r) {
+        // assert(wait[i] == r);
+        throw Exception("wait[",i,"] does not equal r");
+    }
 	wait[i] = nullptr;
 	_nwait--;
 	_freetag = i;
@@ -174,7 +176,10 @@ Client::muxrpc(Fcall& tx)
 
 	/* if not done, there's no muxer; start muxing */
 	if(!r->getContents().getP()){
-        assert(muxer.lock() == nullptr || muxer.lock() == r);
+        if (!(muxer.lock() == nullptr || muxer.lock() == r)) {
+            //assert(muxer.lock() == nullptr || muxer.lock() == r);
+            throw Exception("muxer check failed!");
+        }
         muxer = r;
 		while(!r->getContents().getP()){
             _lk.unlock();
