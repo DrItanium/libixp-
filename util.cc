@@ -39,12 +39,9 @@ _user() {
 static bool 
 rmkdir(const std::string& path, int mode) {
     auto tokens = tokenize(path, '/');
-    for (const auto& pathComponent: tokens) {
+    for (const auto& pathComponent : tokens) {
         if (auto ret = mkdir(pathComponent.c_str(), mode); (ret == -1) && (errno != EEXIST)) {
-            std::ostringstream msg;
-            print(msg, "Can't create path '", path, "': ", errbuf());
-            auto str = msg.str();
-            throw str; // TODO throw an actual exception
+            throw Exception("Can't create path '", path, "': ", errbuf());
         }
     }
     return true;

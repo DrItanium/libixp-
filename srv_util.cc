@@ -20,8 +20,6 @@ constexpr auto computeQIDValue(int64_t t, int64_t i) noexcept {
     return int64_t((t & 0xFF)<<32) | int64_t(i & 0xFFFF'FFFF);
 }
 
-static FileId*	free_fileid;
-
 /**
  * Function: srv_getfile
  * Type: FileId
