@@ -17,25 +17,20 @@
 namespace jyq {
     struct CFid {
         public:
-            uint32_t fid;
-        private:
-            Qid      _qid;
-            uint8_t  _mode;
-            uint     _open;
-            uint     _iounit;
-            uint32_t _offset;
-        public:
-            Qid& getQid() noexcept { return _qid; }
-            const Qid& getQid() const noexcept { return _qid; }
+            CFid() = default;
+            constexpr auto getFid() const noexcept { return _fid; }
             constexpr auto getIoUnit() const noexcept { return _iounit; }
             constexpr auto getOpen() const noexcept { return _open; }
             constexpr auto getOffset() const noexcept { return _offset; }
             constexpr auto getMode() const noexcept { return _mode; }
+            Qid& getQid() noexcept { return _qid; }
+            const Qid& getQid() const noexcept { return _qid; }
             void setIoUnit(uint value) noexcept { _iounit = value; }
             void setOpen(uint value) noexcept { _open = value; }
             void setOffset(uint32_t value) noexcept { _offset = value; }
             void setMode(uint8_t value) noexcept { _mode = value; }
             void setQid(const Qid& value) noexcept { _qid = value; }
+            void setFid(uint32_t value) noexcept { _fid = value; }
             bool close(DoFcallFunc);
             bool clunk(DoFcallFunc); 
             bool performClunk(DoFcallFunc);
@@ -46,6 +41,12 @@ namespace jyq {
             std::shared_ptr<Stat> fstat(DoFcallFunc);
             Mutex& getIoLock() noexcept { return _iolock; }
         private:
+            uint32_t _fid;
+            Qid      _qid;
+            uint8_t  _mode;
+            uint     _open;
+            uint     _iounit;
+            uint32_t _offset;
             Mutex _iolock;
     };
 } // end namespace jyq

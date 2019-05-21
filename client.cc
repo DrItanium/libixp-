@@ -28,7 +28,7 @@ Client::getFid() {
     concurrency::Locker<Mutex> theLock(_lk);
     if (_freefid.empty()) {
         auto ptr = std::make_shared<CFid>();
-        ptr->fid = ++_lastfid;
+        ptr->setFid(++_lastfid);
         return ptr;
     } else {
         std::shared_ptr<CFid> front(_freefid.front()); // make a copy?
@@ -40,7 +40,7 @@ Client::getFid() {
 void
 Client::putfid(std::shared_ptr<CFid> f) {
     concurrency::Locker<Mutex> theLock(_lk);
-    if (f->fid == _lastfid) {
+    if (f->getFid() == _lastfid) {
 		_lastfid--;
 	} else {
         _freefid.emplace_front(f);
@@ -95,7 +95,7 @@ _pread(CFid *f, char *buf, long count, int64_t offset, std::function<std::shared
 	while(len < count) {
 	    Fcall fcall;
         auto n = min<int>(count-len, f->getIoUnit());
-        fcall.setTypeAndFid(FType::TRead, f->fid);
+        fcall.setTypeAndFid(FType::TRead, f->getFid());
         auto& tread = fcall.getTRead();
         tread.setOffset(offset);
         tread.setSize(n);
@@ -125,7 +125,7 @@ _pwrite(CFid *f, const void *buf, long count, int64_t offset, DoFcallFunc dofcal
 	do {
         Fcall fcall;
 		n = min<int>(count-len, f->getIoUnit());
-        fcall.setTypeAndFid(FType::TWrite, f->fid);
+        fcall.setTypeAndFid(FType::TWrite, f->getFid());
         auto& twrite = fcall.getTWrite();
         twrite.setOffset(offset);
         twrite.setData((char*)buf + len);
@@ -202,7 +202,7 @@ Client::walk(const char *path) {
         fcall.setFid(RootFid);
 
         fcall.getTwalk().setSize(n);
-        fcall.getTwalk().setNewFid(f->fid);
+        fcall.getTwalk().setNewFid(f->getFid());
         if (dofcall(fcall) == 0) {
             putfid(f);
             return nullptr;
@@ -242,7 +242,7 @@ Client::remove(const char *path) {
         return false;
     } else {
         Fcall fcall;
-        fcall.setTypeAndFid(FType::TRemove, f->fid);
+        fcall.setTypeAndFid(FType::TRemove, f->getFid());
         auto ret = dofcall(fcall);
         putfid(f);
 
@@ -398,7 +398,7 @@ Client::create(const char *path, uint perm, uint8_t mode) {
         return f;
     }
 
-    fcall.setTypeAndFid(FType::TCreate, f->fid);
+    fcall.setTypeAndFid(FType::TCreate, f->getFid());
     fcall.getTcreate().setName((char*)(uintptr_t)path);
     fcall.getTcreate().setPerm(perm);
     fcall.getTcreate().setMode(mode);
@@ -426,7 +426,7 @@ Client::open(const char *path, uint8_t mode) {
 		return nullptr;
     }
 
-    fcall.setTypeAndFid(FType::TOpen, f->fid);
+    fcall.setTypeAndFid(FType::TOpen, f->getFid());
     fcall.getTopen().setMode(mode);
 
 	if(!dofcall(fcall)) {
@@ -488,7 +488,7 @@ Client::stat(const char *path) {
 	if (auto f = walk(path); !f) {
         return nullptr;
     } else {
-	    auto stat = _stat(f->fid, [this](auto& fc) { return dofcall(fc); });
+	    auto stat = _stat(f->getFid(), [this](auto& fc) { return dofcall(fc); });
         clunk(f);
 	    return stat;
     }
@@ -496,7 +496,7 @@ Client::stat(const char *path) {
 
 std::shared_ptr<Stat>
 CFid::fstat(DoFcallFunc c) {
-	return _stat(fid, c);
+	return _stat(_fid, c);
 }
 
 
@@ -619,7 +619,7 @@ CFid::pwrite(const void *buf, long count, int64_t offset, DoFcallFunc fn) {
 
 bool
 CFid::performClunk(DoFcallFunc c) {
-	Fcall fcall(FType::TClunk, fid);
+	Fcall fcall(FType::TClunk, _fid);
     return bool(c(fcall));
 }
 
