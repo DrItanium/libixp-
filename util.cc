@@ -19,7 +19,7 @@
 #include "argv.h"
 
 namespace jyq {
-static const std::string&
+const std::string&
 _user() {
     static std::string user;
 	passwd *pw;
@@ -36,7 +36,7 @@ _user() {
 	return user;
 }
 
-static bool 
+bool 
 rmkdir(const std::string& path, int mode) {
     auto tokens = tokenize(path, '/');
     for (const auto& pathComponent : tokens) {
