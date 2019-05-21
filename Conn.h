@@ -22,13 +22,17 @@ namespace jyq {
          */
         Connection& getConnection() noexcept { return _fd; }
         constexpr auto isClosed() const noexcept { return _closed; }
+        Func getReadFunc() const noexcept { return _read; }
+        Func getCloseFunc() const noexcept { return _close; }
+        void setReadFunc(Func value) noexcept { _read = value; }
+        void setCloseFunc(Func value) noexcept { _close = value; }
         void setClosed(bool value = true) noexcept { _closed = value; }
         uint recvmsg(Msg& msg) { return getConnection().recvmsg(msg); }
         public:
             Server&	srv;
             std::any	aux;	/* Arbitrary pointer, to be used by handlers. */
-            Func read, close;
         private:
+            Func _read, _close;
             bool _closed = false;
             Connection _fd;
 
