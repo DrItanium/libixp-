@@ -21,14 +21,17 @@ namespace jyq {
          * @return the connection object stored in this class
          */
         Connection& getConnection() noexcept { return _fd; }
+        constexpr auto isClosed() const noexcept { return _closed; }
+        void setClosed(bool value = true) noexcept { _closed = value; }
         uint recvmsg(Msg& msg) { return getConnection().recvmsg(msg); }
         public:
             Server&	srv;
             std::any	aux;	/* Arbitrary pointer, to be used by handlers. */
             Func read, close;
-            bool		closed = false;	/* Non-zero when P<fd> has been closed. */
         private:
+            bool _closed = false;
             Connection _fd;
+
     };
     void	hangup(Conn*);
 } // end namespace jyq

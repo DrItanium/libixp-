@@ -16,7 +16,7 @@
 
 namespace jyq {
 Conn::Conn(Server& s, int theFd, std::any a, Conn::Func r, Conn::Func c) : 
-    srv(s), aux(a), read(r), close(c), closed(false), _fd(theFd) { }
+    srv(s), aux(a), read(r), close(c), _closed(false), _fd(theFd) { }
 /**
  * Function: listen
  * Type: Conn
@@ -78,7 +78,7 @@ Server::canlock() {
  */
 
 Conn::~Conn() {
-    closed = true;
+    _closed = true;
     if (close) {
         close(this);
     } else {
