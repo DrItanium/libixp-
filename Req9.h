@@ -36,6 +36,9 @@ namespace jyq {
         void respond(const char *err);
         inline void respond(const std::string& err) { respond(err.c_str()); }
         void handle();
+        private:
+            void variantResponse(FcallVariant&& variant, const std::string& error);
+            void handleVariant(FcallVariant&& variant);
         public:
             Srv9*	srv;
             Fid*	fid;    /* Fid structure corresponding to FHdr.fid */

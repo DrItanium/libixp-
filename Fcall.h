@@ -42,6 +42,17 @@ namespace jyq {
         private:
             char* _version;
     };
+    class FVersionCxx : public FHdr {
+        public:
+            using Parent = FHdr;
+            using Parent::Parent;
+            void packUnpack(Msg& msg);
+            const std::string& getVersion() const noexcept { return _version; }
+            void setVersion(std::string value) noexcept { _version = value; }
+            uint32_t size() noexcept { return _version.size(); }
+        private:
+            std::string _version;
+    };
     class FTFlush : public FHdr {
         public:
             using FHdr::FHdr;
@@ -258,7 +269,7 @@ namespace jyq {
         ~Fcall();
         void packUnpack(Msg& msg) noexcept;
     };
-    using FcallVariant = std::variant<FVersion, FTFlush, FROpen, FError, FRAuth, FAttach, FTCreate, FTWalk, FRWalk, FTWStat, FRStat, FIO>;
+    using FcallVariant = std::variant<decltype(nullptr), FVersionCxx, FTFlush, FROpen, FError, FRAuth, FAttach, FTCreate, FTWalk, FRWalk, FTWStat, FRStat, FIO>;
     using DoFcallFunc = std::function<std::shared_ptr<Fcall>(Fcall&)>;
 } // end namespace jyq
 #endif // end LIBJYQ_FCALL_H__

@@ -148,6 +148,31 @@ Fid*
 Conn9::retrieveFid(int id) {
     return _fidmap.get(id);
 }
+#if 0
+void
+Req9::handleVariant(FcallVariant&& variant) {
+    FcallVariant output;
+    std::visit([this, &output](auto&& value) {
+                using K = std::decay_t<decltype(value)>;
+                if constexpr (std::is_same_v<K, FVersionCxx>) {
+                    static std::string str9p("9P");
+                    static std::string str9p2000("9P2000");
+                    static std::string strUnknown("unknown");
+                    K ver;
+                    if (value.getVersion() == str9p) {
+                        ver.setVersion(str9p);
+                    } else if (value.getVersion() == str9p2000) {
+                        ver.setVersion(str9p2000);
+                    } else {
+                        ver.setVersion(strUnknown);
+                    }
+                    output = ver;
+                } else {
+                    throw Exception("unknown/unimplemented fcall kind!");
+                }
+            }, variant);
+}
+#endif
 void
 Req9::handle() {
     auto& p9conn = *_conn;
