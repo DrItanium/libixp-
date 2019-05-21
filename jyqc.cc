@@ -36,9 +36,9 @@ void
 write_data(std::shared_ptr<jyq::CFid> fid, char *name) {
 	long len = 0;
 
-    auto buf = new char[fid->iounit];
+    auto buf = new char[fid->getIoUnit()];
 	do {
-		len = read(0, buf, fid->iounit);
+		len = read(0, buf, fid->getIoUnit());
 		if(len >= 0 && fid->write(buf, len, client->getDoFcallLambda()) != len) {
             throw jyq::Exception("cannot write file '", name, "': ", jyq::errbuf(), "\n");
         }
@@ -199,8 +199,8 @@ xread(int argc, char *argv[]) {
     }
 
     int count = 0;
-    auto buf = new char[fid->iounit];
-	while((count = fid->read(buf, fid->iounit, client->getDoFcallLambda())) > 0) {
+    auto buf = new char[fid->getIoUnit()];
+	while((count = fid->read(buf, fid->getIoUnit(), client->getDoFcallLambda())) > 0) {
 		write(1, buf, count);
     }
 
@@ -249,9 +249,9 @@ xls(int argc, char *argv[]) {
     }
 
     std::vector<std::shared_ptr<jyq::Stat>> stats;
-    char* buf = new char[fid->iounit];
+    char* buf = new char[fid->getIoUnit()];
     int count = 0;
-    for (count = fid->read(buf, fid->iounit, client->getDoFcallLambda()); count > 0; count = fid->read(buf, fid->iounit, client->getDoFcallLambda())) {
+    for (count = fid->read(buf, fid->getIoUnit(), client->getDoFcallLambda()); count > 0; count = fid->read(buf, fid->getIoUnit(), client->getDoFcallLambda())) {
         jyq::Msg m(buf, count, jyq::Msg::Mode::Unpack);
 		while(m.pos < m.end) {
             stats.emplace_back(std::make_shared<jyq::Stat>());

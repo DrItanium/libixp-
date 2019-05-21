@@ -64,10 +64,10 @@ Client::allocmsg(int n) {
 namespace {
 
 void
-initfid(std::shared_ptr<CFid> f, Fcall *fcall, decltype(CFid::iounit) iounit) {
+initfid(std::shared_ptr<CFid> f, Fcall *fcall, uint iounit) {
 	f->open = 1;
     f->setOffset(0);
-    f->iounit = iounit;
+    f->setIoUnit(iounit);
     f->qid = fcall->getRopen().getQid();
 }
 std::shared_ptr<Stat>
@@ -94,7 +94,7 @@ _pread(CFid *f, char *buf, long count, int64_t offset, std::function<std::shared
 	auto len = 0l;
 	while(len < count) {
 	    Fcall fcall;
-        auto n = min<int>(count-len, f->iounit);
+        auto n = min<int>(count-len, f->getIoUnit());
         fcall.setTypeAndFid(FType::TRead, f->fid);
         auto& tread = fcall.getTRead();
         tread.setOffset(offset);
@@ -124,7 +124,7 @@ _pwrite(CFid *f, const void *buf, long count, int64_t offset, DoFcallFunc dofcal
 	len = 0;
 	do {
         Fcall fcall;
-		n = min<int>(count-len, f->iounit);
+		n = min<int>(count-len, f->getIoUnit());
         fcall.setTypeAndFid(FType::TWrite, f->fid);
         auto& twrite = fcall.getTWrite();
         twrite.setOffset(offset);

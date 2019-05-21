@@ -21,11 +21,13 @@ namespace jyq {
             Qid      qid;
             uint8_t  mode;
             uint     open;
-            uint     iounit;
         private:
+            uint     _iounit;
             uint32_t _offset;
         public:
+            constexpr auto getIoUnit() const noexcept { return _iounit; }
             constexpr auto getOffset() const noexcept { return _offset; }
+            void setIoUnit(uint value) noexcept { _iounit = value; }
             void setOffset(uint32_t value) noexcept { _offset = value; }
             bool close(DoFcallFunc);
             bool clunk(DoFcallFunc); 
