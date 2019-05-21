@@ -66,7 +66,7 @@ namespace {
 void
 initfid(std::shared_ptr<CFid> f, Fcall *fcall, decltype(CFid::iounit) iounit) {
 	f->open = 1;
-	f->offset = 0;
+    f->setOffset(0);
     f->iounit = iounit;
     f->qid = fcall->getRopen().getQid();
 }
@@ -525,9 +525,9 @@ CFid::fstat(DoFcallFunc c) {
 long
 CFid::read(void *buf, long count, DoFcallFunc dofcall) {
     concurrency::Locker<Mutex> theLock(_iolock);
-	int n = _pread(this, (char*)buf, count, offset, dofcall);
+	int n = _pread(this, (char*)buf, count, _offset, dofcall);
 	if(n > 0) {
-		offset += n;
+		_offset += n;
     }
 	return n;
 }
@@ -565,9 +565,9 @@ CFid::pread(void *buf, long count, int64_t offset, DoFcallFunc fn) {
 long
 CFid::write(const void *buf, long count, DoFcallFunc fn) {
     concurrency::Locker<Mutex> theLock(_iolock);
-	auto n = _pwrite(this, buf, count, offset, fn);
+	auto n = _pwrite(this, buf, count, _offset, fn);
 	if(n > 0) {
-		offset += n;
+		_offset += n;
     }
 	return n;
 }

@@ -22,8 +22,11 @@ namespace jyq {
             uint8_t  mode;
             uint     open;
             uint     iounit;
-            uint32_t offset;
+        private:
+            uint32_t _offset;
         public:
+            constexpr auto getOffset() const noexcept { return _offset; }
+            void setOffset(uint32_t value) noexcept { _offset = value; }
             bool close(DoFcallFunc);
             bool clunk(DoFcallFunc); 
             bool performClunk(DoFcallFunc);

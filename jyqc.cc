@@ -101,7 +101,7 @@ xappend(int argc, char *argv[]) {
         throw jyq::Exception("Can't open file '", file, "': ", jyq::errbuf(), "\n");
     } else {
         auto stat = client->stat(file);
-        fid->offset = stat->getLength();
+        fid->setOffset(stat->getLength());
         //jyq::Stat::free(stat.get());
         write_data(fid, file);
         return 0;
