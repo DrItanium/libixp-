@@ -18,13 +18,15 @@ namespace jyq {
     struct CFid {
         public:
             uint32_t fid;
-            Qid      qid;
         private:
+            Qid      _qid;
             uint8_t  _mode;
             uint     _open;
             uint     _iounit;
             uint32_t _offset;
         public:
+            Qid& getQid() noexcept { return _qid; }
+            const Qid& getQid() const noexcept { return _qid; }
             constexpr auto getIoUnit() const noexcept { return _iounit; }
             constexpr auto getOpen() const noexcept { return _open; }
             constexpr auto getOffset() const noexcept { return _offset; }
@@ -33,6 +35,7 @@ namespace jyq {
             void setOpen(uint value) noexcept { _open = value; }
             void setOffset(uint32_t value) noexcept { _offset = value; }
             void setMode(uint8_t value) noexcept { _mode = value; }
+            void setQid(const Qid& value) noexcept { _qid = value; }
             bool close(DoFcallFunc);
             bool clunk(DoFcallFunc); 
             bool performClunk(DoFcallFunc);

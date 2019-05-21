@@ -68,7 +68,7 @@ initfid(std::shared_ptr<CFid> f, Fcall *fcall, uint iounit) {
     f->setOpen(1);
     f->setOffset(0);
     f->setIoUnit(iounit);
-    f->qid = fcall->getRopen().getQid();
+    f->setQid(fcall->getRopen().getQid());
 }
 std::shared_ptr<Stat>
 _stat(ulong fid, std::function<std::shared_ptr<Fcall>(Fcall&)> dofcall) {
@@ -216,7 +216,7 @@ Client::walk(const char *path) {
             return nullptr;
         }
 
-        f->qid = fcall.getRwalk().getWqid()[n-1]; // gross... so gross, this is taken from teh c code...so gross
+        f->setQid(fcall.getRwalk().getWqid()[n-1]); // gross... so gross, this is taken from teh c code...so gross
 
         return f;
     }

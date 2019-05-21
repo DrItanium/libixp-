@@ -166,7 +166,7 @@ xcreate(int argc, char *argv[]) {
         throw jyq::Exception("Can't create file '", file, "': ", jyq::errbuf(), "\n");
     }
 
-	if((fid->qid.getType()&(uint32_t)jyq::DMode::DIR) == 0)
+	if((fid->getQid().getType()&(uint32_t)jyq::DMode::DIR) == 0)
 		write_data(fid, file);
 
 	return 0;
