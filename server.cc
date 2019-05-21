@@ -3,7 +3,6 @@
  * C++ Implementation copyright (c)2019 Joshua Scoggins *
  * See LICENSE file for license details.
  */
-#include <cassert>
 #include <cerrno>
 #include <cstdlib>
 #include <sys/types.h>

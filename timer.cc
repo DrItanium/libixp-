@@ -2,7 +2,6 @@
  * C++ Implementation copyright (c)2019 Joshua Scoggins
  * See LICENSE file for license details.
  */
-#include <cassert>
 #include <cstdlib>
 #include <sys/time.h>
 #include "Msg.h"
