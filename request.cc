@@ -2,7 +2,6 @@
  * C++ Implementation copyright (c)2019 Joshua Scoggins
  * See LICENSE file for license details.
  */
-#include <cassert>
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
@@ -357,7 +356,9 @@ Req9::respond(const char *error) {
 
 	switch(getIFcall().getType()) {
 	case FType::TVersion:
-		assert(error == nullptr);
+        if (!error) {
+            throw Exception("error is null!");
+        }
 		free(getIFcall().getVersion().getVersion());
         {
             concurrency::Locker<Mutex> theRlock(p9conn->getRLock());
@@ -428,7 +429,7 @@ Req9::respond(const char *error) {
 	/* Still to be implemented: auth */
 	default:
 		if(!error) {
-			assert(!"Respond called on unsupported fcall type");
+            throw Exception("Respond called on unsupported fcall type!");
         }
 		break;
 	}
