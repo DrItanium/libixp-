@@ -379,7 +379,7 @@ Req9::respond(const char *error) {
 	case FType::TCreate:
 		if(!error) {
 			getOFcall().getRopen().setIoUnit(p9conn->getRMsg().size() - 24);
-			fid->iounit = getOFcall().getRopen().getIoUnit();
+            fid->setIoUnit(getOFcall().getRopen().getIoUnit());
 			fid->omode = getIFcall().getTopen().getMode();
 			fid->qid = getOFcall().getRopen().getQid();
 		}

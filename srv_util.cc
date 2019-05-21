@@ -466,8 +466,9 @@ srv_readdir(Req9 *req, LookupFn lookup, std::function<void(Stat*, FileId&)> dost
 	auto file = std::any_cast<FileId>(req->fid->aux);
 
 	ulong size = req->getIFcall().getIO().size();
-	if(size > req->fid->iounit)
-		size = req->fid->iounit;
+	if(size > req->fid->getIoUnit()) {
+		size = req->fid->getIoUnit();
+    }
     auto buf = new char[size];
     Msg msg(buf, size, Msg::Mode::Pack);
 
