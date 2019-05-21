@@ -538,8 +538,6 @@ Conn::serve9conn() {
         ++p9conn;
         p9conn.setSrv(std::any_cast<Srv9*>(aux));
         p9conn.alloc(1024);
-        //p9conn.rmsg.alloc(1024);
-        //p9conn.wmsg.alloc(1024);
         srv.listen(fd, &p9conn, handlefcall, cleanupconn);
     }
 }
