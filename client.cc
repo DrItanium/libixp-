@@ -524,7 +524,7 @@ CFid::fstat(DoFcallFunc c) {
 
 long
 CFid::read(void *buf, long count, DoFcallFunc dofcall) {
-    concurrency::Locker<Mutex> theLock(iolock);
+    concurrency::Locker<Mutex> theLock(_iolock);
 	int n = _pread(this, (char*)buf, count, offset, dofcall);
 	if(n > 0) {
 		offset += n;
@@ -534,7 +534,7 @@ CFid::read(void *buf, long count, DoFcallFunc dofcall) {
 
 long
 CFid::pread(void *buf, long count, int64_t offset, DoFcallFunc fn) {
-    concurrency::Locker<Mutex> theLock(iolock);
+    concurrency::Locker<Mutex> theLock(_iolock);
 	return _pread(this, (char*)buf, count, offset, fn);
 }
 
@@ -564,7 +564,7 @@ CFid::pread(void *buf, long count, int64_t offset, DoFcallFunc fn) {
 
 long
 CFid::write(const void *buf, long count, DoFcallFunc fn) {
-    concurrency::Locker<Mutex> theLock(iolock);
+    concurrency::Locker<Mutex> theLock(_iolock);
 	auto n = _pwrite(this, buf, count, offset, fn);
 	if(n > 0) {
 		offset += n;
@@ -574,7 +574,7 @@ CFid::write(const void *buf, long count, DoFcallFunc fn) {
 
 long
 CFid::pwrite(const void *buf, long count, int64_t offset, DoFcallFunc fn) {
-    concurrency::Locker<Mutex> theLock(iolock);
+    concurrency::Locker<Mutex> theLock(_iolock);
 	return _pwrite(this, buf, count, offset, fn);
 }
 
