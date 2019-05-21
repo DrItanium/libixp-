@@ -1,7 +1,6 @@
 /* Copyright ©2007-2010 Kris Maglione <maglione.k at Gmail>
  * See LICENSE file for license details.
  */
-#include <assert.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -169,7 +168,10 @@ Client::walkdir(char *path, const char **rest) {
 	char *p;
 
 	p = path + strlen(path) - 1;
-	assert(p >= path);
+    if (p < path) {
+        //assert(p >= path);
+        throw Exception("p is not greater than or equal to path!");
+    }
 	while(*p == '/')
 		*p-- = '\0';
 
