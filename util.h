@@ -11,7 +11,6 @@
 
 namespace jyq {
     void*	erealloc(void*, uint);
-    char*	estrdup(const char*);
     std::string getNamespace();
     template<typename ... Args>
     std::string smprint(Args&& ... args) {

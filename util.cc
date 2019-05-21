@@ -17,13 +17,12 @@
 #include "PrintFunctions.h"
 #include "util.h"
 #include "argv.h"
-//#include "jyq.h"
 
 namespace jyq {
 static const std::string&
 _user() {
     static std::string user;
-	struct passwd *pw;
+	passwd *pw;
 
 	if(user.empty()) {
 		pw = getpwuid(getuid());
@@ -139,16 +138,6 @@ erealloc(void *ptr, uint size) {
         throw "SHOULDN'T GET HERE!";
     } else {
         return ret;
-    }
-}
-
-char*
-estrdup(const char *str) {
-	if (void *ret = strdup(str); !ret) {
-		mfatal("strdup", strlen(str));
-        throw "SHOULDN'T GET HERE!";
-    } else {
-        return (char*)ret;
     }
 }
 
