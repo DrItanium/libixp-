@@ -11,35 +11,35 @@ namespace jyq {
     /* stat structure */
     struct Stat {
         public:
-            uint16_t    size() noexcept;
             ~Stat();
             void packUnpack(Msg& msg) noexcept;
             constexpr auto getType() const noexcept { return _type; }
-            void setType(uint16_t value) noexcept { _type = value; }
             constexpr auto getDev() const noexcept { return _dev; }
-            void setDev(uint32_t value) noexcept { _dev = value; }
+            constexpr auto getMode() const noexcept { return _mode; }
+            constexpr auto getAtime() const noexcept { return _atime; }
+            constexpr auto getMtime() const noexcept { return _mtime; }
+            constexpr auto getLength() const noexcept { return _length; }
             Qid& getQid() noexcept { return _qid; }
             const Qid& getQid() const noexcept { return _qid; }
-            constexpr auto getMode() const noexcept { return _mode; }
-            void setMode(uint32_t value) noexcept { _mode = value; }
-            constexpr auto getAtime() const noexcept { return _atime; }
-            void setAtime(uint32_t value) noexcept { _atime = value; }
-            constexpr auto getMtime() const noexcept { return _mtime; }
-            void setMtime(uint32_t value) noexcept { _mtime = value; }
-            constexpr auto getLength() const noexcept { return _length; }
-            void setLength(uint64_t value) noexcept { _length = value; }
             const char* getName() const noexcept { return _name; }
             char* getName() noexcept { return _name; }
-            void setName(char* value) noexcept { _name = value; }
             const char* getUid() const noexcept { return _uid; }
             char* getUid() noexcept { return _uid; }
-            void setUid(char* value) noexcept { _uid = value; }
             const char* getGid() const noexcept { return _gid; }
             char* getGid() noexcept { return _gid; }
-            void setGid(char* value) noexcept { _gid = value; }
             const char* getMuid() const noexcept { return _muid; }
             char* getMuid() noexcept { return _muid; }
+            uint16_t size() noexcept;
+            void setMode(uint32_t value) noexcept { _mode = value; }
+            void setAtime(uint32_t value) noexcept { _atime = value; }
+            void setMtime(uint32_t value) noexcept { _mtime = value; }
+            void setLength(uint64_t value) noexcept { _length = value; }
+            void setName(char* value) noexcept { _name = value; }
+            void setUid(char* value) noexcept { _uid = value; }
+            void setGid(char* value) noexcept { _gid = value; }
             void setMuid(char* value) noexcept { _muid = value; }
+            void setType(uint16_t value) noexcept { _type = value; }
+            void setDev(uint32_t value) noexcept { _dev = value; }
         private:
             uint16_t	_type;
             uint32_t	_dev;
