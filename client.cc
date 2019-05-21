@@ -413,7 +413,7 @@ Client::create(const char *path, uint perm, uint8_t mode) {
         count = _msize-24;
     }
 	initfid(f, &fcall, count);
-	f->mode = mode;
+    f->setMode(mode);
 	return f;
 }
 
@@ -439,7 +439,7 @@ Client::open(const char *path, uint8_t mode) {
         count = _msize-24;
     }
 	initfid(f, &fcall, count);
-	f->mode = mode;
+    f->setMode(mode);
 
 	return f;
 }

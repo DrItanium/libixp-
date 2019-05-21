@@ -19,8 +19,8 @@ namespace jyq {
         public:
             uint32_t fid;
             Qid      qid;
-            uint8_t  mode;
         private:
+            uint8_t  _mode;
             uint     _open;
             uint     _iounit;
             uint32_t _offset;
@@ -28,9 +28,11 @@ namespace jyq {
             constexpr auto getIoUnit() const noexcept { return _iounit; }
             constexpr auto getOpen() const noexcept { return _open; }
             constexpr auto getOffset() const noexcept { return _offset; }
+            constexpr auto getMode() const noexcept { return _mode; }
             void setIoUnit(uint value) noexcept { _iounit = value; }
             void setOpen(uint value) noexcept { _open = value; }
             void setOffset(uint32_t value) noexcept { _offset = value; }
+            void setMode(uint8_t value) noexcept { _mode = value; }
             bool close(DoFcallFunc);
             bool clunk(DoFcallFunc); 
             bool performClunk(DoFcallFunc);
