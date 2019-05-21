@@ -117,13 +117,6 @@ getNamespace() {
 	return _namespace;
 }
 
-/* Can't malloc */
-static void
-mfatal(const char *name, uint size) {
-    std::cerr << "libjyq: fatal: Could not " << name << "() " << size << " bytes\n";
-	exit(1);
-}
-
 /**
  * Function: erealloc
  * Function: estrdup
@@ -134,8 +127,7 @@ mfatal(const char *name, uint size) {
 void*
 erealloc(void *ptr, uint size) {
 	if (void *ret = realloc(ptr, size); !ret) {
-		mfatal("realloc", size);
-        throw "SHOULDN'T GET HERE!";
+        throw Exception("libjyq: fatal: Could not realloc() ", size, " bytes\n");
     } else {
         return ret;
     }
