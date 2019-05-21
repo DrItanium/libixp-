@@ -81,25 +81,25 @@ decref_p9conn(Conn9 *p9conn) {
     //}
 	//free(p9conn); // don't like this at all :(
 }
-Fid::Fid(uint32_t f, Fid::Map& m, Conn9& c) : fid(f), omode(-1), map(m), conn(c) {
-    ++conn;
+Fid::Fid(uint32_t f, Conn9& c) : fid(f), omode(-1), _conn(c) {
+    ++_conn;
 }
 
 static Fid* 
 createfid(Fid::Map& map, int fid, Conn9& p9conn) {
-    if (auto result = map.emplace(std::make_pair(fid, Fid(fid, map, p9conn))); result.second) {
+    if (auto result = map.emplace(std::make_pair(fid, Fid(fid, p9conn))); result.second) {
         return &result.first->second;
     } else {
         return nullptr;
     }
 }
 Fid::~Fid() {
-    if (auto srv = this->conn.getSrv(); srv) {
+    if (auto srv = this->getConn().getSrv(); srv) {
        if (srv->freefid) {
            srv->freefid(this);
        }
     }
-    decref_p9conn(&this->conn); // this should not be done like this
+    decref_p9conn(&this->getConn()); // this should not be done like this
 }
 static bool 
 destroyfid(Conn9& p9conn, ulong fid) {
@@ -479,13 +479,13 @@ cleanupconn(Conn *c) {
     ReqList collection;
     if (p9conn->referenceCountGreaterThan(1)) {
         p9conn->fidExec<ReqList&>([](auto context, Fid::Map::iterator arg) {
-                ++arg->second.conn;
+                ++arg->second.getConn();
                 context.emplace_back();
                 context.back().getIFcall().setType(FType::TClunk);
                 context.back().getIFcall().setNoTag();
                 context.back().getIFcall().setFid(arg->second.fid);
                 context.back().fid = &arg->second;
-                context.back().setConn(&arg->second.conn);
+                context.back().setConn(&arg->second.getConn());
                 }, collection);
         p9conn->tagExec<ReqList>([](auto context, Conn9::TagMap::iterator arg) {
                     arg->second.getConn()->operator++();
