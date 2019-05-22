@@ -212,7 +212,7 @@ Req9::handle() {
                     respond(Enofid);
                 } else if (fid->getOmode() != -1) {
                     respond(Eopen);
-                } else if(!(fid->qid.getType()&uint8_t(QType::DIR))) {
+                } else if(!(fid->getQid().getType()&uint8_t(QType::DIR))) {
                     respond(Enotdir);
                 } else if(!p9conn.getSrv()->create) {
                     respond(Enofunc);
@@ -224,9 +224,9 @@ Req9::handle() {
             [&p9conn, srv = p9conn.getSrv(), this]() {
                 if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
-                } else if ((fid->qid.getType()&uint8_t(QType::DIR)) && (getIFcall().getTopen().getMode()|uint8_t(OMode::RCLOSE)) != (uint8_t(OMode::READ)|uint8_t(OMode::RCLOSE))) {
+                } else if ((fid->getQid().getType()&uint8_t(QType::DIR)) && (getIFcall().getTopen().getMode()|uint8_t(OMode::RCLOSE)) != (uint8_t(OMode::READ)|uint8_t(OMode::RCLOSE))) {
                     respond(Eisdir);
-                } else if (getOFcall().getRopen().setQid(fid->qid); !p9conn.getSrv()->open) {
+                } else if (getOFcall().getRopen().setQid(fid->getQid()); !p9conn.getSrv()->open) {
                     respond(Enofunc);
                 } else {
                     srv->open(this);
@@ -274,7 +274,7 @@ Req9::handle() {
                     respond("cannot walk from an open fid");
                     return;
                 }
-                if(getIFcall().getTwalk().size() && !(fid->qid.getType()&uint8_t(QType::DIR))) {
+                if(getIFcall().getTwalk().size() && !(fid->getQid().getType()&uint8_t(QType::DIR))) {
                     respond(Enotdir);
                     return;
                 }
@@ -318,7 +318,7 @@ Req9::handle() {
                     respond("wstat of qid");
                 } else if(getIFcall().getTwstat().getStat().getMuid() && getIFcall().getTwstat().getStat().getMuid()[0]) {
                     respond("wstat of muid");
-                } else if(~getIFcall().getTwstat().getStat().getMode() && ((getIFcall().getTwstat().getStat().getMode()&(uint32_t)(DMode::DIR))>>24) != (fid->qid.getType()&uint8_t(QType::DIR))) {
+                } else if(~getIFcall().getTwstat().getStat().getMode() && ((getIFcall().getTwstat().getStat().getMode()&(uint32_t)(DMode::DIR))>>24) != (fid->getQid().getType()&uint8_t(QType::DIR))) {
                     respond("wstat on DMDIR bit");
                 } else if(!srv->wstat) {
                     respond(Enofunc);
@@ -381,7 +381,7 @@ Req9::respond(const char *error) {
 			getOFcall().getRopen().setIoUnit(p9conn->getRMsg().size() - 24);
             fid->setIoUnit(getOFcall().getRopen().getIoUnit());
             fid->setOmode(getIFcall().getTopen().getMode());
-			fid->qid = getOFcall().getRopen().getQid();
+			fid->setQid(getOFcall().getRopen().getQid());
 		}
 		free(getIFcall().getTcreate().getName());
 		break;
@@ -395,9 +395,9 @@ Req9::respond(const char *error) {
             }
 		}else{
             if (getOFcall().getRwalk().empty()) {
-				newfid->qid = fid->qid;
+                newfid->setQid(fid->getQid());
             } else {
-				newfid->qid = getOFcall().getRwalk().getWqid()[getOFcall().getRwalk().size()-1];
+                newfid->setQid(getOFcall().getRwalk().getWqid()[getOFcall().getRwalk().size()-1]);
             }
 		}
 		free(*getIFcall().getTwalk().getWname());
