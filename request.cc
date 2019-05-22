@@ -81,7 +81,7 @@ decref_p9conn(Conn9 *p9conn) {
     //}
 	//free(p9conn); // don't like this at all :(
 }
-Fid::Fid(uint32_t f, Conn9& c) : fid(f), omode(-1), _conn(c) {
+Fid::Fid(uint32_t f, Conn9& c) : fid(f), _omode(-1), _conn(c) {
     ++_conn;
 }
 
@@ -210,7 +210,7 @@ Req9::handle() {
             [&p9conn, srv = p9conn.getSrv(), this]() {
                 if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
-                } else if (fid->omode != -1) {
+                } else if (fid->getOmode() != -1) {
                     respond(Eopen);
                 } else if(!(fid->qid.getType()&uint8_t(QType::DIR))) {
                     respond(Enotdir);
@@ -236,7 +236,7 @@ Req9::handle() {
             [&p9conn, srv = p9conn.getSrv(), this]() {
                 if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
-                } else if (fid->omode == -1 || fid->omode == uint8_t(OMode::WRITE)) {
+                } else if (auto omode = fid->getOmode(); omode == -1 || omode == uint8_t(OMode::WRITE)) {
                     respond(Enoread);
                 } else if (!srv->read) {
                     respond(Enofunc); 
@@ -270,7 +270,7 @@ Req9::handle() {
                     respond(Enofid);
                     return;
                 }
-                if(fid->omode != -1) {
+                if(fid->getOmode() != -1) {
                     respond("cannot walk from an open fid");
                     return;
                 }
@@ -297,7 +297,7 @@ Req9::handle() {
             [&p9conn, srv = p9conn.getSrv(), this]() {
                 if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
                     respond(Enofid);
-                } else if((fid->omode&3) != (uint8_t(OMode::WRITE)) && (fid->omode&3) != (uint8_t(OMode::RDWR))) {
+                } else if(auto omode = fid->getOmode(); (omode&3) != (uint8_t(OMode::WRITE)) && (omode&3) != (uint8_t(OMode::RDWR))) {
                     respond("write on fid not opened for writing");
                 } else if(!srv->write) {
                     respond(Enofunc);
@@ -380,7 +380,7 @@ Req9::respond(const char *error) {
 		if(!error) {
 			getOFcall().getRopen().setIoUnit(p9conn->getRMsg().size() - 24);
             fid->setIoUnit(getOFcall().getRopen().getIoUnit());
-			fid->omode = getIFcall().getTopen().getMode();
+            fid->setOmode(getIFcall().getTopen().getMode());
 			fid->qid = getOFcall().getRopen().getQid();
 		}
 		free(getIFcall().getTcreate().getName());
