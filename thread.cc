@@ -3,8 +3,7 @@
 #include "thread.h"
 
 namespace jyq {
-Mutex::Mutex() { 
-    _active = true;
+Mutex::Mutex() : _active(true) { 
     concurrency::threadModel->init(this); 
 }
 bool
@@ -20,9 +19,8 @@ Mutex::~Mutex() {
     deactivate();
 }
 
-Rendez::Rendez(Mutex* m) : _mutex(m) {
+Rendez::Rendez(Mutex* m) : _mutex(m), _active(true) {
     concurrency::threadModel->init(this); 
-    _active = true;
 }
 Rendez::~Rendez() { 
     deactivate();
@@ -37,9 +35,8 @@ Rendez::deactivate() {
 }
 
 
-RWLock::RWLock() { 
+RWLock::RWLock() : _active(true) { 
     concurrency::threadModel->init(this); 
-    _active = true;
 }
 RWLock::~RWLock() { 
     deactivate();

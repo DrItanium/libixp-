@@ -16,7 +16,7 @@ namespace jyq {
         void lock();
         void unlock();
         bool canlock();
-        bool isActive() const noexcept { return _active; }
+        constexpr bool isActive() const noexcept { return _active; }
         bool deactivate();
         private:
             bool _active = false;
