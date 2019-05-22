@@ -16,6 +16,8 @@
 namespace jyq {
     struct Server : public HasAux {
         public:
+            using Locker = concurrency::Locker<Server>;
+        public:
             std::shared_ptr<Conn> listen(int, const std::any&,
                     std::function<void(Conn*)> read,
                     std::function<void(Conn*)> close);
@@ -40,11 +42,14 @@ namespace jyq {
             void setMaxFd(int value) noexcept { _maxfd = value; }
             auto getRd() noexcept { return _rd; }
             void setRd(fd_set value) noexcept { _rd = value; }
+            auto getTimer() noexcept { return _timer; }
+            const auto getTimer() const noexcept { return _timer; }
+            void setTimer(Timer* value) noexcept { _timer = value; }
         public:
             std::list<std::shared_ptr<Conn>> conns;
             Mutex	lk;
-            Timer*	timer;
         private:
+            Timer*	_timer;
             std::function<void(Server*)> _preselect;
             bool	_running;
             int		_maxfd;
