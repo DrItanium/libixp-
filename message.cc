@@ -47,9 +47,9 @@ constexpr auto SQid = SByte + SDWord + SQWord;
  *	F<pu8>, F<pu16>, F<pu32>, F<pu64>,
  *	F<pstring>, F<pstrings>
  */
-Msg::Msg(char* _data, uint _length, Mode _mode) : Parent(_length), data(_data), pos(_data), end(_data + _length), _mode(_mode) { }
+Msg::Msg(char* _data, uint _length, Mode _mode) : Parent(_length), data(_data), pos(_data), _end(_data + _length), _mode(_mode) { }
 
-Msg::Msg() : Parent(0), data(nullptr), pos(nullptr), end(nullptr), _mode(Mode::Pack) { }
+Msg::Msg() : Parent(0), data(nullptr), pos(nullptr), _end(nullptr), _mode(Mode::Pack) { }
 
 
 /**
@@ -292,7 +292,7 @@ Msg::unpack(Fcall& val) {
     setMode(Msg::Mode::Unpack);
     pfcall(val);
 
-	if(pos > end)
+	if(pos > _end)
 		return 0;
 
 	return pos - data;
@@ -301,17 +301,17 @@ Msg::unpack(Fcall& val) {
 uint
 Msg::pack(Fcall& val) {
     //return fcall2msg(this, &val);
-	end = data + size();
+	_end = data + size();
 	pos = data + SDWord;
     setMode(Msg::Mode::Pack);
     pfcall(val);
 
-	if(pos > end) {
+	if(pos > _end) {
 		return 0;
     }
 
-	end = pos;
-	uint32_t size = end - data;
+	_end = pos;
+	uint32_t size = _end - data;
 
 	pos = data;
     pu32(&size);

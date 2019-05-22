@@ -253,7 +253,7 @@ xls(int argc, char *argv[]) {
     int count = 0;
     for (count = fid->read(buf, fid->getIoUnit(), client->getDoFcallLambda()); count > 0; count = fid->read(buf, fid->getIoUnit(), client->getDoFcallLambda())) {
         jyq::Msg m(buf, count, jyq::Msg::Mode::Unpack);
-		while(m.pos < m.end) {
+		while(m.pos < m.getEnd()) {
             stats.emplace_back(std::make_shared<jyq::Stat>());
             m.pstat(stats.back().get());
 		}

@@ -14,14 +14,21 @@ namespace jyq {
     struct Qid;
     union Fcall;
     struct Msg : public ContainsSizeParameter<uint> {
-        using Parent = ContainsSizeParameter<uint>;
-        enum class Mode {
-            Pack,
-            Unpack,
-        };
-        char*	data; /* Begining of buffer. */
-        char*	pos;  /* Current position in buffer. */
-        char*	end;  /* End of message. */ 
+        public:
+            using Parent = ContainsSizeParameter<uint>;
+            enum class Mode {
+                Pack,
+                Unpack,
+            };
+            char* getEnd() noexcept { return _end; }
+            const char* getEnd() const noexcept { return _end; }
+            void setEnd(char* value) noexcept { _end = value; }
+        public:
+            char*	data; /* Begining of buffer. */
+            char*	pos;  /* Current position in buffer. */
+        private:
+            char*	_end;  /* End of message. */ 
+        public:
         void pu8(uint8_t*);
         void pu16(uint16_t*);
         void pu32(uint32_t*);
@@ -100,7 +107,7 @@ namespace jyq {
            };
            template<NumberSize size>
            void puint(uint32_t* val) {
-               if ((this->pos + uint(size)) <= end) {
+               if ((this->pos + uint(size)) <= _end) {
                    auto pos = (uint8_t*)this->pos;
                    switch(getMode()) {
                        case Msg::Mode::Pack: 
