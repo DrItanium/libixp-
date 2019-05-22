@@ -44,8 +44,8 @@ std::shared_ptr<Conn>
 Server::listen(int fd, const std::any& aux,
         std::function<void(Conn*)> read,
         std::function<void(Conn*)> close) {
-    conns.emplace_back(std::make_shared<Conn>(*this, fd, aux, read, close));
-    return conns.back();
+    _conns.emplace_back(std::make_shared<Conn>(*this, fd, aux, read, close));
+    return _conns.back();
 }
 
 void 
@@ -89,13 +89,13 @@ Conn::~Conn() {
 
 void
 Server::close() {
-    conns.clear();
+    _conns.clear();
 }
 
 void
 Server::prepareSelect() {
 	FD_ZERO(&this->_rd);
-    for (auto& c : conns) {
+    for (auto& c : _conns) {
         if (c->getReadFunc()) {
             if (_maxfd < c->getConnection()) {
                 _maxfd = c->getConnection();
@@ -107,7 +107,7 @@ Server::prepareSelect() {
 
 void
 Server::handleConns() {
-    for (auto& c : conns) {
+    for (auto& c : _conns) {
         if (FD_ISSET(c->getConnection(), &_rd)) {
             c->getReadFunc()(c.get());
         }
