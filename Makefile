@@ -18,17 +18,13 @@ LIBJYQ_CORE_OBJS := client.o \
 					timer.o \
 					transport.o \
 					util.o 
-LIBJYQ_PTHREAD_OBJS := thread_pthread.o
-LIBJYQ_CXX17_THREAD_OBJS := thread_cxx17.o
 JYQC_OBJS := jyqc.o 
 
 JYQC_PROG := jyqc
 LIBJYQ_ARCHIVE := libjyq.a
-LIBJYQ_PTHREAD_ARCHIVE := libjyq_pthread.a
-LIBJYQ_CXX17_THREAD_ARCHIVE := libjyq_cxx17thread.a
 
-OBJS := $(LIBJYQ_CORE_OBJS) $(LIBJYQ_PTHREAD_OBJS) $(JYQC_OBJS) $(LIBJYQ_CXX17_THREAD_OBJS)
-PROGS := $(JYQC_PROG) $(LIBJYQ_ARCHIVE) $(LIBJYQ_PTHREAD_ARCHIVE) $(LIBJYQ_CXX17_THREAD_ARCHIVE)
+OBJS := $(LIBJYQ_CORE_OBJS) $(JYQC_OBJS) 
+PROGS := $(JYQC_PROG) $(LIBJYQ_ARCHIVE) 
 
 
 all: options $(PROGS)
@@ -48,14 +44,6 @@ $(JYQC_PROG): $(JYQC_OBJS) $(LIBJYQ_ARCHIVE)
 $(LIBJYQ_ARCHIVE): $(LIBJYQ_CORE_OBJS)
 	@echo AR ${LIBJYQ_ARCHIVE}
 	@${AR} rcs ${LIBJYQ_ARCHIVE} ${LIBJYQ_CORE_OBJS}
-
-$(LIBJYQ_PTHREAD_ARCHIVE): $(LIBJYQ_PTHREAD_OBJS)
-	@echo AR ${LIBJYQ_PTHREAD_ARCHIVE} 
-	@${AR} rcs ${LIBJYQ_PTHREAD_ARCHIVE} ${LIBJYQ_PTHREAD_OBJS}
-
-$(LIBJYQ_CXX17_THREAD_ARCHIVE): $(LIBJYQ_CXX17_THREAD_OBJS)
-	@echo AR ${LIBJYQ_CXX17_THREAD_ARCHIVE} 
-	@${AR} rcs ${LIBJYQ_CXX17_THREAD_ARCHIVE} ${LIBJYQ_CXX17_THREAD_OBJS}
 
 .cc.o :
 	@echo CXX $<
@@ -98,8 +86,6 @@ srv_util.o: srv_util.cc Msg.h types.h qid.h stat.h jyq.h PrintFunctions.h \
  thread.h Srv9.h Conn9.h Fcall.h map.h Conn.h socket.h Fid.h Req9.h \
  util.h Client.h Rpc.h CFid.h jyq_srvutil.h
 thread.o: thread.cc thread.h types.h
-thread_pthread.o: thread_pthread.cc thread_pthread.h thread.h types.h \
- util.h
 timer.o: timer.cc Msg.h types.h qid.h stat.h jyq.h PrintFunctions.h \
  thread.h Srv9.h Conn9.h Fcall.h map.h Conn.h socket.h Fid.h Req9.h \
  util.h Client.h Rpc.h CFid.h timer.h Server.h
