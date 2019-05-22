@@ -14,31 +14,38 @@
 #include "timer.h"
 
 namespace jyq {
-    struct Server {
-        std::list<std::shared_ptr<Conn>> conns;
-        Mutex	lk;
-        Timer*	timer;
-        std::function<void(Server*)> _preselect;
-        std::any   aux;
-        bool	running;
-        int		maxfd;
-        fd_set		rd;
-        std::shared_ptr<Conn> listen(int, const std::any&,
-                std::function<void(Conn*)> read,
-                std::function<void(Conn*)> close);
-        bool serverloop();
-        void close();
-        bool unsettimer(long);
-        long settimer(long, std::function<void(long, const std::any&)>, const std::any& aux);
-        long nexttimer();
-        void lock();
-        void unlock();
-        bool canlock();
-        void preselect() {
-            if (_preselect) {
-                _preselect(this);
+    struct Server : public HasAux {
+        public:
+            std::shared_ptr<Conn> listen(int, const std::any&,
+                    std::function<void(Conn*)> read,
+                    std::function<void(Conn*)> close);
+            bool serverloop();
+            void close();
+            bool unsettimer(long);
+            long settimer(long, std::function<void(long, const std::any&)>, const std::any& aux);
+            long nexttimer();
+            void lock();
+            void unlock();
+            bool canlock();
+            inline void preselect() {
+                if (_preselect) {
+                    _preselect(this);
+                }
             }
-        }
+            void setPreselect(std::function<void(Server*)> value) noexcept { _preselect = value; }
+            auto getPreselect() const noexcept { return _preselect; }
+            constexpr auto isRunning() const noexcept { return _running; }
+            void setIsRunning(bool value = true) noexcept { _running = value; }
+        public:
+            std::list<std::shared_ptr<Conn>> conns;
+            Mutex	lk;
+            Timer*	timer;
+        private:
+            std::function<void(Server*)> _preselect;
+            bool	_running;
+        public:
+            int		maxfd;
+            fd_set		rd;
         private:
             void prepareSelect();
             void handleConns();
