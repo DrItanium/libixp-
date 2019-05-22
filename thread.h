@@ -48,7 +48,7 @@ namespace jyq {
         void writeLock();
         void writeUnlock();
         bool canWriteLock();
-        bool isActive() const noexcept { return _active; }
+        constexpr bool isActive() const noexcept { return _active; }
         bool deactivate();
         private:
             bool _active = false;
