@@ -31,7 +31,7 @@ namespace jyq {
      * See also:
      *	T<Req9>, T<Qid>, T<OMode>
      */
-    struct Fid {
+    struct Fid : public HasAux {
         public:
             using Map = jyq::Map<int, Fid>;
             Fid(uint32_t fid, Conn9& c);
@@ -48,21 +48,10 @@ namespace jyq {
             void setQid(const Qid& value) noexcept { _qid = value; }
             constexpr auto getId() const noexcept { return _fid; }
             void setId(uint32_t value) noexcept { _fid = value; }
-            std::any& getAux() noexcept { return _aux; }
-            const std::any& getAux() const noexcept { return _aux; }
-            template<typename T>
-            void setAux(T value) {
-                _aux = value;
-            }
-            template<typename R>
-            R unpackAux() {
-                return std::any_cast<R>(_aux);
-            }
             const std::string& getUid() const noexcept { return _uid; }
             void setUid(const std::string& value) noexcept { _uid = value; }
         private:
             std::string		_uid;	/* The uid of the file opener. */
-            std::any    _aux;    // Arbitrary pointer, to be used by handlers. 
             uint32_t		_fid;    /* The ID number of the fid. */
             Qid		_qid;    /* The filesystem-unique QID of the file. */
             signed char	_omode;  /* The open mode of the file. */

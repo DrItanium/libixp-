@@ -12,6 +12,7 @@
 #include <exception>
 #include <sstream>
 #include <memory>
+#include <any>
 
 namespace jyq {
     using uint = unsigned int;
@@ -222,6 +223,26 @@ namespace jyq {
             T _contents;
             Link _next;
             Link _prev;
+    };
+
+    class HasAux {
+        public:
+            HasAux() = default;
+            ~HasAux() = default;
+            std::any& getAux() noexcept { return _aux; }
+            const std::any& getAux() const noexcept { return _aux; }
+            void setAux(const std::any& value) { _aux = value; }
+            template<typename T>
+            void setAux(T value) {
+                _aux = value;
+            }
+            template<typename R>
+            R unpackAux() {
+                return std::any_cast<R>(_aux);
+            }
+        private:
+            std::any _aux;
+
     };
 
 } // end namespace jyq

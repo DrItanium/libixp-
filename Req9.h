@@ -20,24 +20,13 @@
 namespace jyq {
     struct Srv9;
     struct Conn9;
-    struct Req9 {
+    struct Req9 : public HasAux {
         Fcall& getIFcall() noexcept { return _ifcall; }
         const Fcall& getIFcall() const noexcept { return _ifcall; }
         Fcall& getOFcall() noexcept { return _ofcall; }
         const Fcall& getOFcall() const noexcept { return _ofcall; }
         void setIFcall(const Fcall& value) { _ifcall = value; }
         void setOFcall(const Fcall& value) { _ofcall = value; }
-        std::any& getAux() noexcept { return _aux; }
-        const std::any& getAux() const noexcept { return _aux; }
-        void setAux(const std::any& value) { _aux = value; }
-        template<typename T>
-        void setAux(T value) {
-            _aux = value;
-        }
-        template<typename R>
-        R unpackAux() {
-            return std::any_cast<R>(_aux);
-        }
         Conn9* getConn() noexcept { return _conn; }
         void setConn(Conn9* value) noexcept { _conn = value; }
         // methods
@@ -52,7 +41,6 @@ namespace jyq {
         private:
             Fcall	_ifcall; /* The incoming request fcall. */
             Fcall	_ofcall; /* The response fcall, to be filled by handler. */
-            std::any    _aux; // Arbitrary pointer, to be used by handlers. 
             Conn9*  _conn;
 
 
