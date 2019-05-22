@@ -10,10 +10,9 @@
 #include "types.h"
 
 namespace jyq {
-    struct Mutex {
+    struct Mutex : public HasAux {
         Mutex();
         ~Mutex();
-        std::any aux;
         void lock();
         void unlock();
         bool canlock();
@@ -23,10 +22,9 @@ namespace jyq {
             bool _active = false;
     };
 
-    struct Rendez {
+    struct Rendez : public HasAux {
         Rendez(Mutex* m = nullptr);
         ~Rendez();
-        std::any aux;
         bool wake();
         bool wakeall();
         void sleep();
@@ -41,10 +39,9 @@ namespace jyq {
             bool _active = false;
     };
 
-    struct RWLock {
+    struct RWLock : public HasAux {
         RWLock();
         ~RWLock();
-        std::any aux;
         void readLock();
         void readUnlock();
         bool canReadLock();

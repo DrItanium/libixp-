@@ -20,7 +20,7 @@ namespace jyq::concurrency {
         //if (auto rwlock = new pthread_rwlock_t; pthread_rwlock_init(rwlock, nullptr)) {
             return true;
         } else {
-            rw->aux = std::move(rwlock);
+            rw->setAux(rwlock);
             return false;
         }
     }
@@ -29,7 +29,7 @@ namespace jyq::concurrency {
         if (auto cond = std::make_shared<pthread_cond_t>(); pthread_cond_init(cond.get(), nullptr)) {
             return true;
         } else {
-            r->aux = std::move(cond);
+            r->setAux(cond);
             return false;
         }
     }
@@ -38,29 +38,29 @@ namespace jyq::concurrency {
         if (auto mutex = std::make_shared<pthread_mutex_t>(); pthread_mutex_init(mutex.get(), nullptr)) {
             return true;
         } else {
-            m->aux = std::move(mutex);
+            m->setAux(mutex);
             return false;
         }
     }
     void 
     PThreadImpl::destroy(jyq::Rendez* r) { 
-        auto val = std::any_cast<RawRendez>(r->aux);
+        auto val = r->unpackAux<RawRendez>();
         pthread_cond_destroy(val.get());
-        r->aux.reset();
+        r->resetAux();
     }
 
     void 
     PThreadImpl::destroy(jyq::Mutex* m) { 
-        auto mut = std::any_cast<RawMutexLock>(m->aux);
+        auto mut = m->unpackAux<RawMutexLock>();
         pthread_mutex_destroy(mut.get());
-        m->aux.reset();
+        m->resetAux();
     }
 
     void 
     PThreadImpl::destroy(jyq::RWLock* rw) { 
-        auto val = std::any_cast<RawRWLock>(rw->aux);
+        auto val = rw->unpackAux<RawRWLock>();
         pthread_rwlock_destroy(val.get());
-        rw->aux.reset();
+        rw->resetAux();
     }
 
     char* 
@@ -75,25 +75,46 @@ namespace jyq::concurrency {
     }
     bool 
     PThreadImpl::wake(jyq::Rendez* r) { 
-        auto val = std::any_cast<RawRendez>(r->aux);
+        auto val = r->unpackAux<RawRendez>();
         pthread_cond_signal(val.get());
         return false;
     }
     bool 
     PThreadImpl::wakeall(jyq::Rendez* r) { 
-        auto val = std::any_cast<RawRendez>(r->aux);
+        auto val = r->unpackAux<RawRendez>();
         pthread_cond_broadcast(val.get());
         return 0;
     }   
 
-    void PThreadImpl::rlock(jyq::RWLock* rw) { pthread_rwlock_rdlock(std::any_cast<RawRWLock>(rw->aux).get()); }
-    bool PThreadImpl::canrlock(jyq::RWLock* rw) { return !pthread_rwlock_tryrdlock(std::any_cast<RawRWLock>(rw->aux).get()); }
-    void PThreadImpl::runlock(jyq::RWLock* rw) { pthread_rwlock_unlock(std::any_cast<RawRWLock>(rw->aux).get()); }
-    void PThreadImpl::wlock(jyq::RWLock* rw) { pthread_rwlock_rdlock(std::any_cast<RawRWLock>(rw->aux).get()); }
-    bool PThreadImpl::canwlock(jyq::RWLock* rw) { return !pthread_rwlock_tryrdlock(std::any_cast<RawRWLock>(rw->aux).get()); }
-    void PThreadImpl::wunlock(jyq::RWLock* rw) { pthread_rwlock_unlock(std::any_cast<RawRWLock>(rw->aux).get()); }
-    bool PThreadImpl::canlock(jyq::Mutex* m) { return !pthread_mutex_trylock(std::any_cast<RawMutexLock>(m->aux).get()); }
-    void PThreadImpl::lock(jyq::Mutex* m)   { pthread_mutex_lock(std::any_cast<RawMutexLock>(m->aux).get()); }
-    void PThreadImpl::unlock(jyq::Mutex* m) { pthread_mutex_unlock(std::any_cast<RawMutexLock>(m->aux).get()); }
-    void PThreadImpl::sleep(jyq::Rendez* r) { pthread_cond_wait(std::any_cast<RawRendez>(r->aux).get(), std::any_cast<RawMutexLock>(r->getMutex()->aux).get()); }
+    void PThreadImpl::rlock(jyq::RWLock* rw) { 
+        pthread_rwlock_rdlock(rw->unpackAux<RawRWLock>().get());
+    }
+    bool PThreadImpl::canrlock(jyq::RWLock* rw) { 
+        return !pthread_rwlock_tryrdlock(rw->unpackAux<RawRWLock>().get());
+    }
+    void PThreadImpl::runlock(jyq::RWLock* rw) { 
+        pthread_rwlock_unlock(rw->unpackAux<RawRWLock>().get());
+    }
+    void PThreadImpl::wlock(jyq::RWLock* rw) { 
+        pthread_rwlock_rdlock(rw->unpackAux<RawRWLock>().get());
+    }
+    bool PThreadImpl::canwlock(jyq::RWLock* rw) { 
+        return !pthread_rwlock_tryrdlock(rw->unpackAux<RawRWLock>().get());
+    }
+    void PThreadImpl::wunlock(jyq::RWLock* rw) { 
+        pthread_rwlock_unlock(rw->unpackAux<RawRWLock>().get());
+    }
+    bool PThreadImpl::canlock(jyq::Mutex* m) { 
+        return !pthread_mutex_trylock(m->unpackAux<RawMutexLock>().get()); 
+    }
+    void PThreadImpl::lock(jyq::Mutex* m) { 
+        pthread_mutex_lock(m->unpackAux<RawMutexLock>().get());
+    }
+    void PThreadImpl::unlock(jyq::Mutex* m) { 
+        pthread_mutex_unlock(m->unpackAux<RawMutexLock>().get());
+    }
+    void PThreadImpl::sleep(jyq::Rendez* r) { 
+        pthread_cond_wait(r->unpackAux<RawRendez>().get(), 
+                          r->getMutex()->unpackAux<RawMutexLock>().get());
+    }
 } // end namespace jyq::concurrency 

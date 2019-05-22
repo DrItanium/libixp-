@@ -241,6 +241,7 @@ namespace jyq {
             R unpackAux() {
                 return std::any_cast<R>(_aux);
             }
+            void resetAux() noexcept { _aux.reset(); }
         private:
             std::any _aux;
 
