@@ -58,9 +58,10 @@ namespace jyq {
             R unpackAux() {
                 return std::any_cast<R>(_aux);
             }
-        public:
-            std::string		uid;	/* The uid of the file opener. */
+            const std::string& getUid() const noexcept { return _uid; }
+            void setUid(const std::string& value) noexcept { _uid = value; }
         private:
+            std::string		_uid;	/* The uid of the file opener. */
             std::any    _aux;    // Arbitrary pointer, to be used by handlers. 
             uint32_t		_fid;    /* The ID number of the fid. */
             Qid		_qid;    /* The filesystem-unique QID of the file. */
