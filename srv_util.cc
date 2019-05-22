@@ -49,7 +49,7 @@ srv_getfile(void) {
  *	F<srv_getfile>
  */
 void
-srv_freefile(FileId *fileid) {
+srv_freefile(FileId *) {
 }
 
 /**
