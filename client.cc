@@ -49,12 +49,9 @@ Client::putfid(std::shared_ptr<CFid> f) {
 void
 Msg::alloc(uint n) {
     setSize(n);
-    if (data) {
-        delete[] data;
-    }
-    data = new char[n];
-    _end = data + n;
-    _pos = data;
+    setData(new char[n]);
+    _end = _data + n;
+    _pos = _data;
 }
 void
 Client::allocmsg(int n) {
@@ -254,14 +251,6 @@ Client::remove(const char *path) {
 Client::~Client() {
     fd.shutdown(SHUT_RDWR);
     fd.close();
-
-
-    if (_rmsg.data) {
-        delete [] _rmsg.data;
-    }
-    if (_wmsg.data) {
-        delete [] _wmsg.data;
-    }
 }
 
 

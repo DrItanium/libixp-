@@ -69,14 +69,14 @@ Connection::mread(Msg& msg, size_t count) {
 
     auto r = read(msg.getPos(), n);
 	if(r > 0) {
-        msg.setPos(msg.getPos() + r);
+        msg.advancePosition(r);
     }
 	return r;
 }
 
 uint
 Connection::sendmsg(Msg& msg) {
-    msg.setPos(msg.data);
+    msg.pointToFront();
 	while(msg.getPos() < msg.getEnd()) {
         if (auto r = write(msg.getPos(), msg.getEnd() - msg.getPos()); r < 1) {
 			if(errno == EINTR) {
@@ -85,10 +85,10 @@ Connection::sendmsg(Msg& msg) {
             wErrorString("broken pipe: ", errbuf());
 			return 0;
 		} else {
-            msg.setPos(msg.getPos() + r);
+            msg.advancePosition(r);
         }
 	}
-    return msg.getPos() - msg.data;
+    return msg.getPos() - msg.getData();
 }
 
 uint
@@ -96,13 +96,13 @@ Connection::recvmsg(Msg& msg) {
     static constexpr auto SSize = 4;
 
     msg.setMode(Msg::Mode::Unpack);
-    msg.setPos(msg.data);
-	msg.setEnd(msg.data + msg.size());
+    msg.pointToFront();
+	msg.setEnd(msg.getData() + msg.size());
     if (readn(msg, SSize) != SSize) {
         return 0;
     }
 
-    msg.setPos(msg.data);
+    msg.pointToFront();
     uint32_t msize;
     msg.pu32(&msize);
 

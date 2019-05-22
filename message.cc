@@ -47,9 +47,9 @@ constexpr auto SQid = SByte + SDWord + SQWord;
  *	F<pu8>, F<pu16>, F<pu32>, F<pu64>,
  *	F<pstring>, F<pstrings>
  */
-Msg::Msg(char* _data, uint _length, Mode _mode) : Parent(_length), data(_data), _pos(_data), _end(_data + _length), _mode(_mode) { }
+Msg::Msg(char* _data, uint _length, Mode _mode) : Parent(_length), _data(_data), _pos(_data), _end(_data + _length), _mode(_mode) { }
 
-Msg::Msg() : Parent(0), data(nullptr), _pos(nullptr), _end(nullptr), _mode(Mode::Pack) { }
+Msg::Msg() : Parent(0), _data(nullptr), _pos(nullptr), _end(nullptr), _mode(Mode::Pack) { }
 
 
 /**
@@ -288,7 +288,7 @@ Fcall::packUnpack(Msg& msg) noexcept {
  */
 uint
 Msg::unpack(Fcall& val) {
-	_pos = data + SDWord;
+	_pos = _data + SDWord;
     setMode(Msg::Mode::Unpack);
     pfcall(val);
 
@@ -296,14 +296,14 @@ Msg::unpack(Fcall& val) {
 		return 0;
     }
 
-	return _pos - data;
+	return _pos - _data;
 }
 
 uint
 Msg::pack(Fcall& val) {
     //return fcall2msg(this, &val);
-	_end = data + size();
-	_pos = data + SDWord;
+	_end = _data + size();
+	_pos = _data + SDWord;
     setMode(Msg::Mode::Pack);
     pfcall(val);
 
@@ -312,13 +312,31 @@ Msg::pack(Fcall& val) {
     }
 
 	_end = _pos;
-	uint32_t size = _end - data;
+	uint32_t size = _end - _data;
 
-	_pos = data;
+	_pos = _data;
     pu32(&size);
 
-	_pos = data;
+    _pos = _data;
 	return size;
+}
+
+Msg::~Msg() {
+    if (_data) {
+        delete [] _data;
+    }
+    _data = nullptr;
+    _pos = nullptr;
+    _end = nullptr;
+}
+
+void
+Msg::setData(char* value) noexcept {
+    if (_data) {
+        // make sure we reclaim things
+        delete [] _data;
+    }
+    _data = value;
 }
 
 } // end namespace jyq

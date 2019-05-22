@@ -26,9 +26,16 @@ namespace jyq {
             char* getPos() noexcept { return _pos; }
             const char* getPos() const noexcept { return _pos; }
             void setPos(char* value) noexcept { _pos = value; }
-        public:
-            char*	data; /* Begining of buffer. */
+            template<typename T>
+            void advancePosition(T amount) noexcept { 
+                _pos += amount;
+            }
+            char* getData() noexcept { return _data; }
+            const char* getData() const noexcept { return _data; }
+            void setData(char* value) noexcept;
+            void pointToFront() noexcept { _pos = _data; }
         private:
+            char*	_data; /* Begining of buffer. */
             char*	_pos;  /* Current position in buffer. */
             char*	_end;  /* End of message. */ 
         public:
@@ -48,6 +55,7 @@ namespace jyq {
         void pfcall(Fcall& value) { packUnpack(value); }
         Msg();
         Msg(char*, uint, Mode);
+        ~Msg();
         using Action = std::function<void(Msg&)>;
         void packUnpack(Action pack, Action unpack);
         template<typename T>
