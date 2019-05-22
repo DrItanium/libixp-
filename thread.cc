@@ -3,6 +3,7 @@
 #include "thread.h"
 
 namespace jyq {
+#if 0
 Mutex::Mutex() : _active(true) { 
     concurrency::threadModel->init(this); 
 }
@@ -84,6 +85,6 @@ bool RWLock::canWriteLock() { return concurrency::threadModel->canwlock(this); }
 bool Rendez::wake() { return concurrency::threadModel->wake(this); }
 bool Rendez::wakeall() { return concurrency::threadModel->wakeall(this); }
 void Rendez::sleep() { concurrency::threadModel->sleep(this); }
-
+#endif
 
 }
