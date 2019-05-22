@@ -38,6 +38,8 @@ namespace jyq {
             void setIsRunning(bool value = true) noexcept { _running = value; }
             constexpr auto getMaxFd() const noexcept { return _maxfd; }
             void setMaxFd(int value) noexcept { _maxfd = value; }
+            auto getRd() noexcept { return _rd; }
+            void setRd(fd_set value) noexcept { _rd = value; }
         public:
             std::list<std::shared_ptr<Conn>> conns;
             Mutex	lk;
@@ -46,8 +48,7 @@ namespace jyq {
             std::function<void(Server*)> _preselect;
             bool	_running;
             int		_maxfd;
-        public:
-            fd_set		rd;
+            fd_set		_rd;
         private:
             void prepareSelect();
             void handleConns();

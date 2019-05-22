@@ -94,13 +94,13 @@ Server::close() {
 
 void
 Server::prepareSelect() {
-	FD_ZERO(&this->rd);
+	FD_ZERO(&this->_rd);
     for (auto& c : conns) {
         if (c->getReadFunc()) {
             if (_maxfd < c->getConnection()) {
                 _maxfd = c->getConnection();
             }
-            FD_SET(c->getConnection(), &rd);
+            FD_SET(c->getConnection(), &_rd);
         }
     }
 }
@@ -108,7 +108,7 @@ Server::prepareSelect() {
 void
 Server::handleConns() {
     for (auto& c : conns) {
-        if (FD_ISSET(c->getConnection(), &rd)) {
+        if (FD_ISSET(c->getConnection(), &_rd)) {
             c->getReadFunc()(c.get());
         }
     }
@@ -155,7 +155,7 @@ Server::serverloop() {
         }
 
         prepareSelect();
-		if (auto r = concurrency::threadModel->select(_maxfd + 1, &rd, 0, 0, tvp); r < 0) {
+		if (auto r = concurrency::threadModel->select(_maxfd + 1, &_rd, 0, 0, tvp); r < 0) {
 			if(errno == EINTR) {
 				continue;
             }
