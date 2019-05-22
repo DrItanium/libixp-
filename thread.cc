@@ -9,7 +9,6 @@ Mutex::Mutex() : _active(true) {
 bool
 Mutex::deactivate() {
     if (_active) {
-        concurrency::threadModel->destroy(this); 
         _active = false;
     }
     return _active;
@@ -20,7 +19,6 @@ Mutex::~Mutex() {
 }
 
 Rendez::Rendez(Mutex* m) : _mutex(m), _active(true) {
-    concurrency::threadModel->init(this); 
 }
 Rendez::~Rendez() { 
     deactivate();
@@ -28,7 +26,6 @@ Rendez::~Rendez() {
 bool
 Rendez::deactivate() {
     if (_active) {
-        concurrency::threadModel->destroy(this); 
         _active = false;
     }
     return _active;
@@ -36,7 +33,6 @@ Rendez::deactivate() {
 
 
 RWLock::RWLock() : _active(true) { 
-    concurrency::threadModel->init(this); 
 }
 RWLock::~RWLock() { 
     deactivate();

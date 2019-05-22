@@ -8,10 +8,12 @@
 #include <any>
 #include <memory>
 #include <mutex>
+#include <condition_variable>
 #include "types.h"
 
 namespace jyq {
-    struct Mutex : public HasAux {
+#if 0
+    struct Mutex {
         Mutex();
         ~Mutex();
         void lock();
@@ -23,38 +25,41 @@ namespace jyq {
             bool _active = false;
     };
 
-    struct Rendez : public HasAux {
-        Rendez(Mutex* m = nullptr);
-        ~Rendez();
-        bool wake();
-        bool wakeall();
-        void sleep();
-        constexpr bool isActive() const noexcept { return _active; }
-        bool deactivate();
-        Mutex* getMutex() noexcept { return _mutex; }
-        const Mutex* getMutex() const noexcept { return _mutex; }
-        void setMutex(Mutex* mux) noexcept { _mutex = mux; }
-        bool hasMutex() const noexcept { return _mutex != nullptr; }
-        private:
-            Mutex* _mutex;
-            bool _active = false;
-    };
+    //struct Rendez {
+    //    Rendez(Mutex* m = nullptr);
+    //    ~Rendez();
+    //    bool wake();
+    //    bool wakeall();
+    //    void sleep();
+    //    constexpr bool isActive() const noexcept { return _active; }
+    //    bool deactivate();
+    //    Mutex* getMutex() noexcept { return _mutex; }
+    //    const Mutex* getMutex() const noexcept { return _mutex; }
+    //    void setMutex(Mutex* mux) noexcept { _mutex = mux; }
+    //    bool hasMutex() const noexcept { return _mutex != nullptr; }
+    //    private:
+    //        std::condition_variable _cond;
+    //        std::unique_lock<
+    //        
+    //        Mutex& _mutex;
+    //        bool _active = false;
+    //};
 
-    struct RWLock : public HasAux {
-        RWLock();
-        ~RWLock();
-        void readLock();
-        void readUnlock();
-        bool canReadLock();
-        void writeLock();
-        void writeUnlock();
-        bool canWriteLock();
-        constexpr bool isActive() const noexcept { return _active; }
-        bool deactivate();
-        private:
-            bool _active = false;
-    };
-
+    // RWLock <=> std::shared_mutex
+    //struct RWLock : public HasAux {
+    //    RWLock();
+    //    ~RWLock();
+    //    void readLock();
+    //    void readUnlock();
+    //    bool canReadLock();
+    //    void writeLock();
+    //    void writeUnlock();
+    //    bool canWriteLock();
+    //    constexpr bool isActive() const noexcept { return _active; }
+    //    bool deactivate();
+    //    private:
+    //        bool _active = false;
+    //};
     namespace concurrency {
         class ReadLockWrapper final {
             public:
@@ -87,6 +92,7 @@ namespace jyq {
         using WriteLocker = Locker<WriteLockWrapper>;
         using ReadLocker = Locker<ReadLockWrapper>;
     } // end namespace concurrency
+#endif
 } // end namespace jyq
 
 #endif // end LIBJYQ_THREAD_H__
