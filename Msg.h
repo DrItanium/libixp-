@@ -124,14 +124,26 @@ namespace jyq {
                        case Msg::Mode::Pack: 
                            [pos, val]() {
                                int v = *val;
+                               auto do1 = [pos, v]() { pos[0] = v; };
+                               auto do2 = [pos, v, do1]() { 
+                                   pos[1] = v>>8; 
+                                   do1();
+                               };
+                               auto do4 = [pos, v, do2]() {
+                                   pos[3] = v>>24;
+                                   pos[2] = v>>16;
+                                   do2();
+                               };
+
                                switch(size) {
                                    case NumberSize::SDWord:
-                                       pos[3] = v>>24;
-                                       pos[2] = v>>16;
+                                       do4();
+                                       break;
                                    case NumberSize::SWord:
-                                       pos[1] = v>>8;
+                                       do2();
+                                       break;
                                    case NumberSize::SByte:
-                                       pos[0] = v;
+                                       do1();
                                        break;
                                }
                            }();
