@@ -7,6 +7,7 @@
 
 #include <any>
 #include <memory>
+#include <mutex>
 #include "types.h"
 
 namespace jyq {
@@ -157,50 +158,36 @@ namespace jyq {
                 /* Other */
                 char* errbuf() override;
         };
-        template<typename T>
-        class Locker final {
+        class ReadLockWrapper final {
             public:
-                Locker(T& lock) : _lock(lock) { _lock.lock(); }
-                ~Locker() { _lock.unlock(); }
-                Locker(const Locker<T>&) = delete;
-                Locker(Locker<T>&&) = delete;
-                Locker<T>& operator=(const Locker<T>&) = delete;
-                Locker<T>& operator=(Locker<T>&&) = delete;
-            private:
-                T& _lock;
-        };
-        template<>
-        class Locker<RWLock> final {
-            public:
-                static Locker<RWLock> readLock(RWLock& lock) {
-                    return Locker(lock, true);
-                }
-                static Locker<RWLock> writeLock(RWLock& lock) {
-                    return Locker(lock, false);
-                }
-            public:
-                Locker(RWLock& lock, bool readLock = false) : _lock(lock), _readLock(readLock) { 
-                    if (_readLock) {
-                        _lock.readLock();
-                    } else {
-                        _lock.writeLock();
-                    }
-                }
-                ~Locker() { 
-                    if (_readLock) {
-                        _lock.readUnlock();
-                    } else {
-                        _lock.writeUnlock();
-                    }
-                }
-                Locker(const Locker<RWLock>&) = delete;
-                Locker(Locker<RWLock>&&) = delete;
-                Locker<RWLock>& operator=(const Locker<RWLock>&) = delete;
-                Locker<RWLock>& operator=(Locker<RWLock>&&) = delete;
+                ReadLockWrapper(RWLock& lock) : _lock(lock) { }
+                ~ReadLockWrapper() = default;
+                ReadLockWrapper(const ReadLockWrapper&) = delete;
+                ReadLockWrapper(ReadLockWrapper&&) = delete;
+                ReadLockWrapper& operator=(const ReadLockWrapper&) = delete;
+                ReadLockWrapper& operator=(ReadLockWrapper&&) = delete;
+                void lock() { _lock.readLock(); }
+                void unlock() { _lock.readUnlock(); }
             private:
                 RWLock& _lock;
-                bool _readLock;
         };
+        class WriteLockWrapper final {
+            public:
+                WriteLockWrapper(RWLock& lock) : _lock(lock) { }
+                ~WriteLockWrapper() = default;
+                WriteLockWrapper(const WriteLockWrapper&) = delete;
+                WriteLockWrapper(WriteLockWrapper&&) = delete;
+                WriteLockWrapper& operator=(const WriteLockWrapper&) = delete;
+                WriteLockWrapper& operator=(WriteLockWrapper&&) = delete;
+                void lock() { _lock.writeLock(); }
+                void unlock() { _lock.writeUnlock(); }
+            private:
+                RWLock& _lock;
+        };
+        template<typename T>
+        using Locker = std::lock_guard<T>;
+        using WriteLocker = Locker<WriteLockWrapper>;
+        using ReadLocker = Locker<ReadLockWrapper>;
     } // end namespace concurrency
 } // end namespace jyq
 
