@@ -50,17 +50,17 @@ Server::listen(int fd, const std::any& aux,
 
 void 
 Server::lock() {
-    lk.lock();
+    _lk.lock();
 }
 
 void
 Server::unlock() {
-    lk.unlock();
+    _lk.unlock();
 }
 
 bool
 Server::canlock() {
-    return lk.canlock();
+    return _lk.canlock();
 }
 
 /**
@@ -140,7 +140,6 @@ Server::serverloop() {
 	timeval tv;
 
     setIsRunning();
-	concurrency::threadModel->initmutex(&lk);
 	while(isRunning()) {
 		timeval* tvp = nullptr;
 		if (long timeout = nexttimer(); timeout > 0) {

@@ -45,10 +45,12 @@ namespace jyq {
             auto getTimer() noexcept { return _timer; }
             const auto getTimer() const noexcept { return _timer; }
             void setTimer(Timer* value) noexcept { _timer = value; }
+            void setLock(const Mutex& value) noexcept { _lk = value; }
+            Mutex& getLock() noexcept { return _lk; }
         public:
             std::list<std::shared_ptr<Conn>> conns;
-            Mutex	lk;
         private:
+            Mutex	_lk;
             Timer*	_timer;
             std::function<void(Server*)> _preselect;
             bool	_running;
