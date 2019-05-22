@@ -227,6 +227,7 @@ namespace jyq {
 
     class HasAux {
         public:
+            HasAux(const std::any& a) : _aux(a) { }
             HasAux() = default;
             ~HasAux() = default;
             std::any& getAux() noexcept { return _aux; }

@@ -110,7 +110,7 @@ static void
 handlefcall(Conn *c) {
 	Fcall fcall;
 
-	auto p9conn = std::any_cast<Conn9*>(c->aux);
+    auto p9conn = c->unpackAux<Conn9*>();
 
     p9conn->getRLock().lock();
     if (c->recvmsg(p9conn->getRMsg()) == 0) {
@@ -474,7 +474,7 @@ Req9::respond(const char *error) {
 static void
 cleanupconn(Conn *c) {
     using ReqList = std::list<Req9>;
-    auto p9conn = std::any_cast<Conn9*>(c->aux);
+    auto p9conn = c->unpackAux<Conn9*>();
     p9conn->setConn(nullptr);
     ReqList collection;
     if (p9conn->referenceCountGreaterThan(1)) {
@@ -536,7 +536,7 @@ Conn::serve9conn() {
     } else {
         Conn9 p9conn;
         ++p9conn;
-        p9conn.setSrv(std::any_cast<Srv9*>(aux));
+        p9conn.setSrv(unpackAux<Srv9*>());
         p9conn.alloc(1024);
         srv.listen(fd, &p9conn, handlefcall, cleanupconn);
     }

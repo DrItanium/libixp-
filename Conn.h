@@ -10,7 +10,7 @@
 #include "socket.h"
 namespace jyq {
     struct Server;
-    struct Conn {
+    struct Conn : public HasAux {
         using Func = std::function<void(Conn*)>;
         Conn(Server& srv, int fd, std::any a, Func read, Func close);
         ~Conn();
@@ -30,7 +30,6 @@ namespace jyq {
         uint recvmsg(Msg& msg) { return getConnection().recvmsg(msg); }
         public:
             Server&	srv;
-            std::any	aux;	/* Arbitrary pointer, to be used by handlers. */
         private:
             Func _read, _close;
             bool _closed = false;
