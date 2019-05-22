@@ -151,14 +151,27 @@ namespace jyq {
                        case Msg::Mode::Unpack: 
                            *val = [pos]() {
                                auto v = 0;
+                               auto do1 = [&v, pos]() {
+                                   v |= pos[0];
+                               };
+                               auto do2 = [&v, pos, do1]() {
+                                   v |= pos[1]<<8;
+                                   do1();
+                               };
+                               auto do4 = [&v, pos, do2]() {
+                                   v |= pos[3]<<24;
+                                   v |= pos[2]<<16;
+                                   do2();
+                               };
                                switch(size) {
                                    case NumberSize::SDWord:
-                                       v |= pos[3]<<24;
-                                       v |= pos[2]<<16;
+                                       do4();
+                                       break;
                                    case NumberSize::SWord:
-                                       v |= pos[1]<<8;
+                                       do2();
+                                       break;
                                    case NumberSize::SByte:
-                                       v |= pos[0];
+                                       do1();
                                        break;
                                }
                                return v;
