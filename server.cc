@@ -97,8 +97,8 @@ Server::prepareSelect() {
 	FD_ZERO(&this->rd);
     for (auto& c : conns) {
         if (c->getReadFunc()) {
-            if (maxfd < c->getConnection()) {
-                maxfd = c->getConnection();
+            if (_maxfd < c->getConnection()) {
+                _maxfd = c->getConnection();
             }
             FD_SET(c->getConnection(), &rd);
         }
@@ -155,7 +155,7 @@ Server::serverloop() {
         }
 
         prepareSelect();
-		if (auto r = concurrency::threadModel->select(maxfd + 1, &rd, 0, 0, tvp); r < 0) {
+		if (auto r = concurrency::threadModel->select(_maxfd + 1, &rd, 0, 0, tvp); r < 0) {
 			if(errno == EINTR) {
 				continue;
             }
