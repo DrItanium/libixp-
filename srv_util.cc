@@ -253,6 +253,7 @@ pending_respond(Req9 *req) {
     if (!file->getContents().pending) {
         throw Exception("Given file's contents not marked as pending!");
     }
+
 	auto p = (PendingLink*)(file->getContents().p);
 
     if (auto& queue = (*p)->getContents().queue; !queue.empty()) {
