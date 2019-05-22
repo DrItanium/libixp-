@@ -116,7 +116,7 @@ srv_writebuf(Req9 *req, char **buf, uint *len, uint max) {
 	char *p;
 	uint offset, count;
 
-	auto file = std::any_cast<FileId>(req->fid->aux);
+    auto file = req->fid->unpackAux<FileId>();
 
 	offset = req->getIFcall().getIO().getOffset();
 	if(file->getContents().tab.perm & uint32_t(DMode::APPEND))
@@ -182,7 +182,7 @@ srv_data2cstring(Req9 *req) {
  */
 char*
 srv_writectl(Req9 *req, std::function<char*(void*, Msg*)> fn) {
-	auto file = std::any_cast<FileId>(req->fid->aux);
+    auto file = req->fid->unpackAux<FileId>();
 
 	srv_data2cstring(req);
     auto s = req->getIFcall().getIO().getData();
@@ -249,7 +249,7 @@ srv_writectl(Req9 *req, std::function<char*(void*, Msg*)> fn) {
 
 void
 pending_respond(Req9 *req) {
-	auto file = std::any_cast<FileId>(req->fid->aux);
+    auto file = req->fid->unpackAux<FileId>();
     if (!file->getContents().pending) {
         throw Exception("Given file's contents not marked as pending!");
     }
@@ -352,7 +352,7 @@ pending_pushfid(Pending *pending, Fid *fid) {
         RawPendingLink::circularLink(pending->fids);
 	}
 
-	auto file = std::any_cast<FileId>(fid->aux);
+    auto file = fid->unpackAux<FileId>();
     PendingLink pendLink = std::make_shared<RawPendingLink>();
     pendLink->getContents().fid = fid;
     pendLink->getContents().pending = pending;
@@ -366,7 +366,7 @@ pending_pushfid(Pending *pending, Fid *fid) {
 
 static void
 _pending_flush(Req9 *req) {
-	auto file = std::any_cast<FileId>(req->fid->aux);
+    auto file = req->fid->unpackAux<FileId>();
 	if(file->getContents().pending) {
 		if (auto req_link = std::any_cast<RequestLink>(req->getAux()); req_link) {
             req_link->unlink();
@@ -383,8 +383,8 @@ pending_flush(Req9 *req) {
 bool
 pending_clunk(Req9 *req) {
 
-	auto file = std::any_cast<FileId>(req->fid->aux);
-    PendingLink pendLink = std::any_cast<PendingLink>(file->getContents().p);
+    auto file = req->fid->unpackAux<FileId>();
+    auto pendLink = std::any_cast<PendingLink>(file->getContents().p);
 
     auto pending = pendLink->getContents().pending;
     Req9* r = nullptr;
@@ -463,7 +463,7 @@ void
 srv_readdir(Req9 *req, LookupFn lookup, std::function<void(Stat*, FileId&)> dostat) {
 	Stat stat;
 
-	auto file = std::any_cast<FileId>(req->fid->aux);
+    auto file = req->fid->unpackAux<FileId>();
 
 	ulong size = req->getIFcall().getIO().size();
 	if(size > req->fid->getIoUnit()) {
@@ -501,7 +501,7 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
 	FileId tfile;
 	int i;
 
-    auto fid = std::any_cast<FileId>(req->fid->aux);
+    auto fid = req->fid->unpackAux<FileId>();
 	auto file = srv_clonefiles(fid);
 	for(i=0; i < req->getIFcall().getTwalk().size(); i++) {
 		if(!strcmp(req->getIFcall().getTwalk().getWname()[i], "..")) {
@@ -537,14 +537,14 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
 	}
 	/* Remove refs for req->fid if no new fid */
 	if(req->getIFcall().getFid() == req->getIFcall().getTwalk().getNewFid()) {
-		tfile = std::any_cast<decltype(tfile)>(req->fid->aux);
-		req->fid->aux = file;
+		tfile = std::any_cast<decltype(tfile)>(req->fid->getAux());
+		req->fid->setAux(file);
 		while((file = tfile)) {
 			tfile = tfile->getNext();
 			srv_freefile(file);
 		}
 	} else {
-		req->newfid->aux = file;
+        req->newfid->setAux(file);
     }
     req->getOFcall().getRwalk().setSize(i);
     req->respond(nullptr);
