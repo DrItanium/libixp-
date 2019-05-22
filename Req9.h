@@ -30,6 +30,14 @@ namespace jyq {
         std::any& getAux() noexcept { return _aux; }
         const std::any& getAux() const noexcept { return _aux; }
         void setAux(const std::any& value) { _aux = value; }
+        template<typename T>
+        void setAux(T value) {
+            _aux = value;
+        }
+        template<typename R>
+        R unpackAux() {
+            return std::any_cast<R>(_aux);
+        }
         Conn9* getConn() noexcept { return _conn; }
         void setConn(Conn9* value) noexcept { _conn = value; }
         // methods

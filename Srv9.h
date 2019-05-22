@@ -13,8 +13,21 @@
 
 namespace jyq {
     struct Srv9 {
-        std::any aux;
-        std::function<void(Req9*)> attach,
+        public:
+            std::any& getAux() noexcept { return _aux; }
+            const std::any& getAux() const noexcept { return _aux; }
+            template<typename T>
+            void setAux(T value) {
+                _aux = value;
+            }
+            template<typename R>
+            R unpackAux() {
+                return std::any_cast<R>(_aux);
+            }
+        private:
+            std::any _aux;
+        public:
+            std::function<void(Req9*)> attach,
                 clunk,
                 create,
                 flush,
@@ -25,7 +38,7 @@ namespace jyq {
                 walk,
                 write,
                 wstat;
-        std::function<void(Fid*)> freefid;
+            std::function<void(Fid*)> freefid;
     };
 } // end namespace jyq
 #endif // end LIBJYQ_SRV9_H__

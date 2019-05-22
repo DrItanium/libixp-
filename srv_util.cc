@@ -264,7 +264,7 @@ pending_respond(Req9 *req) {
         req->getOFcall().getIO().setData(buf);
 		req->getOFcall().getIO().setSize(front.length() + 1);
 		if(req->getAux().has_value()) {
-            auto req_link = std::any_cast<RequestLink>(req->getAux());
+            auto req_link = req->unpackAux<RequestLink>();
             req_link->unlink();
 		}
 		req->respond(nullptr);
@@ -368,7 +368,7 @@ static void
 _pending_flush(Req9 *req) {
     auto file = req->fid->unpackAux<FileId>();
 	if(file->getContents().pending) {
-		if (auto req_link = std::any_cast<RequestLink>(req->getAux()); req_link) {
+        if (auto req_link = req->unpackAux<RequestLink>(); req_link) {
             req_link->unlink();
         }
 	}
@@ -537,7 +537,7 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
 	}
 	/* Remove refs for req->fid if no new fid */
 	if(req->getIFcall().getFid() == req->getIFcall().getTwalk().getNewFid()) {
-		tfile = std::any_cast<decltype(tfile)>(req->fid->getAux());
+        tfile = req->fid->unpackAux<decltype(tfile)>();
 		req->fid->setAux(file);
 		while((file = tfile)) {
 			tfile = tfile->getNext();
