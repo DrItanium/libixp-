@@ -23,10 +23,13 @@ namespace jyq {
             char* getEnd() noexcept { return _end; }
             const char* getEnd() const noexcept { return _end; }
             void setEnd(char* value) noexcept { _end = value; }
+            char* getPos() noexcept { return _pos; }
+            const char* getPos() const noexcept { return _pos; }
+            void setPos(char* value) noexcept { _pos = value; }
         public:
             char*	data; /* Begining of buffer. */
-            char*	pos;  /* Current position in buffer. */
         private:
+            char*	_pos;  /* Current position in buffer. */
             char*	_end;  /* End of message. */ 
         public:
         void pu8(uint8_t*);
@@ -107,8 +110,8 @@ namespace jyq {
            };
            template<NumberSize size>
            void puint(uint32_t* val) {
-               if ((this->pos + uint(size)) <= _end) {
-                   auto pos = (uint8_t*)this->pos;
+               if ((_pos + uint(size)) <= _end) {
+                   auto pos = (uint8_t*)_pos;
                    switch(getMode()) {
                        case Msg::Mode::Pack: 
                            [pos, val]() {
@@ -143,7 +146,7 @@ namespace jyq {
                            break;
                    }
                }
-               pos += uint(size);
+               _pos += uint(size);
            }
            Mode _mode; /* MsgPack or MsgUnpack. */
     };

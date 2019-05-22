@@ -491,7 +491,7 @@ srv_readdir(Req9 *req, LookupFn lookup, std::function<void(Stat*, FileId&)> dost
 		tfile=tfile->getNext();
 		srv_freefile(file);
 	}
-	req->getOFcall().getIO().setSize(msg.pos - msg.data);
+	req->getOFcall().getIO().setSize(msg.getPos() - msg.data);
     req->getOFcall().getIO().setData(msg.data);
     req->respond(nullptr);
 }

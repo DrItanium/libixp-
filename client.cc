@@ -53,8 +53,8 @@ Msg::alloc(uint n) {
         delete[] data;
     }
     data = new char[n];
-    setEnd(data + n);
-    pos = data;
+    _end = data + n;
+    _pos = data;
 }
 void
 Client::allocmsg(int n) {
@@ -80,7 +80,7 @@ _stat(ulong fid, std::function<std::shared_ptr<Fcall>(Fcall&)> dofcall) {
         Msg msg((char*)result->getRstat().getStat(), result->getRstat().size(), Msg::Mode::Unpack);
         auto stat = std::make_shared<Stat>();
         msg.pstat(*stat);
-        if(msg.pos > msg.getEnd()) {
+        if(msg.getPos() > msg.getEnd()) {
             return nullptr;
         } else {
             return stat;

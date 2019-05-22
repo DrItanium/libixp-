@@ -47,9 +47,9 @@ constexpr auto SQid = SByte + SDWord + SQWord;
  *	F<pu8>, F<pu16>, F<pu32>, F<pu64>,
  *	F<pstring>, F<pstrings>
  */
-Msg::Msg(char* _data, uint _length, Mode _mode) : Parent(_length), data(_data), pos(_data), _end(_data + _length), _mode(_mode) { }
+Msg::Msg(char* _data, uint _length, Mode _mode) : Parent(_length), data(_data), _pos(_data), _end(_data + _length), _mode(_mode) { }
 
-Msg::Msg() : Parent(0), data(nullptr), pos(nullptr), _end(nullptr), _mode(Mode::Pack) { }
+Msg::Msg() : Parent(0), data(nullptr), _pos(nullptr), _end(nullptr), _mode(Mode::Pack) { }
 
 
 /**
@@ -288,35 +288,36 @@ Fcall::packUnpack(Msg& msg) noexcept {
  */
 uint
 Msg::unpack(Fcall& val) {
-	pos = data + SDWord;
+	_pos = data + SDWord;
     setMode(Msg::Mode::Unpack);
     pfcall(val);
 
-	if(pos > _end)
+	if(_pos > _end) {
 		return 0;
+    }
 
-	return pos - data;
+	return _pos - data;
 }
 
 uint
 Msg::pack(Fcall& val) {
     //return fcall2msg(this, &val);
 	_end = data + size();
-	pos = data + SDWord;
+	_pos = data + SDWord;
     setMode(Msg::Mode::Pack);
     pfcall(val);
 
-	if(pos > _end) {
+	if(_pos > _end) {
 		return 0;
     }
 
-	_end = pos;
+	_end = _pos;
 	uint32_t size = _end - data;
 
-	pos = data;
+	_pos = data;
     pu32(&size);
 
-	pos = data;
+	_pos = data;
 	return size;
 }
 

@@ -58,7 +58,7 @@ Connection::readn(Msg& msg, size_t count) {
 int
 Connection::mread(Msg& msg, size_t count) {
     //std::cout << "fd = " << fd << std::endl;
-	auto n = msg.getEnd() - msg.pos;
+	auto n = msg.getEnd() - msg.getPos();
 	if (n <= 0) {
         wErrorString("buffer full");
 		return -1;
@@ -67,28 +67,28 @@ Connection::mread(Msg& msg, size_t count) {
 		n = count;
     }
 
-    auto r = read(msg.pos, n);
+    auto r = read(msg.getPos(), n);
 	if(r > 0) {
-        msg.pos += r;
+        msg.setPos(msg.getPos() + r);
     }
 	return r;
 }
 
 uint
 Connection::sendmsg(Msg& msg) {
-    msg.pos = msg.data;
-	while(msg.pos < msg.getEnd()) {
-        if (auto r = write(msg.pos, msg.getEnd() - msg.pos); r < 1) {
+    msg.setPos(msg.data);
+	while(msg.getPos() < msg.getEnd()) {
+        if (auto r = write(msg.getPos(), msg.getEnd() - msg.getPos()); r < 1) {
 			if(errno == EINTR) {
 				continue;
             }
             wErrorString("broken pipe: ", errbuf());
 			return 0;
 		} else {
-            msg.pos += r;
+            msg.setPos(msg.getPos() + r);
         }
 	}
-    return msg.pos - msg.data;
+    return msg.getPos() - msg.data;
 }
 
 uint
@@ -96,18 +96,18 @@ Connection::recvmsg(Msg& msg) {
     static constexpr auto SSize = 4;
 
     msg.setMode(Msg::Mode::Unpack);
-	msg.pos = msg.data;
+    msg.setPos(msg.data);
 	msg.setEnd(msg.data + msg.size());
     if (readn(msg, SSize) != SSize) {
         return 0;
     }
 
-	msg.pos = msg.data;
+    msg.setPos(msg.data);
     uint32_t msize;
     msg.pu32(&msize);
 
 	uint32_t size = msize - SSize;
-	if(size >= msg.getEnd()- msg.pos) {
+	if(size >= msg.getEnd()- msg.getPos()) {
         wErrorString("message too large");
 		return 0;
 	}
@@ -116,7 +116,7 @@ Connection::recvmsg(Msg& msg) {
 		return 0;
 	}
 
-    msg.setEnd(msg.pos);
+    msg.setEnd(msg.getPos());
 	return msize;
 
 }

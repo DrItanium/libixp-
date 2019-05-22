@@ -87,16 +87,16 @@ Msg::pstring(char **s) {
     }
 	pu16(&len);
 
-	if((pos + len) <= _end) {
+	if((_pos + len) <= _end) {
         if (unpackRequested()) {
             *s = new char[len + 1];
-			memcpy(*s, pos, len);
+			memcpy(*s, _pos, len);
 			(*s)[len] = '\0';
 		} else {
-			memcpy(pos, *s, len);
+			memcpy(_pos, *s, len);
         }
 	}
-	pos += len;
+	_pos += len;
 }
 
 /**
@@ -131,22 +131,22 @@ Msg::pstrings(uint16_t *num, char *strings[], uint max) {
 
 	pu16(num);
 	if(*num > max) {
-		pos = _end+1;
+		_pos = _end+1;
 		return;
 	}
 
     if (unpackRequested()) {
-		s = pos;
+		s = _pos;
 		size = 0;
         for (auto i = 0; i < *num; ++i) {
 			pu16(&len);
-			pos += len;
+			_pos += len;
 			size += len;
-			if(pos > _end) {
+			if(_pos > _end) {
 				return;
             }
 		}
-		pos = s;
+		_pos = s;
 		size += *num;
         s = new char[size];
 	}
@@ -158,10 +158,10 @@ Msg::pstrings(uint16_t *num, char *strings[], uint max) {
 		pu16(&len);
 
         if (unpackRequested()) {
-			memcpy(s, pos, len);
+			memcpy(s, _pos, len);
 			strings[i] = s;
 			s += len;
-			pos += len;
+			_pos += len;
 			*s++ = '\0';
 		} else {
 			pdata(&strings[i], len);
@@ -188,15 +188,15 @@ Msg::pstrings(uint16_t *num, char *strings[], uint max) {
  */
 void
 Msg::pdata(char **data, uint len) {
-    if(pos + len <= _end) {
+    if((_pos + len) <= _end) {
         if (unpackRequested()) {
             *data = new char[len];
-            memcpy(*data, pos, len);
+            memcpy(*data, _pos, len);
         } else {
-            memcpy(pos, *data, len);
+            memcpy(_pos, *data, len);
         }
     }
-	pos += len;
+	_pos += len;
 }
 
 /**
@@ -230,7 +230,7 @@ Msg::pqids(uint16_t *num, Qid qid[], uint max) {
 
 	pu16(num);
 	if(*num > max) {
-        pos = _end + 1;
+        _pos = _end + 1;
 		return;
 	}
 
