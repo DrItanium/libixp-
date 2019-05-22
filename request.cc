@@ -81,7 +81,7 @@ decref_p9conn(Conn9 *p9conn) {
     //}
 	//free(p9conn); // don't like this at all :(
 }
-Fid::Fid(uint32_t f, Conn9& c) : fid(f), _omode(-1), _conn(c) {
+Fid::Fid(uint32_t f, Conn9& c) : _fid(f), _omode(-1), _conn(c) {
     ++_conn;
 }
 
@@ -370,7 +370,7 @@ Req9::respond(const char *error) {
 		break;
 	case FType::TAttach:
 		if(error) {
-            destroyfid(*p9conn, fid->fid);
+            destroyfid(*p9conn, fid->getId());
         }
 		free(getIFcall().getTattach().getUname());
 		free(getIFcall().getTattach().getAname());
@@ -388,7 +388,7 @@ Req9::respond(const char *error) {
 	case FType::TWalk:
 		if(error || getOFcall().getRwalk().size() < getIFcall().getTwalk().size()) {
 			if(getIFcall().getFid() != getIFcall().getTwalk().getNewFid() && newfid) {
-				destroyfid(*p9conn, newfid->fid);
+				destroyfid(*p9conn, newfid->getId());
             }
 			if(!error && getOFcall().getRwalk().empty()) {
 				error = Enofile.c_str();
@@ -407,12 +407,12 @@ Req9::respond(const char *error) {
 		break;
 	case FType::TRemove:
 		if(fid) {
-			destroyfid(*p9conn, fid->fid);
+			destroyfid(*p9conn, fid->getId());
         }
 		break;
 	case FType::TClunk:
 		if(fid) {
-			destroyfid(*p9conn, fid->fid);
+			destroyfid(*p9conn, fid->getId());
         }
 		break;
 	case FType::TFlush:
@@ -483,7 +483,7 @@ cleanupconn(Conn *c) {
                 context.emplace_back();
                 context.back().getIFcall().setType(FType::TClunk);
                 context.back().getIFcall().setNoTag();
-                context.back().getIFcall().setFid(arg->second.fid);
+                context.back().getIFcall().setFid(arg->second.getId());
                 context.back().fid = &arg->second;
                 context.back().setConn(&arg->second.getConn());
                 }, collection);

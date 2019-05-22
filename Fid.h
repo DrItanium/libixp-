@@ -46,11 +46,13 @@ namespace jyq {
             Qid& getQid() noexcept { return _qid; }
             const Qid& getQid() const noexcept { return _qid; }
             void setQid(const Qid& value) noexcept { _qid = value; }
+            constexpr auto getId() const noexcept { return _fid; }
+            void setId(uint32_t value) noexcept { _fid = value; }
         public:
             std::string		uid;	/* The uid of the file opener. */
             std::any    aux;    // Arbitrary pointer, to be used by handlers. 
-            uint32_t		fid;    /* The ID number of the fid. */
         private:
+            uint32_t		_fid;    /* The ID number of the fid. */
             Qid		_qid;    /* The filesystem-unique QID of the file. */
             signed char	_omode;  /* The open mode of the file. */
             uint		_iounit; /* The maximum size of any IO request. */
