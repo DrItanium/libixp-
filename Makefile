@@ -14,7 +14,6 @@ LIBJYQ_CORE_OBJS := client.o \
 					server.o \
 					socket.o \
 					srv_util.o \
-					thread.o \
 					timer.o \
 					transport.o \
 					util.o 
@@ -85,7 +84,6 @@ socket.o: socket.cc Msg.h types.h qid.h stat.h jyq.h PrintFunctions.h \
 srv_util.o: srv_util.cc Msg.h types.h qid.h stat.h jyq.h PrintFunctions.h \
  thread.h Srv9.h Conn9.h Fcall.h map.h Conn.h socket.h Fid.h Req9.h \
  util.h Client.h Rpc.h CFid.h jyq_srvutil.h
-thread.o: thread.cc thread.h types.h
 timer.o: timer.cc Msg.h types.h qid.h stat.h jyq.h PrintFunctions.h \
  thread.h Srv9.h Conn9.h Fcall.h map.h Conn.h socket.h Fid.h Req9.h \
  util.h Client.h Rpc.h CFid.h timer.h Server.h
