@@ -16,7 +16,7 @@
 namespace jyq {
     struct Server : public HasAux {
         public:
-            using Locker = concurrency::Locker<Server>;
+            using Locker = std::lock_guard<Server>;
             using ConnPtr = std::shared_ptr<Conn>;
             using ConnList = std::list<ConnPtr>;
         public:
@@ -47,7 +47,6 @@ namespace jyq {
             auto getTimer() noexcept { return _timer; }
             const auto getTimer() const noexcept { return _timer; }
             void setTimer(Timer* value) noexcept { _timer = value; }
-            void setLock(const Mutex& value) noexcept { _lk = value; }
             Mutex& getLock() noexcept { return _lk; }
         private:
             ConnList _conns;

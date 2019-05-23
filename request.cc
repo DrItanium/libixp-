@@ -50,36 +50,11 @@ static std::string
 
 static void
 decref_p9conn(Conn9 *p9conn) {
-    {
-        concurrency::Locker<Mutex> theLock(p9conn->getWLock());
-        p9conn->operator--();
-        if (p9conn->referenceCountGreaterThan(0)) {
-            return;
-        }
+    std::unique_lock<Mutex> theLock(p9conn->getWLock());
+    p9conn->operator--();
+    if (p9conn->referenceCountGreaterThan(0)) {
+        return;
     }
-    // this is dumb, leave the code disabled for now. What needs to happen is that
-    // the reference count associated with the connection needs to cause destruction
-    // once the reference count equals zero. Right now, this is done manually, it should
-    // be done through C++ destructors for maximum cleanliness
-    //
-    // Right now, the fid object holds onto a reference instead of a pointer. Thus
-    // we could replace it with a std::shared_ptr if we desired. That way the destruction of the
-    // final shared_ptr would yield destruction
-    
-
-
-	//assert(p9conn->conn == nullptr);
-
-	//concurrency::threadModel->mdestroy(&p9conn->rlock);
-	//concurrency::threadModel->mdestroy(&p9conn->wlock);
-
-    //if (p9conn->rmsg.data) {
-    //    delete[] p9conn->rmsg.data;
-    //}
-    //if (p9conn->wmsg.data) {
-    //    delete[] p9conn->wmsg.data;
-    //}
-	//free(p9conn); // don't like this at all :(
 }
 Fid::Fid(uint32_t f, Conn9& c) : _fid(f), _omode(-1), _conn(c) {
     ++_conn;
@@ -361,8 +336,8 @@ Req9::respond(const char *error) {
         }
 		free(getIFcall().getVersion().getVersion());
         {
-            concurrency::Locker<Mutex> theRlock(p9conn->getRLock());
-            concurrency::Locker<Mutex> theWlock(p9conn->getWLock());
+            std::unique_lock<Mutex> theRlock(p9conn->getRLock());
+            std::unique_lock<Mutex> theWlock(p9conn->getWLock());
 		    msize = jyq::min<int>(getOFcall().getVersion().size(), maximum::Msg);
             p9conn->alloc(msize);
         }
@@ -450,7 +425,8 @@ Req9::respond(const char *error) {
     p9conn->removeTag(getIFcall().getTag());
 
     if (p9conn->getConn()) {
-        concurrency::Locker<Mutex> theLock(p9conn->getWLock());
+
+        std::unique_lock<Mutex> theLock(p9conn->getWLock());
         msize = p9conn->getWMsg().pack(getOFcall());
         if (p9conn->getConn()->getConnection().sendmsg(p9conn->getWMsg()) != msize) {
 			hangup(p9conn->getConn());
