@@ -30,7 +30,6 @@ namespace jyq {
             long nexttimer();
             void lock();
             void unlock();
-            bool canlock();
             inline void preselect() {
                 if (_preselect) {
                     _preselect(this);

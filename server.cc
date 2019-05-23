@@ -58,10 +58,6 @@ Server::unlock() {
     _lk.unlock();
 }
 
-bool
-Server::canlock() {
-    return _lk.canlock();
-}
 
 /**
  * Function: hangup
@@ -154,7 +150,7 @@ Server::serverloop() {
         }
 
         prepareSelect();
-		if (auto r = concurrency::threadModel->select(_maxfd + 1, &_rd, 0, 0, tvp); r < 0) {
+		if (auto r = ::select(_maxfd + 1, &_rd, 0, 0, tvp); r < 0) {
 			if(errno == EINTR) {
 				continue;
             }
