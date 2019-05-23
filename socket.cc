@@ -254,7 +254,7 @@ Connection::Connection(int fid) : _fid(fid) { }
 
 ssize_t 
 Connection::write(const std::string& msg, size_t count) {
-    return concurrency::threadModel->write(_fid, msg.c_str(), count);
+    return ::write(_fid, msg.c_str(), count);
 }
 ssize_t
 Connection::write(const std::string& msg) {
@@ -264,16 +264,16 @@ Connection::write(const std::string& msg) {
 ssize_t
 Connection::read(std::string& msg, size_t count) {
     msg.reserve(count);
-    return concurrency::threadModel->read(_fid, msg.data(), count);
+    return ::read(_fid, msg.data(), count);
 }
 
 ssize_t
 Connection::write(char* c, size_t count) {
-    return concurrency::threadModel->write(_fid, c, count);
+    return ::write(_fid, c, count);
 }
 ssize_t
 Connection::read(char* c, size_t count) {
-    return concurrency::threadModel->read(_fid, c, count);
+    return ::read(_fid, c, count);
 }
 
 bool
