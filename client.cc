@@ -404,29 +404,28 @@ Client::create(const char *path, uint perm, uint8_t mode) {
 
 std::shared_ptr<CFid>
 Client::open(const char *path, uint8_t mode) {
-	Fcall fcall;
 
-	auto f = walk(path);
-    if (!f) {
-		return nullptr;
+    if (auto f = walk(path); !f) {
+        return nullptr;
+    } else {
+	    Fcall fcall;
+        fcall.setTypeAndFid(FType::TOpen, f->getFid());
+        fcall.getTopen().setMode(mode);
+
+        if(!dofcall(fcall)) {
+            clunk(f);
+            return nullptr;
+        }
+
+        auto count = fcall.getRopen().getIoUnit();
+        if (count == 0 || (fcall.getRopen().getIoUnit() > (_msize-24))) {
+            count = _msize-24;
+        }
+        initfid(f, &fcall, count);
+        f->setMode(mode);
+
+        return f;
     }
-
-    fcall.setTypeAndFid(FType::TOpen, f->getFid());
-    fcall.getTopen().setMode(mode);
-
-	if(!dofcall(fcall)) {
-		clunk(f);
-		return nullptr;
-	}
-
-    auto count = fcall.getRopen().getIoUnit();
-    if (count == 0 || (fcall.getRopen().getIoUnit() > (_msize-24))) {
-        count = _msize-24;
-    }
-	initfid(f, &fcall, count);
-    f->setMode(mode);
-
-	return f;
 }
 
 /**
@@ -563,45 +562,6 @@ CFid::pwrite(const void *buf, long count, int64_t offset, DoFcallFunc fn) {
 	return _pwrite(this, buf, count, offset, fn);
 }
 
-/**
- * Function: print
- * Function: vprint
- * Variable: vsmprint
- *
- * Params:
- *      fid:  An open CFid to which to write the result.
- *	fmt:  The string with which to format the data.
- *	args: A va_list holding the arguments to the format
- *	      string.
- *	...:  The arguments to the format string.
- *
- * These functions act like the standard formatted IO
- * functions. They write the result of the formatting to the
- * file pointed to by C<fid>.
- *
- * V<vsmprint> may be set to a function which will
- * format its arguments and return a nul-terminated string
- * allocated by malloc(3). The default formats its arguments as
- * printf(3).
- *
- * Returns:
- *	These functions return the number of bytes written.
- *	There is currently no way to detect failure.
- * See also:
- *	F<mount>, F<open>, printf(3)
- */
-
-//int
-//CFid::vprint(const char *fmt, va_list args) {
-//	if (auto buf = vsmprint(fmt, args); !buf) {
-//        return -1;
-//    } else {
-//        auto n = write(buf, strlen(buf));
-//        free(buf);
-//        return n;
-//    }
-//}
-
 bool
 CFid::performClunk(DoFcallFunc c) {
 	Fcall fcall(FType::TClunk, _fid);
@@ -615,8 +575,7 @@ CFid::clunk(DoFcallFunc fn) {
 
 Client::Client(int _fd) : fd(_fd), sleep(std::make_shared<BareRpc>()) { }
 Client::Client(const Connection& c) : fd(c), sleep(std::make_shared<BareRpc>()) { 
-    sleep->setNext(sleep);
-    sleep->setPrevious(sleep);
+    sleep->circularLink(sleep);
 }
 } // end namespace jyq
 
