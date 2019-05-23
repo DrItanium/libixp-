@@ -10,7 +10,6 @@
 #include <memory>
 #include "types.h"
 #include "Conn.h"
-#include "thread.h"
 #include "timer.h"
 
 namespace jyq {

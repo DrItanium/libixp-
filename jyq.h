@@ -6,7 +6,6 @@
  */
 #include "types.h"
 #include "PrintFunctions.h"
-#include "thread.h"
 #include "Srv9.h"
 #include "Req9.h"
 #include "util.h"

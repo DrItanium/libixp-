@@ -9,7 +9,6 @@
 #include <list>
 #include <memory>
 #include "types.h"
-#include "thread.h"
 #include "Msg.h"
 #include "Fcall.h"
 #include "Rpc.h"

@@ -5,8 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "types.h"
 #include "PrintFunctions.h"
-#include "thread.h"
 
 
 namespace jyq {

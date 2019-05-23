@@ -9,9 +9,7 @@
 #include <map>
 #include <any>
 #include <utility>
-#include <shared_mutex>
 #include "types.h"
-#include "thread.h"
 
 
 namespace jyq {
@@ -25,7 +23,7 @@ namespace jyq {
             Map() = default;
             ~Map() = default;
             V* get(const K& key) {
-                std::shared_lock<std::shared_mutex> rlock(_lock);
+                std::shared_lock<RWLock> rlock(_lock);
                 try {
                     return &_map.at(key);
                 } catch (std::out_of_range&) {
@@ -35,7 +33,7 @@ namespace jyq {
             std::optional<V> rm(const K& key) {
                 // get the value out of the map and then erase the entry from
                 // it
-                std::unique_lock<std::shared_mutex> wlock(_lock);
+                std::unique_lock<RWLock> wlock(_lock);
                 if (std::optional<V&> value = this->get(key); value) {
                     std::optional<V> result(value.value());
                     _map.erase(key);
@@ -53,7 +51,7 @@ namespace jyq {
             }
             template<typename T>
             void exec(std::function<void(T, iterator)> fn, T context) {
-                std::shared_lock<std::shared_mutex> rlock(_lock);
+                std::shared_lock<RWLock> rlock(_lock);
                 for (auto it = _map.begin(); it != _map.end(); ++it) {
                     fn(context, it);
                 }

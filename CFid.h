@@ -9,7 +9,6 @@
 #include <list>
 #include <memory>
 #include "types.h"
-#include "thread.h"
 #include "qid.h"
 #include "Fcall.h"
 #include "stat.h"

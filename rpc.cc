@@ -7,7 +7,6 @@
 #include <cstring>
 #include "Rpc.h"
 #include "Msg.h"
-#include "thread.h"
 #include "Client.h"
 #include "socket.h"
 #include "util.h"
