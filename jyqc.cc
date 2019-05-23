@@ -249,6 +249,7 @@ xls(int argc, char *argv[]) {
     }
 
     std::vector<std::shared_ptr<jyq::Stat>> stats;
+    // TODO fix this nonsense
     char* buf = new char[fid->getIoUnit()];
     int count = 0;
     for (count = fid->read(buf, fid->getIoUnit(), client->getDoFcallLambda()); count > 0; count = fid->read(buf, fid->getIoUnit(), client->getDoFcallLambda())) {
