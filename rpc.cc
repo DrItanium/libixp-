@@ -130,7 +130,7 @@ Client::sendrpc(Rpc& r, Fcall& f) {
     { 
         auto wlock = getWriteLock();
         if (!getWmsg().pack(f) || !getConnection().sendmsg(_wmsg)) {
-            std::unique_lock<Mutex> lk(getLock());
+            auto lk = getLock();
             dequeue(r);
             puttag(r);
             return false;
@@ -179,7 +179,7 @@ Client::muxrpc(Fcall& tx)
     if (!sendrpc(r, tx)) {
         return nullptr;
     }
-    std::unique_lock currentLock(getLock());
+    auto currentLock = getLock();
 	/* wait for our packet */
 	while(muxer.lock() && (muxer.lock() != r) && !r->getContents().getP()) {
         r->getContents().getRendez().wait(currentLock);
