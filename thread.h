@@ -9,9 +9,13 @@
 #include <memory>
 #include <mutex>
 #include <condition_variable>
+#include <shared_mutex>
 #include "types.h"
 
 namespace jyq {
+    using Mutex = std::mutex;
+    using Rendez = std::condition_variable;
+    using RWLock = std::shared_mutex;
 #if 0
     struct Mutex {
         Mutex();

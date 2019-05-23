@@ -60,7 +60,7 @@ namespace jyq {
             }
         private:
             BackingStore _map;
-            std::shared_mutex _lock;
+            RWLock _lock;
     };
 
 } // end namespace jyq

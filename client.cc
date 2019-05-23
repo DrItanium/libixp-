@@ -25,7 +25,7 @@ Client::clunk(std::shared_ptr<CFid> ptr) {
 }
 std::shared_ptr<CFid>
 Client::getFid() {
-    concurrency::Locker<Mutex> theLock(_lk);
+    std::unique_lock<Mutex> theLock(_lk);
     if (_freefid.empty()) {
         auto ptr = std::make_shared<CFid>();
         ptr->setFid(++_lastfid);
@@ -39,7 +39,7 @@ Client::getFid() {
 
 void
 Client::putfid(std::shared_ptr<CFid> f) {
-    concurrency::Locker<Mutex> theLock(_lk);
+    std::unique_lock<Mutex> theLock(_lk);
     if (f->getFid() == _lastfid) {
 		_lastfid--;
 	} else {
@@ -513,7 +513,7 @@ CFid::fstat(DoFcallFunc c) {
 
 long
 CFid::read(void *buf, long count, DoFcallFunc dofcall) {
-    concurrency::Locker<Mutex> theLock(_iolock);
+    std::unique_lock<Mutex> theLock(_iolock);
 	int n = _pread(this, (char*)buf, count, _offset, dofcall);
 	if(n > 0) {
 		_offset += n;
@@ -523,7 +523,7 @@ CFid::read(void *buf, long count, DoFcallFunc dofcall) {
 
 long
 CFid::pread(void *buf, long count, int64_t offset, DoFcallFunc fn) {
-    concurrency::Locker<Mutex> theLock(_iolock);
+    std::unique_lock<Mutex> theLock(_iolock);
 	return _pread(this, (char*)buf, count, offset, fn);
 }
 
@@ -553,7 +553,7 @@ CFid::pread(void *buf, long count, int64_t offset, DoFcallFunc fn) {
 
 long
 CFid::write(const void *buf, long count, DoFcallFunc fn) {
-    concurrency::Locker<Mutex> theLock(_iolock);
+    std::unique_lock<Mutex> theLock(_iolock);
 	auto n = _pwrite(this, buf, count, _offset, fn);
 	if(n > 0) {
 		_offset += n;
@@ -563,7 +563,7 @@ CFid::write(const void *buf, long count, DoFcallFunc fn) {
 
 long
 CFid::pwrite(const void *buf, long count, int64_t offset, DoFcallFunc fn) {
-    concurrency::Locker<Mutex> theLock(_iolock);
+    std::unique_lock<Mutex> theLock(_iolock);
 	return _pwrite(this, buf, count, offset, fn);
 }
 
@@ -621,7 +621,6 @@ Client::Client(int _fd) : fd(_fd), sleep(std::make_shared<BareRpc>(getLock())) {
 Client::Client(const Connection& c) : fd(c), sleep(std::make_shared<BareRpc>(getLock())) { 
     sleep->setNext(sleep);
     sleep->setPrevious(sleep);
-    _tagrend.setMutex(&_lk);
 }
 } // end namespace jyq
 

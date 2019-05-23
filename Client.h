@@ -96,11 +96,6 @@ namespace jyq {
             void electmuxer();
             void dispatchandqlock(std::shared_ptr<Fcall> f);
             void allocmsg(int n);
-
-
-
-
-
     };
 } // end namespace jyq
 #endif // end LIBJYQ_CLIENT_H__
