@@ -95,7 +95,7 @@ namespace jyq {
         private:
             Fcall* muxrecv();
             void electmuxer();
-            void dispatchandqlock(std::shared_ptr<Fcall> f);
+            void dispatchandqlock(std::shared_ptr<Fcall> f, std::unique_lock<Mutex>&);
             void allocmsg(int n);
     };
 } // end namespace jyq

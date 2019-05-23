@@ -140,10 +140,10 @@ Client::sendrpc(Rpc& r, Fcall& f) {
 }
 
 void
-Client::dispatchandqlock(std::shared_ptr<Fcall> f)
+Client::dispatchandqlock(std::shared_ptr<Fcall> f, std::unique_lock<Mutex>& m)
 {
 	int tag = f->getTag() - _mintag;
-    _lk.lock();
+    m.lock();
 	/* hand packet to correct sleeper */
 	if(tag < 0 || tag >= _mwait) {
         throw Exception("libjyq: received unfeasible tag: ", f->getTag(), "(min: ", _mintag, ", max: ", _mintag+_mwait, ")\n");
@@ -201,7 +201,7 @@ Client::muxrpc(Fcall& tx)
                 dequeue(r);
 				break;
 			}
-			dispatchandqlock(p);
+			dispatchandqlock(p, currentLock);
 		}
 		electmuxer();
 	}
