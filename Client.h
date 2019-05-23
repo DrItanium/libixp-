@@ -33,15 +33,9 @@ namespace jyq {
             const Connection& getConnection() const noexcept { return fd; }
             Msg& getWmsg() noexcept { return _wmsg; }
             const Msg& getWmsg() const noexcept { return _wmsg; }
-            //Mutex& getLock() noexcept { return _lk; }
-            //const Mutex& getLock() const noexcept { return _lk; }
-            //Mutex& getReadLock() noexcept { return _rlock; }
-            //const Mutex& getReadLock() const noexcept { return _rlock; }
-            //Mutex& getWriteLock() noexcept { return _wlock; }
-            //const Mutex& getWriteLock() const noexcept { return _wlock; }
-            [[nodiscard]] std::unique_lock<Mutex> getLock();
-            [[nodiscard]] std::unique_lock<Mutex> getReadLock();
-            [[nodiscard]] std::unique_lock<Mutex> getWriteLock();
+            [[nodiscard]] Lock getLock() { return Lock(_lk); }
+            [[nodiscard]] Lock getReadLock() { return Lock(_rlock); }
+            [[nodiscard]] Lock getWriteLock() { return Lock(_wlock); }
         private:
             //int     fd;
             Connection fd;

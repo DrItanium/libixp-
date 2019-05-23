@@ -484,10 +484,6 @@ CFid::fstat(DoFcallFunc c) {
 	return _stat(_fid, c);
 }
 
-std::unique_lock<Mutex>
-CFid::getIoLock() {
-    return std::unique_lock<Mutex>(_iolock);
-}
 
 /**
  * Function: read

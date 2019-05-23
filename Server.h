@@ -43,7 +43,7 @@ namespace jyq {
             auto getTimer() noexcept { return _timer; }
             const auto getTimer() const noexcept { return _timer; }
             void setTimer(Timer* value) noexcept { _timer = value; }
-            [[nodiscard]] std::unique_lock<Mutex> getLock();
+            [[nodiscard]] Lock getLock() { return Lock(_lk); }
         private:
             ConnList _conns;
             mutable Mutex	_lk;

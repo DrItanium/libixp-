@@ -35,8 +35,8 @@ struct Conn9 {
         void setConn(Conn* value) noexcept { _conn = value; }
         Msg& getRMsg() noexcept { return _rmsg; }
         Msg& getWMsg() noexcept { return _wmsg; }
-        [[nodiscard]] std::unique_lock<Mutex> getReadLock();
-        [[nodiscard]] std::unique_lock<Mutex> getWriteLock();
+        [[nodiscard]] Lock getReadLock() { return Lock(_rlock); }
+        [[nodiscard]] Lock getWriteLock() { return Lock(_wlock); }
         void alloc(uint n);
         constexpr auto getReferenceCount() const noexcept { return _ref; }
         constexpr auto referenceCountGreaterThan(int count) const noexcept { return _ref > count; }

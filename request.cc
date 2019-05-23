@@ -81,14 +81,6 @@ destroyfid(Conn9& p9conn, ulong fid) {
     return p9conn.removeFid(fid);
 }
 
-std::unique_lock<Mutex>
-Conn9::getReadLock() {
-    return std::unique_lock<Mutex>(_rlock);
-}
-std::unique_lock<Mutex>
-Conn9::getWriteLock() {
-    return std::unique_lock<Mutex>(_wlock);
-}
 static void
 handlefcall(Conn *c) {
 	Fcall fcall;

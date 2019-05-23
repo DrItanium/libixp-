@@ -251,6 +251,7 @@ namespace jyq {
     using Mutex = std::mutex;
     using Rendez = std::condition_variable;
     using RWLock = std::shared_mutex;
+    using Lock = std::unique_lock<Mutex>;
 
 } // end namespace jyq
 

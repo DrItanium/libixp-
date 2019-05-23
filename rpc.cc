@@ -46,7 +46,7 @@ Client::electmuxer()
     muxer.reset();
 }
 int 
-Client::gettag(Rpc &r, std::unique_lock<Mutex>& lock)
+Client::gettag(Rpc &r, Lock& lock)
 {
 	int i, mw;
     auto Found = [this, &r](auto index) {
@@ -107,18 +107,6 @@ Client::puttag(Rpc& r)
     _tagrend.notify_one();
     //r->getContents().getRendez().deactivate();
 }
-std::unique_lock<Mutex>
-Client::getLock() {
-    return std::unique_lock<Mutex>(_lk);
-}
-std::unique_lock<Mutex>
-Client::getReadLock() {
-    return std::unique_lock<Mutex>(_rlock);
-}
-std::unique_lock<Mutex>
-Client::getWriteLock() {
-    return std::unique_lock<Mutex>(_wlock);
-}
 bool
 Client::sendrpc(Rpc& r, Fcall& f) {
     { 
@@ -140,7 +128,7 @@ Client::sendrpc(Rpc& r, Fcall& f) {
 }
 
 void
-Client::dispatchandqlock(std::shared_ptr<Fcall> f, std::unique_lock<Mutex>& m)
+Client::dispatchandqlock(std::shared_ptr<Fcall> f, Lock& m)
 {
 	int tag = f->getTag() - _mintag;
     m.lock();

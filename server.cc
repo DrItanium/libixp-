@@ -151,10 +151,6 @@ Server::serverloop() {
 	}
 	return false;
 }
-std::unique_lock<Mutex>
-Server::getLock() {
-    return std::unique_lock<Mutex>(_lk);
-}
 
 
 } // end namespace jyq
