@@ -15,7 +15,7 @@
 namespace jyq {
     struct RpcBody {
         public:
-            RpcBody(Mutex& m);
+            RpcBody();
             ~RpcBody() = default;
             Rendez& getRendez() noexcept { return _r; }
             const Rendez& getRendez() const noexcept { return _r; }

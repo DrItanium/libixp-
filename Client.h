@@ -86,8 +86,8 @@ namespace jyq {
             void putfid(std::shared_ptr<CFid> cfid);
             void clunk(std::shared_ptr<CFid> fid);
             inline DoFcallFunc getDoFcallLambda() noexcept { return [this](auto& ptr) { return dofcall(ptr); }; }
-            int gettag(Rpc* r) { return gettag(*r); }
-            int gettag(Rpc& r);
+            int gettag(Rpc* r, std::unique_lock<Mutex>& lock) { return gettag(*r, lock); }
+            int gettag(Rpc& r, std::unique_lock<Mutex>& lock);
             void puttag(Rpc& r);
             void puttag(Rpc* r) { return puttag(*r); }
             bool sendrpc(Rpc& r, Fcall& f);

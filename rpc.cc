@@ -14,13 +14,13 @@
 #include "PrintFunctions.h"
 
 namespace jyq {
-RpcBody::RpcBody(Mutex& m) : _r(&m), _tag(0), _p(nullptr), _waiting(true), _async(false) { }
+RpcBody::RpcBody() : _tag(0), _p(nullptr), _waiting(true), _async(false) { }
 
 Fcall*
 Client::muxrecv()
 {
 	//Fcall *f = nullptr;
-    concurrency::Locker<Mutex> theRlock(_rlock);
+    std::unique_lock<Mutex> theRlock(_rlock);
     if (fd.recvmsg(_rmsg) == 0) {
         return nullptr;
     }
@@ -40,14 +40,14 @@ Client::electmuxer()
     for(auto rpc=sleep->getNext(); rpc != sleep; rpc = rpc->getNext()) {
         if (!rpc->getContents().isAsync()) {
             muxer = rpc;
-			concurrency::threadModel->wake(&rpc->getContents().getRendez());
+            rpc->getContents().getRendez().notify_one();
 			return;
 		}
 	}
     muxer.reset();
 }
 int 
-Client::gettag(Rpc &r)
+Client::gettag(Rpc &r, std::unique_lock<Mutex>& lock)
 {
 	int i, mw;
     auto Found = [this, &r](auto index) {
@@ -71,7 +71,7 @@ Client::gettag(Rpc &r)
 				_mwait = mw;
 				break;
 			}
-            _tagrend.sleep();
+            _tagrend.wait(lock);
 		}
 
 		i=_freetag;
@@ -105,21 +105,21 @@ Client::puttag(Rpc& r)
 	wait[i] = nullptr;
 	_nwait--;
 	_freetag = i;
-    _tagrend.wake();
-    r->getContents().getRendez().deactivate();
+    _tagrend.notify_one();
+    //r->getContents().getRendez().deactivate();
 }
 bool
 Client::sendrpc(Rpc& r, Fcall& f) {
     { 
-        concurrency::Locker<Mutex> lk(getLock());
-        r->getContents().setTag(gettag(r));
+        std::unique_lock<Mutex> lk(getLock());
+        r->getContents().setTag(gettag(r, lk));
         f.setTag(r->getContents().getTag());
         enqueue(r);
     }
     { 
-        concurrency::Locker<Mutex> a(getWriteLock());
+        std::unique_lock<Mutex> wlock(getWriteLock());
         if (!getWmsg().pack(f) || !getConnection().sendmsg(getWmsg())) {
-            concurrency::Locker<Mutex> lk(getLock());
+            std::unique_lock<Mutex> lk(getLock());
             dequeue(r);
             puttag(r);
             return false;
@@ -143,7 +143,7 @@ Client::dispatchandqlock(std::shared_ptr<Fcall> f)
 	}
 	r2->getContents().setP(f);
     dequeue(r2);
-    r2->getContents().getRendez().wake();
+    r2->getContents().getRendez().notify_one();
 }
 void
 Client::enqueue(Rpc& r) {
@@ -162,16 +162,16 @@ Client::dequeue(Rpc& r) {
 std::shared_ptr<Fcall>
 Client::muxrpc(Fcall& tx) 
 {
-    Rpc r = std::make_shared<BareRpc>(getLock());
+    Rpc r = std::make_shared<BareRpc>();
     std::shared_ptr<Fcall> p;
 
     if (!sendrpc(r, tx)) {
         return nullptr;
     }
-    _lk.lock();
+    std::unique_lock currentLock(getLock());
 	/* wait for our packet */
 	while(muxer.lock() && (muxer.lock() != r) && !r->getContents().getP()) {
-        r->getContents().getRendez().sleep();
+        r->getContents().getRendez().wait(currentLock);
     }
 
 	/* if not done, there's no muxer; start muxing */
@@ -182,11 +182,11 @@ Client::muxrpc(Fcall& tx)
         }
         muxer = r;
 		while(!r->getContents().getP()){
-            _lk.unlock();
+            currentLock.unlock();
             p.reset(muxrecv());
             if (!p) {
 				/* eof -- just give up and pass the buck */
-                _lk.lock();
+                currentLock.lock();
                 dequeue(r);
 				break;
 			}
@@ -196,7 +196,6 @@ Client::muxrpc(Fcall& tx)
 	}
     p = r->getContents().getP();
 	puttag(&r);
-    _lk.unlock();
     if (!p) {
         throw Exception("unexpected eof");
     }
