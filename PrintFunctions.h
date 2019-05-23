@@ -6,23 +6,21 @@
  */
 #include <functional>
 #include <sstream>
+#include <stdexcept>
 #include "types.h"
 namespace jyq {
     union Fcall;
     extern std::function<int(char*, int, const char*, va_list)> vsnprint;
     extern std::function<std::string(const std::string&, va_list)> vsmprint;
     extern std::function<void(Fcall*)> printfcall;
+
     char*	errbuf();
-    void	errstr(char*, int);
-    void	rerrstr(char*, int);
-    void	werrstr(const char*, ...);
-    void    werrstr(const std::string& msg);
     template<typename ... Args>
     void wErrorString(Args&& ... args) {
         std::ostringstream ss;
         print(ss, args...);
         auto str = ss.str();
-        werrstr(str);
+        throw Exception(str);
     }
 } // end namespace jyq
 

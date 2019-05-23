@@ -37,41 +37,6 @@ constexpr auto EPLAN9 = 0x19283745;
     std::function<std::string(const std::string&, va_list)> vsmprint = _vsmprint;
 
 
-/**
- * Function: errbuf
- * Function: errstr
- * Function: rerrstr
- * Function: werrstr
- * Variable: vsnprint
- *
- * Params:
- *	buf:  The buffer to read and/or fill.
- *	nbuf: The size of the buffer.
- *	fmt:  A format string with which to write the errstr.
- *	...:  Arguments to P<fmt>.
- *
- * These functions simulate Plan 9's errstr functionality.
- * They replace errno in libjyq. Note that these functions
- * are not internationalized.
- *
- * F<errbuf> returns the errstr buffer for the current
- * thread. F<rerrstr> fills P<buf> with the data from
- * the current thread's error buffer, while F<errstr>
- * exchanges P<buf>'s contents with those of the current
- * thread's error buffer. F<werrstr> formats the given
- * format string, P<fmt>, via V<vsnprint> and writes it to
- * the error buffer.
- *
- * V<vsnprint> may be set to a function which will format
- * its arguments write the result to the P<nbuf> length buffer
- * V<buf>. The default value is F<vsnprintf>. The function must
- * format '%s' as a nul-terminated string and may not consume
- * any arguments not indicated by a %-prefixed format specifier,
- * but may otherwise behave in any manner chosen by the user.
- *
- * See also:
- *	V<vsmprint>
- */
 char*
 errbuf() {
     static char* buf = nullptr;
@@ -83,39 +48,8 @@ errbuf() {
 }
 
 void
-errstr(char *buf, int nbuf) {
-	//char tmp[ErrorMax];
-
-	//strncpy(tmp, buf, sizeof tmp);
-	//rerrstr(buf, nbuf);
-	//strncpy(concurrency::threadModel->errbuf(), tmp, ErrorMax);
-	//errno = EPLAN9;
-    throw Exception("errstr called!", " This must be fixed!");
-}
-
-void
-rerrstr(char *buf, int nbuf) {
-	strncpy(buf, errbuf(), nbuf);
-}
-
-void
-werrstr(const char *fmt, ...) {
-	//char tmp[ErrorMax];
-	//va_list ap;
-
-	//va_start(ap, fmt);
-	//vsnprint(tmp, sizeof tmp, fmt, ap);
-	//va_end(ap);
-	//strncpy(concurrency::threadModel->errbuf(), tmp, ErrorMax);
-	//errno = EPLAN9;
-    throw Exception("errstr called!", " This must be fixed!");
-}
-
-void
 werrstr(const std::string& msg) {
-    //msg.copy(concurrency::threadModel->errbuf(), ErrorMax);
-    //errno = EPLAN9;
-    throw Exception("errstr called!", " This must be fixed!");
+    throw Exception(msg);
 }
 
 Exception::~Exception() noexcept { }
