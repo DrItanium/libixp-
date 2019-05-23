@@ -162,21 +162,19 @@ Client::dofcall(Fcall& fcall) {
 }
 std::shared_ptr<CFid>
 Client::walkdir(char *path, const char **rest) {
-	char *p;
-
-	p = path + strlen(path) - 1;
+	char* p = path + strlen(path) - 1;
     if (p < path) {
-        //assert(p >= path);
         throw Exception("p is not greater than or equal to path!");
     }
-	while(*p == '/')
+	while(*p == '/') {
 		*p-- = '\0';
+    }
 
-	while((p > path) && (*p != '/'))
+	while((p > path) && (*p != '/')) {
 		p--;
+    }
 	if(*p != '/') {
-        wErrorString("bad path");
-		return nullptr;
+        throw Exception("bad path");
 	}
 
 	*p++ = '\0';
@@ -184,7 +182,7 @@ Client::walkdir(char *path, const char **rest) {
     return this->walk(path);
 }
 std::shared_ptr<CFid>
-Client::walk(const char *path) {
+Client::walk(const std::string& path) {
     Fcall fcall(FType::TWalk);
     if (auto separation = tokenize(path, '/'); separation.size() > maximum::Welem) {
         throw Exception("Path: '", path, "' is split into more than ", int(maximum::Welem), " components!");
@@ -381,29 +379,27 @@ Client::create(const char *path, uint perm, uint8_t mode) {
 	Fcall fcall;
 
     std::string tpath(path);
+    if (auto f = walkdir(tpath.data(), &path); !f) {
+        return f;
+    } else {
+        fcall.setTypeAndFid(FType::TCreate, f->getFid());
+        fcall.getTcreate().setName((char*)(uintptr_t)path);
+        fcall.getTcreate().setPerm(perm);
+        fcall.getTcreate().setMode(mode);
 
-    auto f = walkdir(tpath.data(), &path);
-    if (!f) {
+        if(!dofcall(fcall)) {
+            clunk(f);
+            return nullptr;
+        }
+
+        auto count = fcall.getRopen().getIoUnit();
+        if (count == 0 || (fcall.getRopen().getIoUnit() > (_msize-24))) {
+            count = _msize-24;
+        }
+        initfid(f, &fcall, count);
+        f->setMode(mode);
         return f;
     }
-
-    fcall.setTypeAndFid(FType::TCreate, f->getFid());
-    fcall.getTcreate().setName((char*)(uintptr_t)path);
-    fcall.getTcreate().setPerm(perm);
-    fcall.getTcreate().setMode(mode);
-
-	if(!dofcall(fcall)) {
-        clunk(f);
-        return nullptr;
-	}
-
-    auto count = fcall.getRopen().getIoUnit();
-    if (count == 0 || (fcall.getRopen().getIoUnit() > (_msize-24))) {
-        count = _msize-24;
-    }
-	initfid(f, &fcall, count);
-    f->setMode(mode);
-	return f;
 }
 
 std::shared_ptr<CFid>

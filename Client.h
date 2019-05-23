@@ -77,7 +77,7 @@ namespace jyq {
             auto stat(const std::string& str) { return stat(str.c_str()); }
             std::shared_ptr<Fcall> muxrpc(Fcall& tx);
             std::shared_ptr<CFid> getFid();
-            std::shared_ptr<CFid> walk(const char*);
+            std::shared_ptr<CFid> walk(const std::string&);
             std::shared_ptr<CFid> walkdir(char *path, const char **rest);
             std::shared_ptr<Fcall> dofcall(Fcall& fcall);
             void enqueue(Rpc&);
