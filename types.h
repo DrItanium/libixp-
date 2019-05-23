@@ -1,7 +1,6 @@
 #ifndef LIBJYQ_TYPES_H__
 #define LIBJYQ_TYPES_H__
-/* C Implementation copyright ©2006-2010 Kris Maglione <maglione.k at Gmail>
- * C++ Implementation copyright (c)2019 Joshua Scoggins
+/* * C++ Implementation copyright (c)2019 Joshua Scoggins
  * See LICENSE file for license details.
  */
 
@@ -13,6 +12,9 @@
 #include <sstream>
 #include <memory>
 #include <any>
+#include <mutex>
+#include <condition_variable>
+#include <shared_mutex>
 
 namespace jyq {
     using uint = unsigned int;
@@ -246,6 +248,9 @@ namespace jyq {
             std::any _aux;
 
     };
+    using Mutex = std::mutex;
+    using Rendez = std::condition_variable;
+    using RWLock = std::shared_mutex;
 
 } // end namespace jyq
 
