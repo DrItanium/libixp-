@@ -27,8 +27,6 @@ namespace jyq {
             bool unsettimer(long);
             long settimer(long, std::function<void(long, const std::any&)>, const std::any& aux);
             long nexttimer();
-            void lock();
-            void unlock();
             inline void preselect() {
                 if (_preselect) {
                     _preselect(this);
@@ -45,8 +43,7 @@ namespace jyq {
             auto getTimer() noexcept { return _timer; }
             const auto getTimer() const noexcept { return _timer; }
             void setTimer(Timer* value) noexcept { _timer = value; }
-            Mutex& getLock() noexcept { return _lk; }
-            const Mutex& getLock() const noexcept { return _lk; }
+            [[nodiscard]] std::unique_lock<Mutex> getLock();
         private:
             ConnList _conns;
             mutable Mutex	_lk;

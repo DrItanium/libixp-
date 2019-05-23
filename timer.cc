@@ -58,7 +58,7 @@ Server::settimer(long msecs, std::function<void(long, const std::any&)> fn, cons
 	time = msec() + msecs;
 
     t = new Timer();
-    Server::Locker locker(*this);
+    auto locker = getLock();
     t->setId(lastid++);
     t->setMsec(time);
     t->setFunction(fn);
@@ -92,7 +92,7 @@ bool
 Server::unsettimer(long id) {
 	Timer **tp;
 	Timer *t;
-    Server::Locker locker(*this);
+    auto locker = getLock();
     for(tp=&_timer; (t=*tp); tp=&t->getLink()) {
         if(t->getId() == id) {
             break;
@@ -120,10 +120,10 @@ Server::unsettimer(long id) {
  */
 long
 Server::nexttimer() {
-	Timer *t;
-	uint64_t time;
+	Timer *t = nullptr;
+	uint64_t time = 0ull;
 
-    lock();
+    auto locker = getLock();
 	while((t = _timer)) {
 		time = msec();
 		if(t->getMsec() > time) {
@@ -131,17 +131,16 @@ Server::nexttimer() {
         }
 		_timer = t->getLink();
 
-        unlock();
+        locker.unlock();
         t->call(t->getId(), t->aux);
         delete t;
-        lock();
+        locker.lock();
 	}
-	long ret = 0;
 	if(t) {
-		ret = t->getMsec() - time;
+		return static_cast<long>(t->getMsec() - time);
+    } else {
+        return 0;
     }
-    unlock();
-	return ret;
 }
 } // end namespace jyq
 

@@ -48,15 +48,6 @@ Server::listen(int fd, const std::any& aux,
     return _conns.back();
 }
 
-void 
-Server::lock() {
-    _lk.lock();
-}
-
-void
-Server::unlock() {
-    _lk.unlock();
-}
 
 
 /**
@@ -160,5 +151,10 @@ Server::serverloop() {
 	}
 	return false;
 }
+std::unique_lock<Mutex>
+Server::getLock() {
+    return std::unique_lock<Mutex>(_lk);
+}
+
 
 } // end namespace jyq
