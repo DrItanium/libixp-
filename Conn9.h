@@ -70,7 +70,8 @@ struct Conn9 {
             decrementReferenceCount();
             return *this;
         }
-
+        uint sendmsg() { return getConn()->sendmsg(_wmsg); }
+        uint recvmsg() { return getConn()->recvmsg(_rmsg); }
     private:
         TagMap    _tagmap;
         Fid::Map  _fidmap;

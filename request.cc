@@ -428,7 +428,7 @@ Req9::respond(const char *error) {
 
         std::unique_lock<Mutex> theLock(p9conn->getWLock());
         msize = p9conn->getWMsg().pack(getOFcall());
-        if (p9conn->getConn()->getConnection().sendmsg(p9conn->getWMsg()) != msize) {
+        if (p9conn->sendmsg() != msize) {
 			hangup(p9conn->getConn());
         }
 	}

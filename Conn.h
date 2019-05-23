@@ -28,6 +28,8 @@ namespace jyq {
         void setCloseFunc(Func value) noexcept { _close = value; }
         void setClosed(bool value = true) noexcept { _closed = value; }
         uint recvmsg(Msg& msg) { return getConnection().recvmsg(msg); }
+        uint sendmsg(Msg& msg) { return getConnection().sendmsg(msg); }
+
         public:
             Server&	srv;
         private:

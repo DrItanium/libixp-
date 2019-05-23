@@ -117,7 +117,7 @@ Client::sendrpc(Rpc& r, Fcall& f) {
     }
     { 
         std::unique_lock<Mutex> wlock(getWriteLock());
-        if (!getWmsg().pack(f) || !getConnection().sendmsg(getWmsg())) {
+        if (!getWmsg().pack(f) || !getConnection().sendmsg(_wmsg)) {
             std::unique_lock<Mutex> lk(getLock());
             dequeue(r);
             puttag(r);
