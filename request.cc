@@ -81,24 +81,31 @@ destroyfid(Conn9& p9conn, ulong fid) {
     return p9conn.removeFid(fid);
 }
 
+std::unique_lock<Mutex>
+Conn9::getReadLock() {
+    return std::unique_lock<Mutex>(_rlock);
+}
+std::unique_lock<Mutex>
+Conn9::getWriteLock() {
+    return std::unique_lock<Mutex>(_wlock);
+}
 static void
 handlefcall(Conn *c) {
 	Fcall fcall;
 
     auto p9conn = c->unpackAux<Conn9*>();
-
-    p9conn->getRLock().lock();
+    auto rlock = p9conn->getReadLock();
     if (c->recvmsg(p9conn->getRMsg()) == 0) {
-        p9conn->getRLock().unlock();
+        rlock.unlock();
         hangup(c);
         return;
     }
     if (p9conn->getRMsg().unpack(fcall) == 0) {
-        p9conn->getRLock().unlock();
+        rlock.unlock();
         hangup(c);
         return;
     }
-    p9conn->getRLock().unlock();
+    rlock.unlock();
 
     p9conn->operator++();
     Req9 req;
