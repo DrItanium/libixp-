@@ -46,7 +46,7 @@ namespace jyq {
             uint     _open;
             uint     _iounit;
             uint32_t _offset;
-            Mutex _iolock;
+            mutable Mutex _iolock;
     };
 } // end namespace jyq
 #endif // end LIBJYQ_CFID_H__

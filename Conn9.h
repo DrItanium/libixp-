@@ -77,8 +77,8 @@ struct Conn9 {
         Fid::Map  _fidmap;
         Srv9*   _srv;
         Conn*	_conn;
-        Mutex	_rlock;
-        Mutex	_wlock;
+        mutable Mutex	_rlock;
+        mutable Mutex	_wlock;
         Msg		_rmsg;
         Msg		_wmsg;
         int _ref;

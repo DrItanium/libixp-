@@ -162,6 +162,7 @@ Client::dofcall(Fcall& fcall) {
 }
 std::shared_ptr<CFid>
 Client::walkdir(char *path, const char **rest) {
+    // TODO: replace with std::filesystem::path iterator, much better
 	char* p = path + strlen(path) - 1;
     if (p < path) {
         throw Exception("p is not greater than or equal to path!");

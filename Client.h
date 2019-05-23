@@ -51,10 +51,10 @@ namespace jyq {
             std::list<std::shared_ptr<CFid>> _freefid;
             Msg     _rmsg;
             Msg     _wmsg;
-            Mutex	_lk;
-            Mutex	_rlock;
-            Mutex	_wlock;
-            Rendez	_tagrend;
+            mutable Mutex	_lk;
+            mutable Mutex	_rlock;
+            mutable Mutex	_wlock;
+            mutable Rendez	_tagrend;
         public:
             std::vector<Rpc> wait;
             Rpc::weak_type muxer;

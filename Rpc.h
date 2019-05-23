@@ -27,7 +27,7 @@ namespace jyq {
             void setP(std::shared_ptr<Fcall> value) noexcept { _p = value; }
             auto getP() noexcept { return _p; }
         private:
-            Rendez	_r;
+            mutable Rendez	_r;
             uint    _tag;
             std::shared_ptr<Fcall> _p;
             bool _waiting;

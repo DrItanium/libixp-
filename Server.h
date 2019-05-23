@@ -46,9 +46,10 @@ namespace jyq {
             const auto getTimer() const noexcept { return _timer; }
             void setTimer(Timer* value) noexcept { _timer = value; }
             Mutex& getLock() noexcept { return _lk; }
+            const Mutex& getLock() const noexcept { return _lk; }
         private:
             ConnList _conns;
-            Mutex	_lk;
+            mutable Mutex	_lk;
             Timer*	_timer;
             std::function<void(Server*)> _preselect;
             bool	_running;

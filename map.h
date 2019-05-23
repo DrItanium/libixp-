@@ -58,7 +58,7 @@ namespace jyq {
             }
         private:
             BackingStore _map;
-            RWLock _lock;
+            mutable RWLock _lock;
     };
 
 } // end namespace jyq
