@@ -50,7 +50,7 @@ static std::string
 
 static void
 decref_p9conn(Conn9 *p9conn) {
-    std::unique_lock<Mutex> theLock(p9conn->getWLock());
+    auto wlock = p9conn->getWriteLock();
     p9conn->operator--();
     if (p9conn->referenceCountGreaterThan(0)) {
         return;
@@ -343,8 +343,8 @@ Req9::respond(const char *error) {
         }
 		free(getIFcall().getVersion().getVersion());
         {
-            std::unique_lock<Mutex> theRlock(p9conn->getRLock());
-            std::unique_lock<Mutex> theWlock(p9conn->getWLock());
+            auto theRlock = p9conn->getReadLock();
+            auto theWlock = p9conn->getWriteLock();
 		    msize = jyq::min<int>(getOFcall().getVersion().size(), maximum::Msg);
             p9conn->alloc(msize);
         }
@@ -433,7 +433,7 @@ Req9::respond(const char *error) {
 
     if (p9conn->getConn()) {
 
-        std::unique_lock<Mutex> theLock(p9conn->getWLock());
+        auto theLock = p9conn->getWriteLock();
         msize = p9conn->getWMsg().pack(getOFcall());
         if (p9conn->sendmsg() != msize) {
 			hangup(p9conn->getConn());
