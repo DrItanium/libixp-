@@ -80,7 +80,6 @@ Fcall::~Fcall() {
 
 void
 FRStat::purgeStat() noexcept {
-    ::free(_stat);
     _stat = nullptr;
 }
 

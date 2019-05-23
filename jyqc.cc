@@ -252,7 +252,11 @@ xls(int argc, char *argv[]) {
     char* buf = new char[fid->getIoUnit()];
     int count = 0;
     for (count = fid->read(buf, fid->getIoUnit(), client->getDoFcallLambda()); count > 0; count = fid->read(buf, fid->getIoUnit(), client->getDoFcallLambda())) {
-        jyq::Msg m(buf, count, jyq::Msg::Mode::Unpack);
+        char* bufCopy = new char[fid->getIoUnit()];
+        for (int i = 0; i < fid->getIoUnit(); ++i) {
+            bufCopy[i] = buf[i];
+        }
+        jyq::Msg m(bufCopy, count, jyq::Msg::Mode::Unpack);
 		while(m.getPos() < m.getEnd()) {
             stats.emplace_back(std::make_shared<jyq::Stat>());
             m.pstat(stats.back().get());
