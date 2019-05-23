@@ -6,6 +6,9 @@
  */
 
 #include "types.h"
+#include <map>
+#include <functional>
+#include <vector>
 
 extern char* argv0;
 #define ARGBEGIN \
@@ -26,4 +29,33 @@ while(argc && argv[0][0] == '-') { \
             : ((f), (char*)0)))
 #define ARGF() EARGF(0)
 #define nelem(ary) (sizeof(ary) / sizeof(*ary))
+namespace jyq {
+    class Argument {
+        public:
+            Argument(const std::string& value) : _value(value) { }
+            ~Argument() = default;
+            const std::string& getValue() const noexcept { return _value; }
+            bool isHyphen() const noexcept { return _value == "-"; }
+            bool startsWithHyphen() const noexcept { return _value.length() > 1 && _value.front() == '-'; }
+            std::string stripHyphen() const noexcept {
+                if (isHyphen()) {
+                    return "";
+                } else if (startsWithHyphen()) {
+                    return _value.substr(1);
+                } else {
+                    return _value;
+                }
+            }
+        private:
+            std::string _value;
+
+    };
+    inline std::vector<Argument> convertArguments(int argc, char** argv) {
+        std::vector<Argument> out;
+        for (int i = 0; i < argc; ++i) {
+            out.emplace_back(argv[i]);
+        }
+        return out;
+    }
+} // end namespace jyq
 #endif // end LIBJYQ_ARGV_H__
