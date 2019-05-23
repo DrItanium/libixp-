@@ -25,7 +25,7 @@ Client::clunk(std::shared_ptr<CFid> ptr) {
 }
 std::shared_ptr<CFid>
 Client::getFid() {
-    std::unique_lock<Mutex> theLock(_lk);
+    auto theLock = getLock();
     if (_freefid.empty()) {
         auto ptr = std::make_shared<CFid>();
         ptr->setFid(++_lastfid);
@@ -39,7 +39,7 @@ Client::getFid() {
 
 void
 Client::putfid(std::shared_ptr<CFid> f) {
-    std::unique_lock<Mutex> theLock(_lk);
+    auto theLock = getLock();
     if (f->getFid() == _lastfid) {
 		_lastfid--;
 	} else {
@@ -484,6 +484,10 @@ CFid::fstat(DoFcallFunc c) {
 	return _stat(_fid, c);
 }
 
+std::unique_lock<Mutex>
+CFid::getIoLock() {
+    return std::unique_lock<Mutex>(_iolock);
+}
 
 /**
  * Function: read
@@ -509,7 +513,7 @@ CFid::fstat(DoFcallFunc c) {
 
 long
 CFid::read(void *buf, long count, DoFcallFunc dofcall) {
-    std::unique_lock<Mutex> theLock(_iolock);
+    auto theLock = getIoLock();
 	int n = _pread(this, (char*)buf, count, _offset, dofcall);
 	if(n > 0) {
 		_offset += n;
@@ -519,7 +523,7 @@ CFid::read(void *buf, long count, DoFcallFunc dofcall) {
 
 long
 CFid::pread(void *buf, long count, int64_t offset, DoFcallFunc fn) {
-    std::unique_lock<Mutex> theLock(_iolock);
+    auto theLock = getIoLock();
 	return _pread(this, (char*)buf, count, offset, fn);
 }
 
@@ -549,7 +553,7 @@ CFid::pread(void *buf, long count, int64_t offset, DoFcallFunc fn) {
 
 long
 CFid::write(const void *buf, long count, DoFcallFunc fn) {
-    std::unique_lock<Mutex> theLock(_iolock);
+    auto theLock = getIoLock();
 	auto n = _pwrite(this, buf, count, _offset, fn);
 	if(n > 0) {
 		_offset += n;
@@ -559,7 +563,7 @@ CFid::write(const void *buf, long count, DoFcallFunc fn) {
 
 long
 CFid::pwrite(const void *buf, long count, int64_t offset, DoFcallFunc fn) {
-    std::unique_lock<Mutex> theLock(_iolock);
+    auto theLock = getIoLock();
 	return _pwrite(this, buf, count, offset, fn);
 }
 

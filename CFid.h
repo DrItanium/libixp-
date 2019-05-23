@@ -38,7 +38,8 @@ namespace jyq {
             long pwrite(const void*, long, int64_t, DoFcallFunc);
             long write(const void*, long, DoFcallFunc);
             std::shared_ptr<Stat> fstat(DoFcallFunc);
-            Mutex& getIoLock() noexcept { return _iolock; }
+            [[nodiscard]] std::unique_lock<Mutex> getIoLock();
+            //Mutex& getIoLock() noexcept { return _iolock; }
         private:
             uint32_t _fid;
             Qid      _qid;

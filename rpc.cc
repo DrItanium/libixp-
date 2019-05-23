@@ -19,7 +19,7 @@ Fcall*
 Client::muxrecv()
 {
 	//Fcall *f = nullptr;
-    std::unique_lock<Mutex> theRlock(_rlock);
+    auto theRlock = getReadLock();
     if (fd.recvmsg(_rmsg) == 0) {
         return nullptr;
     }
@@ -107,16 +107,28 @@ Client::puttag(Rpc& r)
     _tagrend.notify_one();
     //r->getContents().getRendez().deactivate();
 }
+std::unique_lock<Mutex>
+Client::getLock() {
+    return std::unique_lock<Mutex>(_lk);
+}
+std::unique_lock<Mutex>
+Client::getReadLock() {
+    return std::unique_lock<Mutex>(_rlock);
+}
+std::unique_lock<Mutex>
+Client::getWriteLock() {
+    return std::unique_lock<Mutex>(_wlock);
+}
 bool
 Client::sendrpc(Rpc& r, Fcall& f) {
     { 
-        std::unique_lock<Mutex> lk(getLock());
+        auto lk = getLock();
         r->getContents().setTag(gettag(r, lk));
         f.setTag(r->getContents().getTag());
         enqueue(r);
     }
     { 
-        std::unique_lock<Mutex> wlock(getWriteLock());
+        auto wlock = getWriteLock();
         if (!getWmsg().pack(f) || !getConnection().sendmsg(_wmsg)) {
             std::unique_lock<Mutex> lk(getLock());
             dequeue(r);
