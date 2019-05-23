@@ -74,23 +74,23 @@ constexpr auto EPLAN9 = 0x19283745;
  */
 char*
 errbuf() {
-	auto errbuf = concurrency::threadModel->errbuf();
-	if(errno == EINTR) {
-		strncpy(errbuf, "interrupted", ErrorMax);
-    } else if(errno != EPLAN9) {
-		strncpy(errbuf, strerror(errno), ErrorMax);
+    static char* buf = nullptr;
+    if (!buf) {
+        buf = new char[ErrorMax+1];
+        buf[ErrorMax] = '\0';
     }
-	return errbuf;
+	return buf;
 }
 
 void
 errstr(char *buf, int nbuf) {
-	char tmp[ErrorMax];
+	//char tmp[ErrorMax];
 
-	strncpy(tmp, buf, sizeof tmp);
-	rerrstr(buf, nbuf);
-	strncpy(concurrency::threadModel->errbuf(), tmp, ErrorMax);
-	errno = EPLAN9;
+	//strncpy(tmp, buf, sizeof tmp);
+	//rerrstr(buf, nbuf);
+	//strncpy(concurrency::threadModel->errbuf(), tmp, ErrorMax);
+	//errno = EPLAN9;
+    throw Exception("errstr called!", " This must be fixed!");
 }
 
 void
@@ -100,20 +100,22 @@ rerrstr(char *buf, int nbuf) {
 
 void
 werrstr(const char *fmt, ...) {
-	char tmp[ErrorMax];
-	va_list ap;
+	//char tmp[ErrorMax];
+	//va_list ap;
 
-	va_start(ap, fmt);
-	vsnprint(tmp, sizeof tmp, fmt, ap);
-	va_end(ap);
-	strncpy(concurrency::threadModel->errbuf(), tmp, ErrorMax);
-	errno = EPLAN9;
+	//va_start(ap, fmt);
+	//vsnprint(tmp, sizeof tmp, fmt, ap);
+	//va_end(ap);
+	//strncpy(concurrency::threadModel->errbuf(), tmp, ErrorMax);
+	//errno = EPLAN9;
+    throw Exception("errstr called!", " This must be fixed!");
 }
 
 void
 werrstr(const std::string& msg) {
-    msg.copy(concurrency::threadModel->errbuf(), ErrorMax);
-    errno = EPLAN9;
+    //msg.copy(concurrency::threadModel->errbuf(), ErrorMax);
+    //errno = EPLAN9;
+    throw Exception("errstr called!", " This must be fixed!");
 }
 
 Exception::~Exception() noexcept { }

@@ -617,8 +617,8 @@ CFid::clunk(DoFcallFunc fn) {
     return performClunk(fn);
 }
 
-Client::Client(int _fd) : fd(_fd), sleep(std::make_shared<BareRpc>(getLock())) { }
-Client::Client(const Connection& c) : fd(c), sleep(std::make_shared<BareRpc>(getLock())) { 
+Client::Client(int _fd) : fd(_fd), sleep(std::make_shared<BareRpc>()) { }
+Client::Client(const Connection& c) : fd(c), sleep(std::make_shared<BareRpc>()) { 
     sleep->setNext(sleep);
     sleep->setPrevious(sleep);
 }
