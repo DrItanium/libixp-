@@ -4,17 +4,15 @@
  */
 #ifndef LIBJYQ_SOCKET_H__
 #define LIBJYQ_SOCKET_H__
+#include <ext/stdio_filebuf.h> // this is gnu specific but at this point I don't care
 #include <string>
 #include <functional>
 #include <map>
+#include <sstream>
 #include "types.h"
 #include "Msg.h"
 
 namespace jyq {
-    //int dial(const std::string&);
-    //int announce(const std::string&);
-    //uint sendmsg(int, Msg*);
-    //uint recvmsg(int, Msg*);
     /**
      * Generic connection to a file of some kind!
      */
@@ -52,6 +50,9 @@ namespace jyq {
         public:
             explicit Connection(int fid);
             ~Connection() = default;
+            inline std::istream getReadStream() { return std::istream(&_buf); }
+            inline std::ostream getWriteStream() { return std::ostream(&_buf); }
+            inline std::iostream getReadWriteStream() { return std::iostream(&_buf); }
             ssize_t write(const std::string& msg);
             ssize_t write(char* c, size_t count);
             ssize_t write(const std::string& msg, size_t count);
@@ -79,6 +80,8 @@ namespace jyq {
             int readn(Msg& msg, size_t count);
         private:
             int _fid;
+            __gnu_cxx::stdio_filebuf<char> _buf;
+
     };
 } // end namespace jyq
 #endif // end LIBJYQ_SOCKET_H__

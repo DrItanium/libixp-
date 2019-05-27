@@ -250,7 +250,7 @@ Connection::announce(const std::string& address) {
     }
 }
 
-Connection::Connection(int fid) : _fid(fid) { }
+Connection::Connection(int fid) : _fid(fid), _stream(fid, std::ios::in|std::ios::out) { }
 
 ssize_t 
 Connection::write(const std::string& msg, size_t count) {
