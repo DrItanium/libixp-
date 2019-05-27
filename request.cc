@@ -509,11 +509,12 @@ Conn::serve9conn() {
 	if(auto fd = accept(_fd, nullptr, nullptr); fd < 0) {
 		return;
     } else {
+        Connection connection(fd);
         Conn9 p9conn;
         ++p9conn;
         p9conn.setSrv(unpackAux<Srv9*>());
         p9conn.alloc(1024);
-        srv.listen(fd, &p9conn, handlefcall, cleanupconn);
+        srv.listen(connection, &p9conn, handlefcall, cleanupconn);
     }
 }
 

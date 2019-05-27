@@ -19,7 +19,7 @@ namespace jyq {
             using ConnPtr = std::shared_ptr<Conn>;
             using ConnList = std::list<ConnPtr>;
         public:
-            std::shared_ptr<Conn> listen(int, const std::any&,
+            std::shared_ptr<Conn> listen(Connection&, const std::any&,
                     std::function<void(Conn*)> read,
                     std::function<void(Conn*)> close);
             bool serverloop();

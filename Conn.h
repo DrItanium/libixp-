@@ -12,7 +12,7 @@ namespace jyq {
     struct Server;
     struct Conn : public HasAux {
         using Func = std::function<void(Conn*)>;
-        Conn(Server& srv, int fd, std::any a, Func read, Func close);
+        Conn(Server& srv, Connection& fd, std::any a, Func read, Func close);
         ~Conn();
 
         void    serve9conn();
@@ -35,7 +35,7 @@ namespace jyq {
         private:
             Func _read, _close;
             bool _closed = false;
-            Connection _fd;
+            Connection& _fd;
 
     };
     void	hangup(Conn*);

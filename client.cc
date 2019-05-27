@@ -248,8 +248,6 @@ Client::remove(const char *path) {
 
 
 Client::~Client() {
-    fd.shutdown(SHUT_RDWR);
-    fd.close();
 }
 
 

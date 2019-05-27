@@ -15,7 +15,7 @@
 #include "Conn.h"
 
 namespace jyq {
-Conn::Conn(Server& s, int theFd, std::any a, Conn::Func r, Conn::Func c) : HasAux(a),
+Conn::Conn(Server& s, Connection& theFd, std::any a, Conn::Func r, Conn::Func c) : HasAux(a),
     srv(s), _read(r), _close(c), _closed(false), _fd(theFd) { }
 /**
  * Function: listen
@@ -41,7 +41,7 @@ Conn::Conn(Server& s, int theFd, std::any a, Conn::Func r, Conn::Func c) : HasAu
  *	F<serverloop>, F<serve9conn>, F<hangup>
  */
 std::shared_ptr<Conn>
-Server::listen(int fd, const std::any& aux,
+Server::listen(Connection& fd, const std::any& aux,
         std::function<void(Conn*)> read,
         std::function<void(Conn*)> close) {
     _conns.emplace_back(std::make_shared<Conn>(*this, fd, aux, read, close));
@@ -68,10 +68,7 @@ Conn::~Conn() {
     _closed = true;
     if (_close) {
         _close(this);
-    } else {
-        _fd.shutdown(SHUT_RDWR);
-    }
-    _fd.close();
+    } 
 }
 
 void

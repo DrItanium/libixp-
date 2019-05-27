@@ -49,7 +49,7 @@ namespace jyq {
             static std::tuple<std::string, std::string> decompose(const std::string&);
         public:
             explicit Connection(int fid);
-            ~Connection() = default;
+            ~Connection();
             inline std::istream getReadStream() { return std::istream(&_buf); }
             inline std::ostream getWriteStream() { return std::ostream(&_buf); }
             inline std::iostream getReadWriteStream() { return std::iostream(&_buf); }
@@ -71,7 +71,7 @@ namespace jyq {
              */
             uint recvmsg(Msg& msg);
             bool shutdown(int how);
-            bool close();
+            //bool close();
             operator int() const;
             constexpr bool isLegal() const noexcept { return _fid >= 0; }
             constexpr int getFid() const noexcept { return _fid; }

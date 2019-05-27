@@ -251,6 +251,9 @@ Connection::announce(const std::string& address) {
 }
 
 Connection::Connection(int fid) : _fid(fid), _buf(fid, std::ios::in|std::ios::out) { }
+Connection::~Connection() {
+    this->shutdown(SHUT_RDWR);
+}
 
 ssize_t 
 Connection::write(const std::string& msg, size_t count) {
@@ -281,10 +284,6 @@ Connection::shutdown(int how) {
     return ::shutdown(_fid, how) == 0;
 }
 
-bool
-Connection::close() {
-    return ::close(_fid) == 0;
-}
 
 Connection::operator int() const {
     return _fid;
