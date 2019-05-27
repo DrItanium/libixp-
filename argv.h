@@ -35,7 +35,7 @@ namespace jyq {
             Argument(const std::string& value) : _key(value) { }
             ~Argument() = default;
             const std::string& getKey() const noexcept { return _key; }
-            constexpr bool isOption() const noexcept {
+            bool isOption() const noexcept {
                 return (_key.length() > 1 && _key.front() == '-');
             }
             std::string asKey() const noexcept {
