@@ -21,13 +21,12 @@ namespace jyq {
         public:
             static Client* mount(const char*);
             static Client* mountfd(int fd) { return mountfd(Connection(fd)); }
-            static Client*  mountfd(const Connection& c);
+            static Client*  mountfd(Connection& c);
             static Client*	nsmount(const char*);
 
             static Client* mount(const std::string& str) { return mount(str.c_str()); }
             static Client* nsmount(const std::string& str) { return nsmount(str.c_str()); }
-            Client(int fd);
-            Client(const Connection& c);
+            Client(Connection& c);
             ~Client();
             Connection& getConnection() noexcept { return fd; }
             const Connection& getConnection() const noexcept { return fd; }
@@ -38,7 +37,7 @@ namespace jyq {
             [[nodiscard]] Lock getWriteLock() { return Lock(_wlock); }
         private:
             //int     fd;
-            Connection fd;
+            Connection& fd;
             uint    _lastfid;
             uint    _freetag;
             uint    _msize;

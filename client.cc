@@ -277,7 +277,7 @@ Client::~Client() {
  *	F<open>, F<create>, F<remove>, F<unmount>
  */
 Client*
-Client::mountfd(const Connection& fd) {
+Client::mountfd(Connection& fd) {
 	Fcall fcall;
 
     fcall.setType(FType::TVersion);
@@ -574,8 +574,7 @@ CFid::clunk(DoFcallFunc fn) {
     return performClunk(fn);
 }
 
-Client::Client(int _fd) : fd(_fd), sleep(std::make_shared<BareRpc>()) { }
-Client::Client(const Connection& c) : fd(c), sleep(std::make_shared<BareRpc>()) { 
+Client::Client(Connection& c) : fd(c), sleep(std::make_shared<BareRpc>()) { 
     sleep->circularLink(sleep);
 }
 } // end namespace jyq
