@@ -189,7 +189,7 @@ FTWStat::packUnpack(Msg& msg) {
 }
 
 Fcall::VariantStorage
-constructBlankStorage(const FHdr& hdr) {
+Fcall::constructBlankStorage(const FHdr& hdr) {
     Fcall::VariantStorage storage;
     switch (hdr.getType()) {
         case FType::TVersion:
@@ -245,7 +245,11 @@ constructBlankStorage(const FHdr& hdr) {
         default:
             throw Exception("Undefined or unimplemented type specified!");
     }
-
+    std::visit([&hdr](auto&& value) { 
+            value.setType(hdr.getType());
+            value.setTag(hdr.getTag());
+            value.setFid(hdr.getFid());
+            }, storage);
     return storage;
 }
 

@@ -284,10 +284,14 @@ namespace jyq {
             setType(t);
             setFid(fid);
         }
-        Fcall() = default;
-        Fcall(FType type) {
-            setType(type);
+        static VariantStorage constructBlankStorage(FType type) {
+            FHdr tmp;
+            tmp.setType(type);
+            return constructBlankStorage(tmp);
         }
+        static VariantStorage constructBlankStorage(const FHdr& hdr);
+        Fcall() = default;
+        Fcall(FType type) : _storage(constructBlankStorage(type)) { }
         Fcall(FType type, uint32_t fid) : Fcall(type) {
             setFid(fid);
         }
