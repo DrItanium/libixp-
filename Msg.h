@@ -13,7 +13,7 @@
 
 namespace jyq {
     struct Qid;
-    union Fcall;
+    struct Fcall;
     struct Msg : public ContainsSizeParameter<uint> {
         public:
             using Parent = ContainsSizeParameter<uint>;

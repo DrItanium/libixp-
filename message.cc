@@ -94,8 +94,7 @@ Fcall::reset() {
         getRRead().setData(nullptr);
 		break;
     case FType::RVersion:
-        ::free(getVersion().getVersion());
-		getVersion().setVersion(nullptr);
+        getVersion().getVersion().clear();
 		break;
     case FType::RError:
 		::free(getError().getEname());
@@ -131,8 +130,12 @@ FHdr::packUnpackFid(Msg& msg) {
 }
 void
 FVersion::packUnpack(Msg& msg) {
-    msg.pu32(&getSizeReference());
-    msg.pstring(&_version);
+    uint32_t sz = this->size();
+    msg.pu32(&sz);
+    if (msg.unpackRequested()) {
+        setSize(sz);
+    }
+    msg.pstring(_version);
 }
 void
 FAttach::packUnpack(Msg& msg) {

@@ -296,7 +296,7 @@ Client::mountfd(const Connection& fd) {
 		return nullptr;
 	}
 
-	if(strcmp(fcall.getVersion().getVersion(), Version)
+    if (fcall.getVersion().getVersion() != Version
 	|| fcall.getVersion().size() > maximum::Msg) {
 		wErrorString("bad 9P version response");
         delete c;

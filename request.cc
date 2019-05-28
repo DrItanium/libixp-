@@ -333,7 +333,7 @@ Req9::respond(const char *error) {
         if (!error) {
             throw Exception("error is null!");
         }
-		free(getIFcall().getVersion().getVersion());
+        getIFcall().getVersion().getVersion().clear();
         {
             auto theRlock = p9conn->getReadLock();
             auto theWlock = p9conn->getWriteLock();

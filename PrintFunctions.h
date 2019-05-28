@@ -9,10 +9,8 @@
 #include <stdexcept>
 #include "types.h"
 namespace jyq {
-    union Fcall;
     extern std::function<int(char*, int, const char*, va_list)> vsnprint;
     extern std::function<std::string(const std::string&, va_list)> vsmprint;
-    extern std::function<void(Fcall*)> printfcall;
 
     char*	errbuf();
     template<typename ... Args>

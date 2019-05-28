@@ -8,6 +8,7 @@
 #include <array>
 #include <functional>
 #include <memory>
+#include <variant>
 #include "types.h"
 #include "qid.h"
 #include "stat.h"
@@ -31,15 +32,20 @@ namespace jyq {
             uint32_t _fid;
 
     };
-    class FVersion : public FHdr, public ContainsSizeParameter<uint32_t> {
+    class FVersion : public FHdr {
         public:
-            using FHdr::FHdr;
+            FVersion() = default;
+            ~FVersion() = default;
             void packUnpack(Msg& msg);
-            char* getVersion() noexcept { return _version; }
-            const char* getVersion() const noexcept { return _version; }
-            void setVersion(char* value) noexcept { _version = value; }
+            uint32_t size() const noexcept { return _version.size(); }
+            std::string& getVersion() noexcept { return _version; }
+            const std::string& getVersion() const noexcept { return _version; }
+            void setVersion(const std::string& value) noexcept { _version = value; }
+            void setSize(uint32_t capacity) {
+                _version.assign(capacity, '0'); 
+            }
         private:
-            char* _version;
+            std::string _version;
     };
     class FTFlush : public FHdr {
         public:
@@ -197,7 +203,10 @@ namespace jyq {
      * See also:
      *	T<Srv9>, T<Req9>
      */
-    union Fcall {
+    struct Fcall {
+        std::optional<std::variant<FVersion, FTFlush, FROpen, FError, FRAuth, FAttach, FTCreate,
+            FTWalk, FRWalk, FTWStat, FRStat, FIO>> _storage;
+        /*
         FHdr     _hdr;
         FVersion _version;
         FTFlush  _tflush;
@@ -211,39 +220,61 @@ namespace jyq {
         FTWStat  _twstat;
         FRStat   _rstat;
         FIO      _io;
-        const auto& getHeader() const noexcept { return _hdr; }
-        auto& getRauth() noexcept { return _rauth; }
-        auto& getTflush() noexcept { return _tflush; }
-        auto& getHeader() noexcept { return _hdr; }
-        auto& getVersion() noexcept { return _version; }
-        auto& getTversion() noexcept { return _version; }
-        auto& getRversion() noexcept { return _version; }
-        auto& getRopen() noexcept { return _ropen; }
-        auto& getRcreate() noexcept { return _ropen; }
-        auto& getRattach() noexcept { return _ropen; }
-        auto& getTattach() noexcept { return _tattach; }
-        auto& getTauth() noexcept { return _tattach; }
-        auto& getTcreate() noexcept { return _tcreate; }
-        auto& getTopen() noexcept { return _tcreate; }
-        auto& getTWrite() noexcept { return _io; }
-        auto& getRWrite() noexcept { return _io; }
-        auto& getTRead() noexcept { return _io; }
-        auto& getRRead() noexcept { return _io; }
-        auto& getIO() noexcept { return _io; }
-        auto& getTwalk() noexcept { return _twalk; }
-        auto& getRwalk() noexcept { return _rwalk; }
-        auto& getError() noexcept { return _error; }
-        auto& getTwstat() noexcept { return _twstat; }
-        auto& getRstat() noexcept { return _rstat; }
+        */
+        const FHdr& getHeader() const {
+            if (_storage) {
+                return std::visit([](auto&& value) -> const FHdr& { return value; }, *_storage);
+            } else {
+                throw Exception("backing storage contains no value!");
+            }
+        }
+        FHdr& getHeader() {
+            if (_storage) {
+                return std::visit([](auto&& value) -> FHdr& { return value; }, *_storage);
+            } else {
+                throw Exception("backing storage contains no value!");
+            }
+        }
+        template<typename DesiredType>
+        auto& retrieveFromStorage() {
+            if (_storage) {
+                return std::get<DesiredType>(*_storage);
+            } else {
+                throw Exception("backing storage contains no value!");
+            }
+        }
+        auto& getRauth()  { return retrieveFromStorage<FRAuth>(); }
+        auto& getTflush()  { return retrieveFromStorage<FTFlush>(); }
+        auto& getVersion()  { return retrieveFromStorage<FVersion>(); }
+        auto& getTversion()  { return retrieveFromStorage<FVersion>(); }
+        auto& getRversion()  { return retrieveFromStorage<FVersion>(); }
+        auto& getRopen()  { return retrieveFromStorage<FROpen>(); }
+        auto& getRcreate()  { return retrieveFromStorage<FROpen>(); }
+        auto& getRattach()  { return retrieveFromStorage<FROpen>(); }
+        auto& getTattach()  { return retrieveFromStorage<FAttach>(); }
+        auto& getTauth()  { return retrieveFromStorage<FAttach>(); }
+        auto& getTcreate()  { return retrieveFromStorage<FTCreate>(); }
+        auto& getTopen()  { return retrieveFromStorage<FTCreate>(); }
+        auto& getTWrite()  { return retrieveFromStorage<FIO>(); }
+        auto& getRWrite()  { return retrieveFromStorage<FIO>(); }
+        auto& getTRead()  { return retrieveFromStorage<FIO>(); }
+        auto& getRRead()  { return retrieveFromStorage<FIO>(); }
+        auto& getIO()  { return retrieveFromStorage<FIO>(); }
+        auto& getTwalk()  { return retrieveFromStorage<FTWalk>(); }
+        auto& getRwalk()  { return retrieveFromStorage<FRWalk>(); }
+        auto& getError()  { return retrieveFromStorage<FError>(); }
+        auto& getTwstat()  { return retrieveFromStorage<FTWStat>(); }
+        auto& getRstat()  { return retrieveFromStorage<FRStat>(); }
+
         //static void free(Fcall*);
-        constexpr auto getType() const noexcept { return _hdr.getType(); }
-        constexpr auto getFid() const noexcept { return _hdr.getFid(); }
-        constexpr auto getTag() const noexcept { return _hdr.getTag(); }
-        void setType(FType type) noexcept { getHeader().setType(type); }
-        void setFid(uint32_t value) noexcept { getHeader().setFid(value); }
-        void setTag(uint16_t value) noexcept { getHeader().setTag(value); }
-        void setNoTag() noexcept { setTag(NoTag); }
-        void setTypeAndFid(FType t, uint32_t fid) noexcept {
+        auto getType() const { return getHeader().getType(); }
+        auto getFid() const { return getHeader().getFid(); }
+        auto getTag() const { return getHeader().getTag(); }
+        void setType(FType type) { getHeader().setType(type); }
+        void setFid(uint32_t value) { getHeader().setFid(value); }
+        void setTag(uint16_t value) { getHeader().setTag(value); }
+        void setNoTag() { setTag(NoTag); }
+        void setTypeAndFid(FType t, uint32_t fid) {
             setType(t);
             setFid(fid);
         }
