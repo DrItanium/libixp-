@@ -375,8 +375,6 @@ Req9::respond(const char *error) {
             }
 		}
         free(getIFcall().getTwalk().getWname()[0]);
-        //getIFcall().getTwalk().getWname().fill(nullptr);
-		//free(*getIFcall().getTwalk().getWname());
 		break;
 	case FType::TWrite:
 		free(getIFcall().getTWrite().getData());
