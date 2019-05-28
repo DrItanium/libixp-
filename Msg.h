@@ -63,6 +63,7 @@ namespace jyq {
  */
         void pdata(char**, uint);
         void pstring(char**);
+        void pstring(std::string&);
 /**
  * Function: pstrings
  *
@@ -231,7 +232,6 @@ namespace jyq {
                                    pos[2] = v>>16;
                                    do2();
                                };
-
                                switch(size) {
                                    case NumberSize::SDWord:
                                        do4();

@@ -99,6 +99,25 @@ Msg::pstring(char **s) {
 	_pos += len;
 }
 
+void
+Msg::pstring(std::string& str) {
+	uint16_t len;
+
+    if (packRequested()) {
+        len = str.length();
+    }
+	pu16(&len);
+
+	if((_pos + len) <= _end) {
+        if (unpackRequested()) {
+            str.assign(_pos, len);
+		} else {
+            str.copy(_pos, len);
+        }
+	}
+	_pos += len;
+}
+
 
 void
 Msg::pdata(char **data, uint len) {
