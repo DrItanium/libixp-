@@ -209,7 +209,7 @@ namespace jyq {
      *	T<Srv9>, T<Req9>
      */
     struct Fcall {
-        using VariantStorage = std::variant<FHdr, FVersion, FTFlush, FROpen, FError, FRAuth, FAttach, FTCreate,
+        using VariantStorage = std::variant<FVersion, FTFlush, FROpen, FError, FRAuth, FAttach, FTCreate,
             FTWalk, FRWalk, FTWStat, FRStat, FIO>;
         std::optional<VariantStorage> _storage;
         /*
