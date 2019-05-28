@@ -101,12 +101,7 @@ FHdr::packUnpackFid(Msg& msg) {
 void
 FVersion::packUnpack(Msg& msg) {
     FHdr::packUnpack(msg);
-    uint32_t sz = this->size();
-    std::cout << "sz = " << sz << std::endl;
-    msg.pu32(&sz);
-    if (msg.unpackRequested()) {
-        setSize(sz);
-    }
+    msg.pu32(&getSizeReference());
     msg.pstring(_version);
 }
 void
@@ -173,11 +168,7 @@ FIO::packUnpack(Msg& msg) {
         packUnpackFid(msg);
         msg.pu64(&_offset);
     }
-    uint32_t sz = size();
-    msg.pu32(&sz);
-    if (msg.unpackRequested()) {
-        setSize(sz);
-    }
+    msg.pu32(&getSizeReference());
     if (type == FType::RRead || type == FType::TWrite) {
         msg.pdata(_data, size());
     }
@@ -185,9 +176,8 @@ FIO::packUnpack(Msg& msg) {
 void
 FRStat::packUnpack(Msg& msg) {
     FHdr::packUnpack(msg);
-    uint16_t sz = size();
-    msg.pu16(&sz);
-    msg.pdata(_stat, sz);
+    msg.pu16(&getSizeReference());
+    msg.pdata(_stat, size());
 }
 void
 FTWStat::packUnpack(Msg& msg) {

@@ -292,6 +292,7 @@ Client::mountfd(const Connection& fd) {
 	c->_mintag = NoTag;
 	c->_maxtag = NoTag+1;
 
+    ver.setSize(maximum::Msg);
     ver.setVersion(Version);
 
     fcall._storage = ver;
