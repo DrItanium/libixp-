@@ -62,6 +62,7 @@ namespace jyq {
  *	T<Msg>, F<pstring>
  */
         void pdata(char**, uint);
+        void pdata(std::string&, uint);
         void pstring(char**);
         void pstring(std::string&);
 /**

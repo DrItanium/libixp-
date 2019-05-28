@@ -132,6 +132,18 @@ Msg::pdata(char **data, uint len) {
 	_pos += len;
 }
 
+void
+Msg::pdata(std::string& data, uint len) {
+    if((_pos + len) <= _end) {
+        if (unpackRequested()) {
+            data.assign(_pos, len);
+        } else {
+            data.copy(_pos, len);
+        }
+    }
+	_pos += len;
+}
+
 /**
  * Function: pfcall
  * Function: pqid
