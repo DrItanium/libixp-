@@ -79,7 +79,7 @@ Fcall::~Fcall() {
 
 void
 FRStat::purgeStat() noexcept {
-    _stat = nullptr;
+    _stat.clear();
 }
 
 
@@ -181,8 +181,9 @@ FIO::packUnpack(Msg& msg) {
 }
 void
 FRStat::packUnpack(Msg& msg) {
-    msg.pu16(&getSizeReference());
-    msg.pdata((char**)&_stat, size());
+    uint16_t sz = size();
+    msg.pu16(&sz);
+    msg.pdata(_stat, sz);
 }
 void
 FTWStat::packUnpack(Msg& msg) {

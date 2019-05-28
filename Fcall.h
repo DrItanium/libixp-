@@ -161,15 +161,15 @@ namespace jyq {
             uint64_t  _offset; /* Tread, Twrite */
             std::string _data; /* Twrite, Rread */
     };
-    class FRStat : public FHdr, public ContainsSizeParameter<uint16_t> {
+    class FRStat : public FHdr  {
         public:
-            const uint8_t* getStat() const noexcept { return _stat; }
-            uint8_t* getStat() noexcept { return _stat; }
-            void setStat(uint8_t* value) noexcept { _stat = value; }
+            uint16_t size() const noexcept { return _stat.size(); }
+            const std::vector<uint8_t>& getStat() const noexcept { return _stat; }
+            std::vector<uint8_t>& getStat() noexcept { return _stat; }
             void packUnpack(Msg& msg);
             void purgeStat() noexcept;
         private:
-            uint8_t* _stat;
+            std::vector<uint8_t> _stat;
     };
     class FTWStat : public FHdr {
         public:

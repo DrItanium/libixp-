@@ -74,7 +74,11 @@ _stat(ulong fid, std::function<std::shared_ptr<Fcall>(Fcall&)> dofcall) {
         return nullptr;
     } else {
 
-        Msg msg((char*)result->getRstat().getStat(), result->getRstat().size(), Msg::Mode::Unpack);
+        char* buf = new char[result->getRstat().getStat().size()];
+        for (auto i = 0; i < result->getRstat().getStat().size(); ++i) {
+            buf[i] = result->getRstat().getStat()[i];
+        }
+        Msg msg(buf, result->getRstat().size(), Msg::Mode::Unpack);
         auto stat = std::make_shared<Stat>();
         msg.pstat(*stat);
         if(msg.getPos() > msg.getEnd()) {
@@ -278,9 +282,9 @@ Client::~Client() {
  */
 Client*
 Client::mountfd(const Connection& fd) {
+    FVersion ver;
+    ver.setType(FType::TVersion);
 	Fcall fcall;
-
-    fcall.setType(FType::TVersion);
     auto c = new Client(fd);
     c->allocmsg(256);
 	c->_lastfid = RootFid;
@@ -288,9 +292,9 @@ Client::mountfd(const Connection& fd) {
 	c->_mintag = NoTag;
 	c->_maxtag = NoTag+1;
 
-    fcall.getVersion().setSize(maximum::Msg);
-	fcall.getVersion().setVersion((char*)Version);
+    ver.setVersion(Version);
 
+    fcall._storage = ver;
 	if(!c->dofcall(fcall)) {
         delete c;
 		return nullptr;

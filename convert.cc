@@ -144,6 +144,22 @@ Msg::pdata(std::string& data, uint len) {
 	_pos += len;
 }
 
+void
+Msg::pdata(std::vector<uint8_t>& data, uint len) {
+    if((_pos + len) <= _end) {
+        if (unpackRequested()) {
+            for (auto start = _pos; start < (start + len); ++start) {
+                data.emplace_back(*start);
+            }
+        } else {
+            for (auto start = _pos; start < (start + len); ++start) {
+                *start = data[start - start];
+            }
+        }
+    }
+	_pos += len;
+}
+
 /**
  * Function: pfcall
  * Function: pqid

@@ -433,7 +433,7 @@ Req9::respond(const char *error) {
 
 	switch(getOFcall().getType()) {
 	case FType::RStat:
-		free(getOFcall().getRstat().getStat());
+        getOFcall().getRstat().purgeStat();
 		break;
 	case FType::RRead:
         getOFcall().getRRead().reset();
