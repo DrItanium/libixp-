@@ -209,8 +209,9 @@ namespace jyq {
      *	T<Srv9>, T<Req9>
      */
     struct Fcall {
-        std::optional<std::variant<FVersion, FTFlush, FROpen, FError, FRAuth, FAttach, FTCreate,
-            FTWalk, FRWalk, FTWStat, FRStat, FIO>> _storage;
+        using VariantStorage = std::variant<FHdr, FVersion, FTFlush, FROpen, FError, FRAuth, FAttach, FTCreate,
+            FTWalk, FRWalk, FTWStat, FRStat, FIO>;
+        std::optional<VariantStorage> _storage;
         /*
         FHdr     _hdr;
         FVersion _version;
@@ -248,6 +249,7 @@ namespace jyq {
                 throw Exception("backing storage contains no value!");
             }
         }
+        static VariantStorage constructBlankStorage(Msg& msg, FType type);
         auto& getRauth()  { return retrieveFromStorage<FRAuth>(); }
         auto& getTflush()  { return retrieveFromStorage<FTFlush>(); }
         auto& getVersion()  { return retrieveFromStorage<FVersion>(); }

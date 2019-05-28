@@ -187,11 +187,24 @@ FTWStat::packUnpack(Msg& msg) {
 	msg.pu16(&size);
     msg.packUnpack(&_stat);
 }
+
 void
 Fcall::packUnpack(Msg& msg) {
+    // if we are in pack mode then we should definitely stop here
     if (!_storage) {
-        throw Exception("Backing storage is empty!");
+        if (msg.packRequested()) {
+            throw Exception("Backing storage is empty!");
+        } else if (msg.unpackRequested()) {
+            auto startPoint = msg.getPos();
+            FHdr tmp;
+            tmp.packUnpack(msg);
+            msg.setPos(startPoint); // go back to where we started
+            _storage = constructBlankStorage(msg, tmp.getType());
+        } else {
+            throw Exception("Neither pack or unpack requested!");
+        }
     }
+    // if we get here then there is something to do
     std::visit([&msg](auto&& value) { value.packUnpack(msg); }, *_storage);
 }
 
