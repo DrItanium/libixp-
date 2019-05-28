@@ -356,7 +356,7 @@ Req9::respond(const char *error) {
             fid->setOmode(getIFcall().getTopen().getMode());
 			fid->setQid(getOFcall().getRopen().getQid());
 		}
-		free(getIFcall().getTcreate().getName());
+        getIFcall().getTcreate().reset();
 		break;
 	case FType::TWalk:
 		if(error || getOFcall().getRwalk().size() < getIFcall().getTwalk().size()) {

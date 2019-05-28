@@ -179,7 +179,7 @@ void
 FTCreate::packUnpack(Msg& msg) {
     packUnpackFid(msg);
     if (getType() == FType::TCreate) {
-        msg.pstring(&_name);
+        msg.pstring(_name);
         msg.pu32(&_perm);
     }
     msg.pu8(&_mode);

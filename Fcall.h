@@ -112,15 +112,18 @@ namespace jyq {
         public:
             constexpr auto getPerm() const noexcept { return _perm; }
             constexpr auto getMode() const noexcept { return _mode; }
-            const char* getName() const noexcept { return _name; }
-            char* getName() noexcept { return _name; }
+            const std::string& getName() const noexcept { return _name; }
+            std::string& getName() noexcept { return _name; }
             void setPerm(uint32_t perm) noexcept { _perm = perm; }
             void setMode(uint8_t value) noexcept { _mode = value; }
-            void setName(char* value) noexcept { _name = value; }
+            void setName(const std::string& value) noexcept { _name = value; }
             void packUnpack(Msg& msg);
+            void reset() {
+                _name.clear();
+            }
         private:
             uint32_t	_perm;
-            char*		_name;
+            std::string		_name;
             uint8_t		_mode; /* +Topen */
     };
     class FTWalk : public FHdr, public ContainsSizeParameter<uint16_t>  {
