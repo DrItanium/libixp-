@@ -135,6 +135,29 @@ namespace jyq {
             }
         }
         template<uint max>
+        void pstrings(uint16_t& num, std::array<std::string, max>& strings) {
+            pu16(&num);
+            if(num > max) {
+                _pos = _end+1;
+                return;
+            }
+
+
+            for(auto i = 0; i < num; ++i) {
+                uint16_t len = 0;
+                if (packRequested()) {
+                    len = strings[i].length();
+                }
+                pu16(&len);
+
+                if (unpackRequested()) {
+                    strings[i] = std::string(_pos, len);
+                } else {
+                    pstring(strings[i]);
+                }
+            }
+        }
+        template<uint max>
         void pqids(uint16_t& num, std::array<Qid, max>& qid) {
             pu16(&num);
             if(num > max) {

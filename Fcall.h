@@ -135,7 +135,7 @@ namespace jyq {
             void packUnpack(Msg& msg);
         private:
             uint32_t _newfid;
-            std::array<char*, maximum::Welem> _wname;
+            std::array<std::string, maximum::Welem> _wname;
                 
     };
     class FRWalk : public FHdr, public ContainsSizeParameter<uint16_t> {

@@ -373,7 +373,7 @@ Req9::respond(const char *error) {
                 newfid->setQid(getOFcall().getRwalk().getWqid()[getOFcall().getRwalk().size()-1]);
             }
 		}
-        free(getIFcall().getTwalk().getWname()[0]);
+        getIFcall().getTwalk().getWname().fill("");
 		break;
 	case FType::TWrite:
 		free(getIFcall().getTWrite().getData());
