@@ -2,9 +2,9 @@
  * C++ Implementation copyright (c)2019 Joshua Scoggins *
  * See LICENSE file for license details.
  */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include "qid.h"
 #include "Msg.h"
 #include "jyq.h"

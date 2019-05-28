@@ -6,6 +6,7 @@
 #define LIBJYQ_MSG_H__
 
 #include <functional>
+#include <cstring>
 #include "types.h"
 #include "qid.h"
 #include "stat.h"
@@ -46,7 +47,64 @@ namespace jyq {
         void pdata(char**, uint);
         void pstring(char**);
         void pstrings(uint16_t*, char**, uint);
+        template<uint max>
+        void pstrings(uint16_t& num, std::array<char*, max>& strings) {
+            char *s = nullptr;
+            uint size = 0;
+            uint16_t len = 0;
+
+            pu16(&num);
+            if(num > max) {
+                _pos = _end+1;
+                return;
+            }
+
+            if (unpackRequested()) {
+                s = _pos;
+                size = 0;
+                for (auto i = 0; i < num; ++i) {
+                    pu16(&len);
+                    _pos += len;
+                    size += len;
+                    if(_pos > _end) {
+                        return;
+                    }
+                }
+                _pos = s;
+                size += num;
+                s = new char[size];
+            }
+
+            for(auto i = 0; i < num; ++i) {
+                if (packRequested()) {
+                    len = strlen(strings[i]);
+                }
+                pu16(&len);
+
+                if (unpackRequested()) {
+                    memcpy(s, _pos, len);
+                    strings[i] = s;
+                    s += len;
+                    _pos += len;
+                    *s++ = '\0';
+                } else {
+                    pdata(&strings[i], len);
+                }
+            }
+        }
         void pqids(uint16_t*, Qid*, uint);
+        template<uint max>
+        void pqids(uint16_t& num, std::array<Qid, max>& qid) {
+            pu16(&num);
+            if(num > max) {
+                _pos = _end + 1;
+                return;
+            }
+
+            for(auto i = 0; i < num; i++) {
+                pqid(&qid[i]);
+            }
+        }
         void pqid(Qid* value) { packUnpack(value); }
         void pqid(Qid& value) { packUnpack(value); }
         void pstat(Stat* value) { packUnpack(value); }

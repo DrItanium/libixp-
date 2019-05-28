@@ -159,7 +159,7 @@ void
 FTWalk::packUnpack(Msg& msg) {
     packUnpackFid(msg);
     msg.pu32(&_newfid);
-    msg.pstrings(&getSizeReference(), _wname, nelem(_wname));
+    msg.pstrings<maximum::Welem>(getSizeReference(), _wname);
 }
 void
 FTFlush::packUnpack(Msg& msg) {
@@ -171,7 +171,7 @@ FError::packUnpack(Msg& msg) {
 }
 void 
 FRWalk::packUnpack(Msg& msg) {
-    msg.pqids(&getSizeReference(), _wqid, nelem(_wqid));
+    msg.pqids<maximum::Welem>(getSizeReference(), _wqid);
 }
 void
 FTCreate::packUnpack(Msg& msg) {
