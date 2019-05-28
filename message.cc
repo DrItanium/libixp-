@@ -102,6 +102,7 @@ void
 FVersion::packUnpack(Msg& msg) {
     FHdr::packUnpack(msg);
     uint32_t sz = this->size();
+    std::cout << "sz = " << sz << std::endl;
     msg.pu32(&sz);
     if (msg.unpackRequested()) {
         setSize(sz);
