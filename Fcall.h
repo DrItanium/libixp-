@@ -115,21 +115,21 @@ namespace jyq {
         public:
             constexpr auto getNewFid() const noexcept { return _newfid; }
             void setNewFid(uint32_t value) noexcept { _newfid = value; }
-            char** getWname() noexcept { return _wname; }
+            auto& getWname() noexcept { return _wname; }
             constexpr auto getMaximumWnameCount() const noexcept { return maximum::Welem; }
             void packUnpack(Msg& msg);
         private:
             uint32_t _newfid;
-            char*    _wname[maximum::Welem];
+            std::array<char*, maximum::Welem> _wname;
                 
     };
     class FRWalk : public FHdr, public ContainsSizeParameter<uint16_t> {
         public:
             void packUnpack(Msg& msg);
-            Qid* getWqid() noexcept { return _wqid; }
+            auto& getWqid() noexcept { return _wqid; }
             constexpr auto getWqidMaximum() const noexcept { return maximum::Welem; }
         private:
-            Qid		_wqid[maximum::Welem];
+            std::array<Qid, maximum::Welem> _wqid;
     };
     class FIO : public FHdr, public ContainsSizeParameter<uint32_t> {
         public:
