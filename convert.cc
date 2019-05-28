@@ -99,93 +99,7 @@ Msg::pstring(char **s) {
 	_pos += len;
 }
 
-/**
- * Function: pstrings
- *
- * Packs or unpacks an array of UTF-8 encoded strings. The packed
- * representation consists of a 16-bit element count followed by
- * an array of strings as packed by F<pstring>. The unpacked
- * representation is an array of nul-terminated character arrays.
- *
- * If P<msg>->mode is Msg::Pack, P<*num> strings in the array
- * pointed to by P<strings> are packed into the buffer at
- * P<msg>->pos. If P<msg>->mode is Msg::Unpack, P<*num> is loaded
- * with the number of strings unpacked, the array at
- * P<*strings> is loaded with pointers to the unpacked strings,
- * and P<(*strings)[0]> must be freed by the user. In either
- * case, P<msg>->pos is advanced by the number of bytes read or
- * written. If the action would advance P<msg>->pos beyond
- * P<msg>->end, P<msg>->pos is still advanced, but no other
- * action is taken. If P<*num> is greater than P<max>,
- * P<msg>->pos is set beyond P<msg>->end and no other action is
- * taken.
- * 
- * See also:
- *	P<Msg>, P<pstring>, P<pdata>
- */
-void
-Msg::pstrings(uint16_t *num, char *strings[], uint max) {
-	char *s = nullptr;
-	uint size = 0;
-	uint16_t len = 0;
 
-	pu16(num);
-	if(*num > max) {
-		_pos = _end+1;
-		return;
-	}
-
-    if (unpackRequested()) {
-		s = _pos;
-		size = 0;
-        for (auto i = 0; i < *num; ++i) {
-			pu16(&len);
-			_pos += len;
-			size += len;
-			if(_pos > _end) {
-				return;
-            }
-		}
-		_pos = s;
-		size += *num;
-        s = new char[size];
-	}
-
-	for(auto i = 0; i < *num; ++i) {
-        if (packRequested()) {
-			len = strlen(strings[i]);
-        }
-		pu16(&len);
-
-        if (unpackRequested()) {
-			memcpy(s, _pos, len);
-			strings[i] = s;
-			s += len;
-			_pos += len;
-			*s++ = '\0';
-		} else {
-			pdata(&strings[i], len);
-        }
-	}
-}
-
-/**
- * Function: pdata
- *
- * Packs or unpacks a raw character buffer of size P<len>.
- *
- * If P<msg>->mode is Msg::Pack, buffer pointed to by P<data> is
- * packed into the buffer at P<msg>->pos. If P<msg>->mode is
- * Msg::Unpack, the address pointed to by P<s> is loaded with a
- * malloc(3) allocated buffer with the contents of the buffer at
- * P<msg>->pos.  In either case, P<msg>->pos is advanced by the
- * number of bytes read or written. If the action would advance
- * P<msg>->pos beyond P<msg>->end, P<msg>->pos is still advanced
- * but no other action is taken.
- *
- * See also:
- *	T<Msg>, F<pstring>
- */
 void
 Msg::pdata(char **data, uint len) {
     if((_pos + len) <= _end) {
@@ -223,20 +137,6 @@ Msg::pdata(char **data, uint len) {
 void
 Qid::packUnpack(Msg& msg) {
     msg.packUnpackMany(&_type, &_version, &_path);
-}
-
-void
-Msg::pqids(uint16_t *num, Qid qid[], uint max) {
-
-	pu16(num);
-	if(*num > max) {
-        _pos = _end + 1;
-		return;
-	}
-
-	for(auto i = 0; i < *num; i++) {
-        pqid(&qid[i]);
-    }
 }
 
 void

@@ -44,9 +44,49 @@ namespace jyq {
         void pu16(uint16_t*);
         void pu32(uint32_t*);
         void pu64(uint64_t*);
+/**
+ * Function: pdata
+ *
+ * Packs or unpacks a raw character buffer of size P<len>.
+ *
+ * If P<msg>->mode is Msg::Pack, buffer pointed to by P<data> is
+ * packed into the buffer at P<msg>->pos. If P<msg>->mode is
+ * Msg::Unpack, the address pointed to by P<s> is loaded with a
+ * malloc(3) allocated buffer with the contents of the buffer at
+ * P<msg>->pos.  In either case, P<msg>->pos is advanced by the
+ * number of bytes read or written. If the action would advance
+ * P<msg>->pos beyond P<msg>->end, P<msg>->pos is still advanced
+ * but no other action is taken.
+ *
+ * See also:
+ *	T<Msg>, F<pstring>
+ */
         void pdata(char**, uint);
         void pstring(char**);
-        void pstrings(uint16_t*, char**, uint);
+/**
+ * Function: pstrings
+ *
+ * Packs or unpacks an array of UTF-8 encoded strings. The packed
+ * representation consists of a 16-bit element count followed by
+ * an array of strings as packed by F<pstring>. The unpacked
+ * representation is an array of nul-terminated character arrays.
+ *
+ * If P<msg>->mode is Msg::Pack, P<*num> strings in the array
+ * pointed to by P<strings> are packed into the buffer at
+ * P<msg>->pos. If P<msg>->mode is Msg::Unpack, P<*num> is loaded
+ * with the number of strings unpacked, the array at
+ * P<*strings> is loaded with pointers to the unpacked strings,
+ * and P<(*strings)[0]> must be freed by the user. In either
+ * case, P<msg>->pos is advanced by the number of bytes read or
+ * written. If the action would advance P<msg>->pos beyond
+ * P<msg>->end, P<msg>->pos is still advanced, but no other
+ * action is taken. If P<*num> is greater than P<max>,
+ * P<msg>->pos is set beyond P<msg>->end and no other action is
+ * taken.
+ * 
+ * See also:
+ *	P<Msg>, P<pstring>, P<pdata>
+ */
         template<uint max>
         void pstrings(uint16_t& num, std::array<char*, max>& strings) {
             char *s = nullptr;
@@ -92,7 +132,6 @@ namespace jyq {
                 }
             }
         }
-        void pqids(uint16_t*, Qid*, uint);
         template<uint max>
         void pqids(uint16_t& num, std::array<Qid, max>& qid) {
             pu16(&num);
