@@ -100,6 +100,7 @@ FHdr::packUnpackFid(Msg& msg) {
 }
 void
 FVersion::packUnpack(Msg& msg) {
+    FHdr::packUnpack(msg);
     uint32_t sz = this->size();
     msg.pu32(&sz);
     if (msg.unpackRequested()) {
@@ -109,6 +110,7 @@ FVersion::packUnpack(Msg& msg) {
 }
 void
 FAttach::packUnpack(Msg& msg) {
+    FHdr::packUnpack(msg);
     if (getType() == FType::TAttach) {
         packUnpackFid(msg);
     }
@@ -119,10 +121,12 @@ FAttach::packUnpack(Msg& msg) {
 
 void
 FRAuth::packUnpack(Msg& msg) {
+    FHdr::packUnpack(msg);
     msg.pqid(&_aqid);
 }
 void
 FROpen::packUnpack(Msg& msg) {
+    FHdr::packUnpack(msg);
     msg.pqid(&_qid);
     if (getType() != FType::RAttach) {
         msg.pu32(&_iounit);
@@ -130,24 +134,29 @@ FROpen::packUnpack(Msg& msg) {
 }
 void
 FTWalk::packUnpack(Msg& msg) {
+    FHdr::packUnpack(msg);
     packUnpackFid(msg);
     msg.pu32(&_newfid);
     msg.pstrings<maximum::Welem>(getSizeReference(), _wname);
 }
 void
 FTFlush::packUnpack(Msg& msg) {
+    FHdr::packUnpack(msg);
     msg.pu16(&_oldtag);
 }
 void
 FError::packUnpack(Msg& msg) {
+    FHdr::packUnpack(msg);
     msg.pstring(_ename);
 }
 void 
 FRWalk::packUnpack(Msg& msg) {
+    FHdr::packUnpack(msg);
     msg.pqids<maximum::Welem>(getSizeReference(), _wqid);
 }
 void
 FTCreate::packUnpack(Msg& msg) {
+    FHdr::packUnpack(msg);
     packUnpackFid(msg);
     if (getType() == FType::TCreate) {
         msg.pstring(_name);
@@ -157,6 +166,7 @@ FTCreate::packUnpack(Msg& msg) {
 }
 void
 FIO::packUnpack(Msg& msg) {
+    FHdr::packUnpack(msg);
     auto type = getType();
     if (type == FType::TRead || type == FType::TWrite) {
         packUnpackFid(msg);
@@ -173,80 +183,25 @@ FIO::packUnpack(Msg& msg) {
 }
 void
 FRStat::packUnpack(Msg& msg) {
+    FHdr::packUnpack(msg);
     uint16_t sz = size();
     msg.pu16(&sz);
     msg.pdata(_stat, sz);
 }
 void
 FTWStat::packUnpack(Msg& msg) {
-    uint16_t size;
+    FHdr::packUnpack(msg);
     packUnpackFid(msg);
+    uint16_t size;
 	msg.pu16(&size);
     msg.packUnpack(&_stat);
 }
 void
-Fcall::packUnpack(Msg& msg) noexcept {
-    getHeader().packUnpack(msg);
-
-	switch (getType()) {
-	case FType::TVersion:
-	case FType::RVersion:
-        getVersion().packUnpack(msg);
-		break;
-	case FType::TAuth:
-        getTauth().packUnpack(msg);
-		break;
-	case FType::RAuth:
-        getRauth().packUnpack(msg);
-		break;
-	case FType::RAttach:
-        getRattach().packUnpack(msg);
-		break;
-	case FType::TAttach:
-        getTattach().packUnpack(msg);
-		break;
-	case FType::RError:
-        getError().packUnpack(msg);
-		break;
-	case FType::TFlush:
-        getTflush().packUnpack(msg);
-		break;
-	case FType::TWalk:
-        getTwalk().packUnpack(msg);
-		break;
-	case FType::RWalk:
-        getRwalk().packUnpack(msg);
-		break;
-	case FType::TOpen:
-        getTopen().packUnpack(msg);
-		break;
-	case FType::ROpen:
-	case FType::RCreate:
-        getRopen().packUnpack(msg);
-		break;
-	case FType::TCreate:
-        getTcreate().packUnpack(msg);
-		break;
-	case FType::TRead:
-	case FType::RRead:
-	case FType::TWrite:
-	case FType::RWrite:
-        getIO().packUnpack(msg);
-		break;
-	case FType::TClunk:
-	case FType::TRemove:
-	case FType::TStat:
-        getHeader().packUnpackFid(msg);
-		break;
-    case FType::RStat:
-        getRstat().packUnpack(msg);
-		break;
-    case FType::TWStat: 
-        getTwstat().packUnpack(msg);
-		break;
-    default:
-        break;
-	}
+Fcall::packUnpack(Msg& msg) {
+    if (!_storage) {
+        throw Exception("Backing storage is empty!");
+    }
+    std::visit([&msg](auto&& value) { value.packUnpack(msg); }, *_storage);
 }
 
 /**

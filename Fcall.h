@@ -298,7 +298,7 @@ namespace jyq {
             setFid(fid);
         }
         ~Fcall();
-        void packUnpack(Msg& msg) noexcept;
+        void packUnpack(Msg& msg);
     };
     using DoFcallFunc = std::function<std::shared_ptr<Fcall>(Fcall&)>;
 } // end namespace jyq
