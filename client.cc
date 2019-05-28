@@ -203,20 +203,21 @@ Client::walk(const std::string& path) {
 
         fcall.getTwalk().setSize(n);
         fcall.getTwalk().setNewFid(f->getFid());
-        if (dofcall(fcall) == 0) {
+        auto resultantFcall = dofcall(fcall);
+        if (resultantFcall == 0) {
             putfid(f);
             return nullptr;
         }
-        if(fcall.getRwalk().size() < n) {
+        if(resultantFcall->getRwalk().size() < n) {
             wErrorString("File does not exist");
-            if(fcall.getRwalk().empty()) {
+            if(resultantFcall->getRwalk().empty()) {
                 wErrorString("Protocol botch");
             }
             putfid(f);
             return nullptr;
         }
 
-        f->setQid(fcall.getRwalk().getWqid()[n-1]); // gross... so gross, this is taken from teh c code...so gross
+        f->setQid(resultantFcall->getRwalk().getWqid()[n-1]); // gross... so gross, this is taken from teh c code...so gross
 
         return f;
     }
