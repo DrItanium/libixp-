@@ -505,7 +505,7 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
     auto fid = req->fid->unpackAux<FileId>();
 	auto file = srv_clonefiles(fid);
 	for(i=0; i < req->getIFcall().getTwalk().size(); i++) {
-		if(!strcmp(req->getIFcall().getTwalk().getWname()[i], "..")) {
+        if (req->getIFcall().getTwalk().getWname()[i] == "..") {
 			if(file->hasNext()) {
 				tfile = file;
 				file = file->getNext();
@@ -519,7 +519,7 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
 			    //assert(!tfile->hasNext());
                 throw Exception("tfile has next!");
             }
-			if(strcmp(req->getIFcall().getTwalk().getWname()[i], ".")) {
+            if (req->getIFcall().getTwalk().getWname()[i] != ".") {
 				tfile->setNext(file);
 				file = tfile;
 			}
