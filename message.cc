@@ -188,6 +188,21 @@ FTWStat::packUnpack(Msg& msg) {
     msg.packUnpack(&_stat);
 }
 
+Fcall::VariantStorage
+Fcall::constructBlankStorage(const FHdr& hdr) {
+    Fcall::VariantStorage storage;
+    switch (hdr.getType()) {
+        case FType::TVersion:
+        case FType::RVersion:
+            storage.emplace<FVersion>();
+            break;
+        default:
+            throw Exception("Undefined or unimplemented type specified!");
+    }
+
+    return storage;
+}
+
 void
 Fcall::packUnpack(Msg& msg) {
     // if we are in pack mode then we should definitely stop here
@@ -199,7 +214,7 @@ Fcall::packUnpack(Msg& msg) {
             FHdr tmp;
             tmp.packUnpack(msg);
             msg.setPos(startPoint); // go back to where we started
-            _storage = constructBlankStorage(msg, tmp.getType());
+            _storage = constructBlankStorage(tmp);
         } else {
             throw Exception("Neither pack or unpack requested!");
         }
