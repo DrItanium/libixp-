@@ -32,18 +32,14 @@ namespace jyq {
             uint32_t _fid;
 
     };
-    class FVersion : public FHdr {
+    class FVersion : public FHdr, public ContainsSizeParameter<uint32_t> {
         public:
             FVersion() = default;
             ~FVersion() = default;
             void packUnpack(Msg& msg);
-            uint32_t size() const noexcept { return _version.size(); }
             std::string& getVersion() noexcept { return _version; }
             const std::string& getVersion() const noexcept { return _version; }
             void setVersion(const std::string& value) noexcept { _version = value; }
-            void setSize(uint32_t capacity) {
-                _version.assign(capacity, '0'); 
-            }
             void reset() { _version.clear(); }
         private:
             std::string _version;
@@ -146,7 +142,7 @@ namespace jyq {
         private:
             std::array<Qid, maximum::Welem> _wqid;
     };
-    class FIO : public FHdr {
+    class FIO : public FHdr, public ContainsSizeParameter<uint32_t> {
         public:
             constexpr auto getOffset() const noexcept { return _offset; }
             const std::string& getData() const noexcept { return _data; }
@@ -154,16 +150,13 @@ namespace jyq {
             void setOffset(uint64_t value) noexcept { _offset = value; }
             void setData(const std::string& value) noexcept { _data = value; }
             void packUnpack(Msg& msg);
-            uint32_t size() const noexcept { return _data.size(); }
-            void setSize(uint32_t size) noexcept { _data.assign(size, '0'); }
             void reset() { _data.clear(); }
         private: 
             uint64_t  _offset; /* Tread, Twrite */
             std::string _data; /* Twrite, Rread */
     };
-    class FRStat : public FHdr  {
+    class FRStat : public FHdr, public ContainsSizeParameter<uint16_t> {
         public:
-            uint16_t size() const noexcept { return _stat.size(); }
             const std::vector<uint8_t>& getStat() const noexcept { return _stat; }
             std::vector<uint8_t>& getStat() noexcept { return _stat; }
             void packUnpack(Msg& msg);
