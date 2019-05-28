@@ -346,8 +346,7 @@ Req9::respond(const char *error) {
 		if(error) {
             destroyfid(*p9conn, fid->getId());
         }
-		free(getIFcall().getTattach().getUname());
-		free(getIFcall().getTattach().getAname());
+        getIFcall().getTattach().reset();
 		break;
 	case FType::TOpen:
 	case FType::TCreate:

@@ -142,8 +142,8 @@ FAttach::packUnpack(Msg& msg) {
         packUnpackFid(msg);
     }
     msg.pu32(&_afid);
-    msg.pstring(&_uname);
-    msg.pstring(&_aname);
+    msg.pstring(_uname);
+    msg.pstring(_aname);
 }
 
 void

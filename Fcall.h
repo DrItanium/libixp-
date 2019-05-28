@@ -91,18 +91,22 @@ namespace jyq {
     class FAttach : public FHdr {
         public:
             constexpr auto getAfid() const noexcept { return _afid; }
-            char* getUname() noexcept { return _uname; }
-            const char* getUname() const noexcept { return _uname; }
-            char* getAname() noexcept { return _aname; }
-            const char* getAname() const noexcept { return _aname; }
+            std::string& getUname() noexcept { return _uname; }
+            const std::string getUname() const noexcept { return _uname; }
+            std::string getAname() noexcept { return _aname; }
+            const std::string getAname() const noexcept { return _aname; }
             void setAfid(uint32_t value) noexcept { _afid = value; }
-            void setUname(char* value) noexcept { _uname = value; }
-            void setAname(char* value) noexcept { _aname = value; }
+            void setUname(const std::string& value) noexcept { _uname = value; }
+            void setAname(const std::string& value) noexcept { _aname = value; }
             void packUnpack(Msg& msg);
+            void reset() {
+                _uname.clear();
+                _aname.clear();
+            }
         private:
             uint32_t	_afid;
-            char*		_uname;
-            char*		_aname;
+            std::string _uname;
+            std::string _aname;
     };
     class FTCreate : public FHdr {
         public:
