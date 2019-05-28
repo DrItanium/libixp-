@@ -64,14 +64,6 @@ Msg::Msg() : Parent(0), _data(nullptr), _pos(nullptr), _end(nullptr), _mode(Mode
  *	S<Fcall>, S<Stat>
  */
 Stat::~Stat() {
-	::free(_name);
-	::free(_uid);
-	::free(_gid);
-	::free(_muid);
-	_name = nullptr;
-    _uid = nullptr;
-    _gid = nullptr;
-    _muid = nullptr;
 }
 
 Fcall::~Fcall() {

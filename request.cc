@@ -290,7 +290,7 @@ Req9::handle() {
                     respond("wstat of dev");
                 } else if(~getIFcall().getTwstat().getStat().getQid().getType() || (ulong)~getIFcall().getTwstat().getStat().getQid().getVersion() || ~getIFcall().getTwstat().getStat().getQid().getPath()) {
                     respond("wstat of qid");
-                } else if(getIFcall().getTwstat().getStat().getMuid() && getIFcall().getTwstat().getStat().getMuid()[0]) {
+                } else if(!getIFcall().getTwstat().getStat().getMuid().empty()) {
                     respond("wstat of muid");
                 } else if(~getIFcall().getTwstat().getStat().getMode() && ((getIFcall().getTwstat().getStat().getMode()&(uint32_t)(DMode::DIR))>>24) != (fid->getQid().getType()&uint8_t(QType::DIR))) {
                     respond("wstat on DMDIR bit");

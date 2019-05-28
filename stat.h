@@ -21,23 +21,23 @@ namespace jyq {
             constexpr auto getLength() const noexcept { return _length; }
             Qid& getQid() noexcept { return _qid; }
             const Qid& getQid() const noexcept { return _qid; }
-            const char* getName() const noexcept { return _name; }
-            char* getName() noexcept { return _name; }
-            const char* getUid() const noexcept { return _uid; }
-            char* getUid() noexcept { return _uid; }
-            const char* getGid() const noexcept { return _gid; }
-            char* getGid() noexcept { return _gid; }
-            const char* getMuid() const noexcept { return _muid; }
-            char* getMuid() noexcept { return _muid; }
+            const std::string& getName() const noexcept { return _name; }
+            std::string& getName() noexcept { return _name; }
+            const std::string& getUid() const noexcept { return _uid; }
+            std::string& getUid() noexcept { return _uid; }
+            const std::string& getGid() const noexcept { return _gid; }
+            std::string& getGid() noexcept { return _gid; }
+            const std::string& getMuid() const noexcept { return _muid; }
+            std::string& getMuid() noexcept { return _muid; }
             uint16_t size() noexcept;
             void setMode(uint32_t value) noexcept { _mode = value; }
             void setAtime(uint32_t value) noexcept { _atime = value; }
             void setMtime(uint32_t value) noexcept { _mtime = value; }
             void setLength(uint64_t value) noexcept { _length = value; }
-            void setName(char* value) noexcept { _name = value; }
-            void setUid(char* value) noexcept { _uid = value; }
-            void setGid(char* value) noexcept { _gid = value; }
-            void setMuid(char* value) noexcept { _muid = value; }
+            void setName(const std::string& value) noexcept { _name = value; }
+            void setUid(const std::string& value) noexcept { _uid = value; }
+            void setGid(const std::string& value) noexcept { _gid = value; }
+            void setMuid(const std::string& value) noexcept { _muid = value; }
             void setType(uint16_t value) noexcept { _type = value; }
             void setDev(uint32_t value) noexcept { _dev = value; }
         private:
@@ -48,10 +48,10 @@ namespace jyq {
             uint32_t	_atime;
             uint32_t	_mtime;
             uint64_t	_length;
-            char*	_name;
-            char*	_uid;
-            char*	_gid;
-            char*	_muid;
+            std::string _name;
+            std::string _uid;
+            std::string _gid;
+            std::string _muid;
     };
 } // end namespace jyq
 #endif // end LIBJYQ_STAT_H__
