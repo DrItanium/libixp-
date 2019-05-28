@@ -102,7 +102,7 @@ _pread(CFid *f, char *buf, long count, int64_t offset, std::function<std::shared
             return -1;
         } else {
             auto& rread = result->getRRead();
-            memcpy(buf+len, rread.getData(), rread.size());
+            memcpy(buf+len, rread.getData().data(), rread.size());
             offset += rread.size();
             len += rread.size();
 
@@ -308,12 +308,14 @@ Client::mountfd(const Connection& fd) {
 	c->_msize = fcall.getVersion().size();
 
 	c->allocmsg(fcall.getVersion().size());
-    fcall.reset();
-
-    fcall.setTypeAndFid(FType::TAttach, RootFid);
-    fcall.getTattach().setAfid(NoFid);
-	fcall.getTattach().setUname(getenv("USER"));
-	fcall.getTattach().setAname((char*)"");
+    //fcall.reset();
+    FAttach contents;
+    contents.setType(FType::TAttach);
+    contents.setFid(RootFid);
+    contents.setAfid(NoFid);
+	contents.setUname(getenv("USER"));
+    contents.setAname("");
+    fcall._storage = contents;
 	if(!c->dofcall(fcall)) {
         delete c;
 		return nullptr;

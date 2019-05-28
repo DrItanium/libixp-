@@ -146,17 +146,20 @@ namespace jyq {
         private:
             std::array<Qid, maximum::Welem> _wqid;
     };
-    class FIO : public FHdr, public ContainsSizeParameter<uint32_t> {
+    class FIO : public FHdr {
         public:
             constexpr auto getOffset() const noexcept { return _offset; }
-            const char* getData() const noexcept { return _data; }
-            char* getData() noexcept { return _data; }
+            const std::string& getData() const noexcept { return _data; }
+            std::string& getData() noexcept { return _data; }
             void setOffset(uint64_t value) noexcept { _offset = value; }
-            void setData(char* value) noexcept { _data = value; }
+            void setData(const std::string& value) noexcept { _data = value; }
             void packUnpack(Msg& msg);
+            uint32_t size() const noexcept { return _data.size(); }
+            void setSize(uint32_t size) noexcept { _data.assign(size, '0'); }
+            void reset() { _data.clear(); }
         private: 
             uint64_t  _offset; /* Tread, Twrite */
-            char*     _data; /* Twrite, Rread */
+            std::string _data; /* Twrite, Rread */
     };
     class FRStat : public FHdr, public ContainsSizeParameter<uint16_t> {
         public:
@@ -294,7 +297,6 @@ namespace jyq {
         Fcall(FType type, uint32_t fid) : Fcall(type) {
             setFid(fid);
         }
-        void reset();
         ~Fcall();
         void packUnpack(Msg& msg) noexcept;
     };

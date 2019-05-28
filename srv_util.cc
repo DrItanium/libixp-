@@ -97,9 +97,9 @@ srv_clonefiles(FileId& fileid) {
  *	of the most recent write.
  */
 
+#if 0
 void
 srv_readbuf(Req9 *req, char *buf, uint len) {
-
 	if(req->getIFcall().getIO().getOffset() >= len)
 		return;
 
@@ -141,6 +141,7 @@ srv_writebuf(Req9 *req, char **buf, uint *len, uint max) {
 	req->getOFcall().getIO().setSize(count);
 	p[offset+count] = '\0';
 }
+#endif
 
 /**
  * Function: srv_data2cstring
@@ -153,6 +154,8 @@ srv_writebuf(Req9 *req, char **buf, uint *len, uint max) {
  */
 void
 srv_data2cstring(Req9 *req) {
+    // TODO reimplement
+#if 0
     uint i = req->getIFcall().getIO().size();
 	auto p = req->getIFcall().getIO().getData();
 	if(i && p[i - 1] == '\n') {
@@ -166,6 +169,7 @@ srv_data2cstring(Req9 *req) {
 	p = (decltype(p))jyq::erealloc(req->getIFcall().getIO().getData(), i+1);
 	p[i] = '\0';
 	req->getIFcall().getIO().setData(p);
+#endif
 }
 
 /**
@@ -186,8 +190,9 @@ srv_writectl(Req9 *req, std::function<char*(void*, Msg*)> fn) {
 
 	srv_data2cstring(req);
     auto s = req->getIFcall().getIO().getData();
-
+    // TODO reimplement this
 	char* err = nullptr;
+#if 0
 	auto c = *s;
 	while(c != '\0') {
 		while(*s == '\n')
@@ -204,6 +209,7 @@ srv_writectl(Req9 *req, std::function<char*(void*, Msg*)> fn) {
 			err = s;
 		s = p + 1;
 	}
+#endif
 	return err;
 }
 

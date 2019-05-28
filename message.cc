@@ -75,7 +75,6 @@ Stat::~Stat() {
 }
 
 Fcall::~Fcall() {
-    reset();
 }
 
 void
@@ -83,26 +82,6 @@ FRStat::purgeStat() noexcept {
     _stat = nullptr;
 }
 
-void
-Fcall::reset() {
-    switch(getType()) {
-    case FType::RStat:
-        getRstat().purgeStat();
-		break;
-    case FType::RRead:
-        ::free(getRRead().getData());
-        getRRead().setData(nullptr);
-		break;
-    case FType::RVersion:
-        getVersion().reset();
-		break;
-    case FType::RError:
-        getError().reset();
-		break;
-    default:
-        break;
-	}
-}
 
 uint16_t
 Stat::size() noexcept {
@@ -191,9 +170,13 @@ FIO::packUnpack(Msg& msg) {
         packUnpackFid(msg);
         msg.pu64(&_offset);
     }
-    msg.pu32(&getSizeReference());
+    uint32_t sz = size();
+    msg.pu32(&sz);
+    if (msg.unpackRequested()) {
+        setSize(sz);
+    }
     if (type == FType::RRead || type == FType::TWrite) {
-        msg.pdata(&_data, size());
+        msg.pdata(_data, size());
     }
 }
 void
