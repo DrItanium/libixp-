@@ -249,7 +249,6 @@ namespace jyq {
                 throw Exception("backing storage contains no value!");
             }
         }
-        static VariantStorage constructBlankStorage(const FHdr& type);
         auto& getRauth()  { return retrieveFromStorage<FRAuth>(); }
         auto& getTflush()  { return retrieveFromStorage<FTFlush>(); }
         auto& getVersion()  { return retrieveFromStorage<FVersion>(); }

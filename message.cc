@@ -189,7 +189,7 @@ FTWStat::packUnpack(Msg& msg) {
 }
 
 Fcall::VariantStorage
-Fcall::constructBlankStorage(const FHdr& hdr) {
+constructBlankStorage(const FHdr& hdr) {
     Fcall::VariantStorage storage;
     switch (hdr.getType()) {
         case FType::TVersion:
