@@ -196,6 +196,52 @@ constructBlankStorage(const FHdr& hdr) {
         case FType::RVersion:
             storage.emplace<FVersion>();
             break;
+        case FType::TFlush:
+            storage.emplace<FTFlush>();
+            break;
+        case FType::ROpen:
+        case FType::RCreate:
+        case FType::RAttach:
+            storage.emplace<FROpen>();
+            break;
+        case FType::TError:
+        case FType::RError:
+            storage.emplace<FError>();
+            break;
+        case FType::RAuth:
+            storage.emplace<FRAuth>();
+            break;
+        case FType::TAttach:
+        case FType::TAuth:
+            storage.emplace<FAttach>();
+            break;
+        case FType::TCreate:
+        case FType::TOpen:
+            storage.emplace<FTCreate>();
+            break;
+        case FType::TWalk:
+            storage.emplace<FTWalk>();
+            break;
+        case FType::RWalk:
+            storage.emplace<FRWalk>();
+            break;
+        case FType::TWStat:
+            storage.emplace<FTWStat>();
+            break;
+        case FType::RStat:
+            storage.emplace<FRStat>();
+            break;
+        case FType::TWrite:
+        case FType::RWrite:
+        case FType::TRead:
+        case FType::RRead:
+            storage.emplace<FIO>();
+            break;
+        case FType::TClunk:
+        case FType::TRemove:
+        case FType::TStat:
+            storage.emplace<FHdr>();
+            break;
         default:
             throw Exception("Undefined or unimplemented type specified!");
     }
