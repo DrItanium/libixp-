@@ -44,6 +44,7 @@ namespace jyq {
             void setSize(uint32_t capacity) {
                 _version.assign(capacity, '0'); 
             }
+            void reset() { _version.clear(); }
         private:
             std::string _version;
     };
@@ -59,11 +60,12 @@ namespace jyq {
     class FError : public FHdr {
         public:
             void packUnpack(Msg& msg);
-            char* getEname() noexcept { return _ename; }
-            const char* getEname() const noexcept { return _ename; }
-            void setEname(char* value) noexcept { _ename = value; }
+            std::string& getEname() noexcept { return _ename; }
+            const std::string& getEname() const noexcept { return _ename; }
+            void setEname(const std::string& value) noexcept { _ename = value; }
+            void reset() { _ename.clear(); }
         private:
-            char* _ename;
+            std::string _ename;
     };
     class FROpen : public FHdr {
         public:

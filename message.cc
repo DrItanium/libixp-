@@ -94,11 +94,10 @@ Fcall::reset() {
         getRRead().setData(nullptr);
 		break;
     case FType::RVersion:
-        getVersion().getVersion().clear();
+        getVersion().reset();
 		break;
     case FType::RError:
-		::free(getError().getEname());
-		getError().setEname(nullptr);
+        getError().reset();
 		break;
     default:
         break;
@@ -170,7 +169,7 @@ FTFlush::packUnpack(Msg& msg) {
 }
 void
 FError::packUnpack(Msg& msg) {
-    msg.pstring(&_ename);
+    msg.pstring(_ename);
 }
 void 
 FRWalk::packUnpack(Msg& msg) {
