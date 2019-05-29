@@ -181,6 +181,9 @@ FIO::packUnpack(Msg& msg) {
 void
 FRStat::packUnpack(Msg& msg) {
     FHdr::packUnpack(msg);
+    if (msg.unpackRequested()) {
+        _stat.clear();
+    }
     msg.pu16(&getSizeReference());
     msg.pdata(_stat, size());
 }
