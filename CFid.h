@@ -19,13 +19,13 @@ namespace jyq {
             CFid() = default;
             constexpr auto getFid() const noexcept { return _fid; }
             constexpr auto getIoUnit() const noexcept { return _iounit; }
-            constexpr auto getOpen() const noexcept { return _open; }
+            constexpr auto isOpen() const noexcept { return _open; }
             constexpr auto getOffset() const noexcept { return _offset; }
             constexpr auto getMode() const noexcept { return _mode; }
             Qid& getQid() noexcept { return _qid; }
             const Qid& getQid() const noexcept { return _qid; }
             void setIoUnit(uint value) noexcept { _iounit = value; }
-            void setOpen(uint value) noexcept { _open = value; }
+            void setOpen(bool value = true) noexcept { _open = value; }
             void setOffset(uint32_t value) noexcept { _offset = value; }
             void setMode(uint8_t value) noexcept { _mode = value; }
             void setQid(const Qid& value) noexcept { _qid = value; }
@@ -43,7 +43,7 @@ namespace jyq {
             uint32_t _fid;
             Qid      _qid;
             uint8_t  _mode;
-            uint     _open;
+            bool     _open;
             uint     _iounit;
             uint32_t _offset;
             mutable Mutex _iolock;
