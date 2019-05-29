@@ -345,11 +345,10 @@ Req9::handle() {
  */
 void
 Req9::respond(const char *error) {
-	Conn9 *p9conn;
 	int msize;
 
-	p9conn = _conn;
-
+	auto p9conn = _conn;
+    
 	switch(getIFcall().getType()) {
 	case FType::TVersion:
         if (error) {
@@ -447,7 +446,7 @@ Req9::respond(const char *error) {
     if (p9conn->getConn()) {
 
         auto theLock = p9conn->getWriteLock();
-        msize = p9conn->getWMsg().pack(getOFcall());
+        auto msize = p9conn->getWMsg().pack(getOFcall());
         if (p9conn->sendmsg() != msize) {
 			hangup(p9conn->getConn());
         }
