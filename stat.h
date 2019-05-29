@@ -40,6 +40,12 @@ namespace jyq {
             void setMuid(const std::string& value) noexcept { _muid = value; }
             void setType(uint16_t value) noexcept { _type = value; }
             void setDev(uint32_t value) noexcept { _dev = value; }
+            void reset() noexcept { 
+                _name.clear();
+                _uid.clear();
+                _gid.clear();
+                _muid.clear();
+            }
         private:
             uint16_t	_type;
             uint32_t	_dev;

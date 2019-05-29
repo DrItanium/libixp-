@@ -345,88 +345,87 @@ Req9::handle() {
  */
 void
 Req9::respond(const char *error) {
-	int msize;
 
 	auto p9conn = _conn;
-    
-	switch(getIFcall().getType()) {
-	case FType::TVersion:
-        if (error) {
-            throw Exception("error is defined!");
-        }
-        getIFcall().getVersion().getVersion().clear();
-        {
-            auto theRlock = p9conn->getReadLock();
-            auto theWlock = p9conn->getWriteLock();
-		    msize = jyq::min<int>(getOFcall().getVersion().size(), maximum::Msg);
-            p9conn->alloc(msize);
-        }
-        getOFcall().getVersion().setSize(msize);
-		break;
-	case FType::TAttach:
-		if(error) {
-            destroyfid(*p9conn, fid->getId());
-        }
-        getIFcall().getTattach().reset();
-		break;
-	case FType::TOpen:
-	case FType::TCreate:
-		if(!error) {
-			getOFcall().getRopen().setIoUnit(p9conn->getRMsg().size() - 24);
-            fid->setIoUnit(getOFcall().getRopen().getIoUnit());
-            fid->setOmode(getIFcall().getTopen().getMode());
-			fid->setQid(getOFcall().getRopen().getQid());
-		}
-        getIFcall().getTcreate().reset();
-		break;
-	case FType::TWalk:
-		if(error || getOFcall().getRwalk().size() < getIFcall().getTwalk().size()) {
-			if(getIFcall().getFid() != getIFcall().getTwalk().getNewFid() && newfid) {
-				destroyfid(*p9conn, newfid->getId());
-            }
-			if(!error && getOFcall().getRwalk().empty()) {
-				error = Enofile.c_str();
-            }
-		}else{
-            if (getOFcall().getRwalk().empty()) {
-                newfid->setQid(fid->getQid());
+    getIFcall().visit([this, &error, &p9conn](auto&& value) {
+            int msize = 0;
+            using K = std::decay_t<decltype(value)>;
+            // Still to be implemented: auth 
+            if constexpr (std::is_same_v<K, FVersion>) {
+                if (error) {
+                    throw Exception("error is defined!");
+                }
+                value.getVersion().clear();
+                {
+                    auto theRlock = p9conn->getReadLock();
+                    auto theWlock = p9conn->getWriteLock();
+                    msize = jyq::min<int>(getOFcall().getVersion().size(), maximum::Msg);
+                    p9conn->alloc(msize);
+                }
+                getOFcall().getVersion().setSize(msize);
+            } else if constexpr (std::is_same_v<K, FAttach>) {
+                if(error) {
+                    destroyfid(*p9conn, fid->getId());
+                }
+                value.reset();
+            } else if constexpr (std::is_same_v<K, FTCreate>) {
+	    	    if(!error) {
+	    	    	getOFcall().getRopen().setIoUnit(p9conn->getRMsg().size() - 24);
+                    fid->setIoUnit(getOFcall().getRopen().getIoUnit());
+                    fid->setOmode(value.getMode());
+	    	    	fid->setQid(getOFcall().getRopen().getQid());
+	    	    }
+                value.reset();
+            } else if constexpr (std::is_same_v<K, FTWalk>) {
+                if(error || getOFcall().getRwalk().size() < value.size()) {
+                    if(value.getFid() != value.getNewFid() && newfid) {
+                        destroyfid(*p9conn, newfid->getId());
+                    }
+                    if(!error && getOFcall().getRwalk().empty()) {
+                        error = Enofile.c_str();
+                    }
+                }else{
+                    if (getOFcall().getRwalk().empty()) {
+                        newfid->setQid(fid->getQid());
+                    } else {
+                        newfid->setQid(getOFcall().getRwalk().getWqid()[getOFcall().getRwalk().size()-1]);
+                    }
+                }
+                value.getWname().fill("");
+            } else if constexpr (std::is_same_v<K, FIO>) {
+                switch (value.getType()) {
+                    case FType::TWrite:
+                        value.reset();
+                        break;
+                    case FType::TRead:
+                    default:
+                        break;
+                }
+            } else if constexpr (std::is_same_v<K, FFullHeader>) {
+                switch (value.getType()) {
+                    case FType::TRemove:
+                    case FType::TClunk:
+                        if (fid) {
+                            destroyfid(*p9conn, fid->getId());
+                        }
+                        break;
+                    case FType::TStat:
+                    default:
+                        break;
+                }
+            } else if constexpr (std::is_same_v<K, FTFlush>) {
+                if (oldreq = p9conn->retrieveTag(getIFcall().getTflush().getOldTag()); oldreq) {
+                    oldreq->respond(Eintr);
+                }
+            } else if constexpr (std::is_same_v<K, FTWStat>) {
+                value.getStat().reset();
+                // Still to be implemented: auth
             } else {
-                newfid->setQid(getOFcall().getRwalk().getWqid()[getOFcall().getRwalk().size()-1]);
+                if (!error) {
+                    throw Exception("Respond called on unsupported fcall type!");
+                }
             }
-		}
-        getIFcall().getTwalk().getWname().fill("");
-		break;
-	case FType::TWrite:
-        getIFcall().getTWrite().reset();
-		break;
-	case FType::TRemove:
-		if(fid) {
-			destroyfid(*p9conn, fid->getId());
-        }
-		break;
-	case FType::TClunk:
-		if(fid) {
-			destroyfid(*p9conn, fid->getId());
-        }
-		break;
-	case FType::TFlush:
-        if (oldreq = p9conn->retrieveTag(getIFcall().getTflush().getOldTag()); oldreq) {
-            oldreq->respond(Eintr);
-        }
-		break;
-	case FType::TWStat:
-		//Stat::free(&getIFcall().getTwstat().getStat());
-		break;
-	case FType::TRead:
-	case FType::TStat:
-		break;		
-	/* Still to be implemented: auth */
-	default:
-		if(!error) {
-            throw Exception("Respond called on unsupported fcall type!");
-        }
-		break;
-	}
+            });
 
     getOFcall().setTag(getIFcall().getTag());
 
@@ -451,18 +450,18 @@ Req9::respond(const char *error) {
 			hangup(p9conn->getConn());
         }
 	}
-
-	switch(getOFcall().getType()) {
-	case FType::RStat:
-        getOFcall().getRstat().purgeStat();
-		break;
-	case FType::RRead:
-        getOFcall().getRRead().reset();
-		break;
-    default:
-        break;
-	}
-	//free(req);
+    getOFcall().visit([](auto&& value) {
+                using K = std::decay_t<decltype(value)>;
+                if constexpr (std::is_same_v<K, FRStat>) {
+                    value.purgeStat();
+                } else if constexpr (std::is_same_v<K, FIO>) {
+                    if (value.getType() == FType::RRead) {
+                        value.reset();
+                    }
+                } else {
+                    // do nothing
+                }
+            });
 	decref_p9conn(p9conn);
 }
 
