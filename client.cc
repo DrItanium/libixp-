@@ -417,8 +417,7 @@ Client::open(const char *path, uint8_t mode) {
     if (auto f = walk(path); !f) {
         return nullptr;
     } else {
-	    Fcall fcall;
-        fcall.setTypeAndFid(FType::TOpen, f->getFid());
+	    Fcall fcall(FType::TOpen, f->getFid());
         fcall.getTopen().setMode(mode);
 
         if(!dofcall(fcall)) {

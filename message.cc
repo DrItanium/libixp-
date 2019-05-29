@@ -250,6 +250,9 @@ Fcall::constructBlankStorage(const FHdr& hdr) {
         case FType::TStat:
             storage.emplace<FFullHeader>();
             break;
+        case FType::RClunk: // default cases
+            storage.emplace<FHdr>();
+            break;
         default:
             throw Exception("Undefined or unimplemented type specified!");
     }
