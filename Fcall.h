@@ -282,15 +282,11 @@ namespace jyq {
         auto getType() const { return getHeader().getType(); }
         auto getFid() const { return getHeader().getFid(); }
         auto getTag() const { return getHeader().getTag(); }
-        void setType(FType type) { getHeader().setType(type); }
+        void reset(FType type);
         void setFid(uint32_t value) { getHeader().setFid(value); }
         void setTag(uint16_t value) { getHeader().setTag(value); }
         void setNoTag() { setTag(NoTag); }
-        void setTypeAndFid(FType t, uint32_t fid) {
-            setType(t);
-            setFid(fid);
-        }
-        static VariantStorage constructBlankStorage(FType type) {
+        inline static VariantStorage constructBlankStorage(FType type) {
             FHdr tmp;
             tmp.setType(type);
             return constructBlankStorage(tmp);

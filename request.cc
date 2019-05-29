@@ -410,10 +410,10 @@ Req9::respond(const char *error) {
     getOFcall().setTag(getIFcall().getTag());
 
     if (!error) {
-        getOFcall().setType(FType(((uint8_t)getIFcall().getType()) + 1));
+        getOFcall().reset(FType(((uint8_t)getIFcall().getType()) + 1));
     } else {
-        getOFcall().setType(FType::RError);
-		getOFcall().getError().setEname((char*)error);
+        getOFcall().reset(FType::RError);
+		getOFcall().getError().setEname(error);
 	}
 
 	if(printfcall) {
@@ -455,7 +455,7 @@ cleanupconn(Conn *c) {
         p9conn->fidExec<ReqList&>([](auto context, Fid::Map::iterator arg) {
                 ++arg->second.getConn();
                 context.emplace_back();
-                context.back().getIFcall().setType(FType::TClunk);
+                context.back().getIFcall().reset(FType::TClunk);
                 context.back().getIFcall().setNoTag();
                 context.back().getIFcall().setFid(arg->second.getId());
                 context.back().fid = &arg->second;
@@ -464,7 +464,7 @@ cleanupconn(Conn *c) {
         p9conn->tagExec<ReqList>([](auto context, Conn9::TagMap::iterator arg) {
                     arg->second.getConn()->operator++();
                     context.emplace_back();
-                    context.back().getIFcall().setType(FType::TFlush);
+                    context.back().getIFcall().reset(FType::TFlush);
                     context.back().getIFcall().setNoTag();
                     context.back().getIFcall().getTflush().setOldTag(arg->second.getIFcall().getTag());
                     context.back().setConn(arg->second.getConn());

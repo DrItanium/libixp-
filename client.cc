@@ -94,9 +94,8 @@ _pread(CFid *f, char *buf, long count, int64_t offset, std::function<std::shared
 
 	auto len = 0l;
 	while(len < count) {
-	    Fcall fcall;
+	    Fcall fcall(FType::TRead, f->getFid());
         auto n = min<int>(count-len, f->getIoUnit());
-        fcall.setTypeAndFid(FType::TRead, f->getFid());
         auto& tread = fcall.getTRead();
         tread.setOffset(offset);
         tread.setSize(n);
@@ -124,9 +123,8 @@ _pwrite(CFid *f, const void *buf, long count, int64_t offset, DoFcallFunc dofcal
 
 	len = 0;
 	do {
-        Fcall fcall;
+        Fcall fcall(FType::TWrite, f->getFid());
 		n = min<int>(count-len, f->getIoUnit());
-        fcall.setTypeAndFid(FType::TWrite, f->getFid());
         auto& twrite = fcall.getTWrite();
         twrite.setOffset(offset);
         twrite.setData((char*)buf + len);
@@ -242,8 +240,7 @@ Client::remove(const char *path) {
     if (auto f = walk(path); !f) {
         return false;
     } else {
-        Fcall fcall;
-        fcall.setTypeAndFid(FType::TRemove, f->getFid());
+        Fcall fcall(FType::TRemove, f->getFid());
         auto ret = dofcall(fcall);
         putfid(f);
 
@@ -385,29 +382,29 @@ Client::nsmount(const char *name) {
 
 std::shared_ptr<CFid>
 Client::create(const char *path, uint perm, uint8_t mode) {
-	Fcall fcall;
 
     std::string tpath(path);
     if (auto f = walkdir(tpath.data(), &path); !f) {
         return f;
     } else {
-        fcall.setTypeAndFid(FType::TCreate, f->getFid());
-        fcall.getTcreate().setName((char*)(uintptr_t)path);
-        fcall.getTcreate().setPerm(perm);
-        fcall.getTcreate().setMode(mode);
+        Fcall fcall(FType::TCreate, f->getFid());
+        auto& tcreate = fcall.getTcreate();
+        tcreate.setName(path);
+        tcreate.setPerm(perm);
+        tcreate.setMode(mode);
 
-        if(!dofcall(fcall)) {
+        if(auto result = dofcall(fcall); !result) {
             clunk(f);
             return nullptr;
+        } else {
+            auto count = result->getRopen().getIoUnit();
+            if (count == 0 || (result->getRopen().getIoUnit() > (_msize-24))) {
+                count = _msize-24;
+            }
+            initfid(f, result.get(), count);
+            f->setMode(mode);
+            return f;
         }
-
-        auto count = fcall.getRopen().getIoUnit();
-        if (count == 0 || (fcall.getRopen().getIoUnit() > (_msize-24))) {
-            count = _msize-24;
-        }
-        initfid(f, &fcall, count);
-        f->setMode(mode);
-        return f;
     }
 }
 
@@ -420,19 +417,19 @@ Client::open(const char *path, uint8_t mode) {
 	    Fcall fcall(FType::TOpen, f->getFid());
         fcall.getTopen().setMode(mode);
 
-        if(!dofcall(fcall)) {
+        if(auto result = dofcall(fcall); !result) {
             clunk(f);
             return nullptr;
-        }
+        } else {
+            auto count = result->getRopen().getIoUnit();
+            if (count == 0 || (result->getRopen().getIoUnit() > (_msize-24))) {
+                count = _msize-24;
+            }
+            initfid(f, result.get(), count);
+            f->setMode(mode);
 
-        auto count = fcall.getRopen().getIoUnit();
-        if (count == 0 || (fcall.getRopen().getIoUnit() > (_msize-24))) {
-            count = _msize-24;
+            return f;
         }
-        initfid(f, &fcall, count);
-        f->setMode(mode);
-
-        return f;
     }
 }
 

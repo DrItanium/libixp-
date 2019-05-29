@@ -351,4 +351,10 @@ Msg::setData(char* value) noexcept {
     _data = value;
 }
 
+void
+Fcall::reset(FType type) {
+    // reallocate storage in all cases
+    _storage = constructBlankStorage(type);
+}
+
 } // end namespace jyq
