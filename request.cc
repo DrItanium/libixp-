@@ -328,13 +328,6 @@ Req9::handle() {
                     respond(Enofunc);
                 }
             });
-    /*
-    if (auto ptr = dispatchTable.find(getIFcall().getType()); ptr == dispatchTable.end()) {
-        respond(Enofunc);
-    } else {
-        ptr->second();
-    }
-    */
 }
 
 /**
@@ -359,8 +352,8 @@ Req9::respond(const char *error) {
 
 	switch(getIFcall().getType()) {
 	case FType::TVersion:
-        if (!error) {
-            throw Exception("error is null!");
+        if (error) {
+            throw Exception("error is defined!");
         }
         getIFcall().getVersion().getVersion().clear();
         {
