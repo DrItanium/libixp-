@@ -98,6 +98,11 @@ void
 FHdr::packUnpackFid(Msg& msg) {
     msg.pu32(&_fid);
 }
+void 
+FFullHeader::packUnpack(Msg& msg) {
+    FHdr::packUnpack(msg);
+    packUnpackFid(msg);
+}
 void
 FVersion::packUnpack(Msg& msg) {
     FHdr::packUnpack(msg);
@@ -240,7 +245,7 @@ Fcall::constructBlankStorage(const FHdr& hdr) {
         case FType::TClunk:
         case FType::TRemove:
         case FType::TStat:
-            storage.emplace<FHdr>();
+            storage.emplace<FFullHeader>();
             break;
         default:
             throw Exception("Undefined or unimplemented type specified!");

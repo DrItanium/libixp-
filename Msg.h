@@ -154,7 +154,7 @@ namespace jyq {
                 if (unpackRequested()) {
                     strings[i] = std::string(_pos, len);
                 } else {
-                    pstring(strings[i]);
+                    pdata(strings[i], len);
                 }
             }
         }

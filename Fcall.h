@@ -32,6 +32,11 @@ namespace jyq {
             uint32_t _fid;
 
     };
+    class FFullHeader : public FHdr {
+        public:
+            using FHdr::FHdr;
+            void packUnpack(Msg& msg);
+    };
     class FVersion : public FHdr, public ContainsSizeParameter<uint32_t> {
         public:
             FVersion() = default;
@@ -210,7 +215,7 @@ namespace jyq {
      */
     struct Fcall {
         using VariantStorage = std::variant<FVersion, FTFlush, FROpen, FError, FRAuth, FAttach, FTCreate,
-            FTWalk, FRWalk, FTWStat, FRStat, FIO, FHdr>;
+            FTWalk, FRWalk, FTWStat, FRStat, FIO, FHdr, FFullHeader>;
         std::optional<VariantStorage> _storage;
         /*
         FHdr     _hdr;
@@ -271,6 +276,7 @@ namespace jyq {
         auto& getError()  { return retrieveFromStorage<FError>(); }
         auto& getTwstat()  { return retrieveFromStorage<FTWStat>(); }
         auto& getRstat()  { return retrieveFromStorage<FRStat>(); }
+        auto& getFullHeader() { return retrieveFromStorage<FFullHeader>(); }
 
         //static void free(Fcall*);
         auto getType() const { return getHeader().getType(); }
