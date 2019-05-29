@@ -128,187 +128,213 @@ Req9::handle() {
 	if(printfcall) {
 		printfcall(&getIFcall());
     }
-    static std::map<FType, std::function<void()>> dispatchTable = {
-        { FType::TVersion, 
-            [this]() {
-                static std::string str9p("9P");
-                static std::string str9p2000("9P2000");
-                static std::string strUnknown("unknown");
-                auto& iversion = getIFcall().getVersion();
-                std::string ver(iversion.getVersion());
-                auto& oversion = getOFcall().getVersion();
-                if (ver == str9p) {
-                    oversion.setVersion(str9p.data());
-                } else if(ver == str9p2000) {
-                    oversion.setVersion(str9p2000.data());
-                } else {
-                    oversion.setVersion(strUnknown.data());
-                }
-                oversion.setSize(iversion.size());
-                respond(nullptr);
-            } },
-        {FType::TAttach, 
-            [&p9conn, srv = p9conn.getSrv(), this]() {
-                auto newfid = createfid(p9conn.getFidMap(), getIFcall().getFid(), p9conn);
-                fid = newfid;
-                if (!fid) {
-                    respond(Edupfid);
-                } else {
-                    /* attach is a required function */
-                    srv->attach(this);
-                }
-            } },
-        { FType::TClunk, 
-            [&p9conn, srv = p9conn.getSrv(), this]() {
-                if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
-                    respond(Enofid);
-                } else {
-                    if(!srv->clunk) {
-                        respond(nullptr);
-                        return;
-                    }
-                    srv->clunk(this);
-                }
-            } },
-        { FType::TFlush, 
-            [&p9conn, srv = p9conn.getSrv(), this]() {
-                if (oldreq = p9conn.retrieveTag(getIFcall().getTflush().getOldTag()); !oldreq) {
-                    respond(Enotag);
-                } else {
-                    if(!srv->flush) {
+    getIFcall().visit([this, &p9conn, srv = p9conn.getSrv()](auto&& value) {
+                using K = std::decay_t<decltype(value)>;
+                if constexpr (std::is_same_v<K, FTWStat>) {
+                    if (fid = p9conn.retrieveFid(value.getFid()); !fid) {
+                        respond(Enofid);
+                    } else if(auto& twstat = value.getStat(); ~twstat.getType()) {
+                        respond("wstat of type");
+                    } else if(~twstat.getDev()) {
+                        respond("wstat of dev");
+                    } else if(auto& theQid = twstat.getQid(); ~theQid.getType() || (ulong)~theQid.getVersion() || ~theQid.getPath()) {
+                        respond("wstat of qid");
+                    } else if(!twstat.getMuid().empty()) {
+                        respond("wstat of muid");
+                    } else if(~twstat.getMode() && ((twstat.getMode()&(uint32_t)(DMode::DIR))>>24) != (fid->getQid().getType()&uint8_t(QType::DIR))) {
+                        respond("wstat on DMDIR bit");
+                    } else if(!srv->wstat) {
                         respond(Enofunc);
-                        return;
+                    } else {
+                        srv->wstat(this);
                     }
-                    srv->flush(this);
-                }
-            } },
-        {FType::TCreate, 
-            [&p9conn, srv = p9conn.getSrv(), this]() {
-                if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
-                    respond(Enofid);
-                } else if (fid->getOmode() != -1) {
-                    respond(Eopen);
-                } else if(!(fid->getQid().getType()&uint8_t(QType::DIR))) {
-                    respond(Enotdir);
-                } else if(!p9conn.getSrv()->create) {
-                    respond(Enofunc);
-                } else {
-                    srv->create(this);
-                }
-            } },
-        { FType::TOpen, 
-            [&p9conn, srv = p9conn.getSrv(), this]() {
-                if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
-                    respond(Enofid);
-                } else if ((fid->getQid().getType()&uint8_t(QType::DIR)) && (getIFcall().getTopen().getMode()|uint8_t(OMode::RCLOSE)) != (uint8_t(OMode::READ)|uint8_t(OMode::RCLOSE))) {
-                    respond(Eisdir);
-                } else if (getOFcall().getRopen().setQid(fid->getQid()); !p9conn.getSrv()->open) {
-                    respond(Enofunc);
-                } else {
-                    srv->open(this);
-                }
-            } },
-        { FType::TRead, 
-            [&p9conn, srv = p9conn.getSrv(), this]() {
-                if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
-                    respond(Enofid);
-                } else if (auto omode = fid->getOmode(); omode == -1 || omode == uint8_t(OMode::WRITE)) {
-                    respond(Enoread);
-                } else if (!srv->read) {
-                    respond(Enofunc); 
-                } else {
-                    srv->read(this);
-                }
-            } },
-        { FType::TRemove, 
-            [&p9conn, srv = p9conn.getSrv(), this]() {
-                if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
-                    respond(Enofid);
-                } else if (!srv->remove) {
-                    respond(Enofunc);
-                } else {
-                    srv->remove(this);
-                }
-            } },
-        { FType::TStat, 
-            [&p9conn, srv = p9conn.getSrv(), this]() {
-                if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
-                    respond(Enofid);
-                } else if (!srv->stat) {
-                    respond(Enofunc);
-                } else {
-                    srv->stat(this);
-                }
-            } },
-        { FType::TWalk,
-            [&p9conn, srv = p9conn.getSrv(), this]() {
-                if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
-                    respond(Enofid);
-                    return;
-                }
-                if(fid->getOmode() != -1) {
-                    respond("cannot walk from an open fid");
-                    return;
-                }
-                auto& itwalk = getIFcall().getTwalk();
-                if(itwalk.size() && !(fid->getQid().getType()&uint8_t(QType::DIR))) {
-                    respond(Enotdir);
-                    return;
-                }
-                if((itwalk.getFid() != itwalk.getNewFid())) {
-                    if (newfid = createfid(p9conn.getFidMap(), itwalk.getNewFid(), p9conn); !newfid) {
-                        respond(Edupfid);
-                        return;
+                } else if constexpr (std::is_same_v<K, FVersion>) {
+                    switch (value.getType()) {
+                        case FType::TVersion:
+                            {
+                                static std::string str9p("9P");
+                                static std::string str9p2000("9P2000");
+                                static std::string strUnknown("unknown");
+                                auto& iversion = getIFcall().getVersion();
+                                std::string ver(iversion.getVersion());
+                                auto& oversion = getOFcall().getVersion();
+                                if (ver == str9p) {
+                                    oversion.setVersion(str9p.data());
+                                } else if(ver == str9p2000) {
+                                    oversion.setVersion(str9p2000.data());
+                                } else {
+                                    oversion.setVersion(strUnknown.data());
+                                }
+                                oversion.setSize(iversion.size());
+                                respond(nullptr);
+                            }
+                            break;
+                        default:
+                            respond(Enofunc);
+                            break;
                     }
-                } else {
-                    newfid = fid;
-                }
-                if(!srv->walk) {
-                    respond(Enofunc);
-                } else {
-                    srv->walk(this);
-                }
+                } else if constexpr (std::is_same_v<K, FAttach>) {
+                    switch (value.getType()) {
+                        case FType::TAttach: 
+                            {
+                                auto newfid = createfid(p9conn.getFidMap(), value.getFid(), p9conn);
+                                fid = newfid;
+                                if (!fid) {
+                                    respond(Edupfid);
+                                } else {
+                                    /* attach is a required function */
+                                    srv->attach(this);
+                                }
+                            }
+                            break;
+                        default:
+                            respond(Enofunc);
+                            break;
+                    }
+                } else if constexpr (std::is_same_v<K, FTFlush>) {
+                    if (oldreq = p9conn.retrieveTag(getIFcall().getTflush().getOldTag()); !oldreq) {
+                        respond(Enotag);
+                    } else {
+                        if(!srv->flush) {
+                            respond(Enofunc);
+                            return;
+                        }
+                        srv->flush(this);
+                    }
+        
+                } else if constexpr (std::is_same_v<K, FTCreate>) {
+                    switch (value.getType()) {
+                        case FType::TOpen:
+                            if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
+                                respond(Enofid);
+                            } else if ((fid->getQid().getType()&uint8_t(QType::DIR)) && (getIFcall().getTopen().getMode()|uint8_t(OMode::RCLOSE)) != (uint8_t(OMode::READ)|uint8_t(OMode::RCLOSE))) {
+                                respond(Eisdir);
+                            } else if (getOFcall().getRopen().setQid(fid->getQid()); !p9conn.getSrv()->open) {
+                                respond(Enofunc);
+                            } else {
+                                srv->open(this);
+                            }
+                            break;
+                        case FType::TCreate:
+                            if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
+                                respond(Enofid);
+                            } else if (fid->getOmode() != -1) {
+                                respond(Eopen);
+                            } else if(!(fid->getQid().getType()&uint8_t(QType::DIR))) {
+                                respond(Enotdir);
+                            } else if(!p9conn.getSrv()->create) {
+                                respond(Enofunc);
+                            } else {
+                                srv->create(this);
+                            }
+                            break;
+                        default:
+                            respond(Enofunc);
+                            break;
+                    }
 
-            } },
-        { FType::TWrite,
-            [&p9conn, srv = p9conn.getSrv(), this]() {
-                if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
-                    respond(Enofid);
-                } else if(auto omode = fid->getOmode(); (omode&3) != (uint8_t(OMode::WRITE)) && (omode&3) != (uint8_t(OMode::RDWR))) {
-                    respond("write on fid not opened for writing");
-                } else if(!srv->write) {
-                    respond(Enofunc);
+                } else if constexpr (std::is_same_v<K, FFullHeader>) {
+                    switch (value.getType()) {
+                        case FType::TStat:
+                            if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
+                                respond(Enofid);
+                            } else if (!srv->stat) {
+                                respond(Enofunc);
+                            } else {
+                                srv->stat(this);
+                            }
+                            break;
+                        case FType::TRemove:
+                            if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
+                                respond(Enofid);
+                            } else if (!srv->remove) {
+                                respond(Enofunc);
+                            } else {
+                                srv->remove(this);
+                            }
+                            break;
+                        case FType::TClunk:
+                            if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
+                                respond(Enofid);
+                            } else {
+                                if(!srv->clunk) {
+                                    respond(nullptr);
+                                    return;
+                                }
+                                srv->clunk(this);
+                            }
+                            break;
+                        default:
+                            respond(Enofunc);
+                            break;
+                    }
+
+                } else if constexpr (std::is_same_v<K, FIO>) {
+                    switch (value.getType()) {
+                        case FType::TWrite: 
+                            if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
+                                respond(Enofid);
+                            } else if(auto omode = fid->getOmode(); (omode&3) != (uint8_t(OMode::WRITE)) && (omode&3) != (uint8_t(OMode::RDWR))) {
+                                respond("write on fid not opened for writing");
+                            } else if(!srv->write) {
+                                respond(Enofunc);
+                            } else {
+                                srv->write(this);
+                            }
+                            break;
+                        case FType::TRead:
+                            if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
+                                respond(Enofid);
+                            } else if (auto omode = fid->getOmode(); omode == -1 || omode == uint8_t(OMode::WRITE)) {
+                                respond(Enoread);
+                            } else if (!srv->read) {
+                                respond(Enofunc); 
+                            } else {
+                                srv->read(this);
+                            }
+                            break;
+                        default:
+                            respond(Enofunc);
+                            break;
+                    }
+                } else if constexpr (std::is_same_v<K, FTWalk>) {
+                    if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
+                        respond(Enofid);
+                        return;
+                    }
+                    if(fid->getOmode() != -1) {
+                        respond("cannot walk from an open fid");
+                        return;
+                    }
+                    auto& itwalk = getIFcall().getTwalk();
+                    if(itwalk.size() && !(fid->getQid().getType()&uint8_t(QType::DIR))) {
+                        respond(Enotdir);
+                        return;
+                    }
+                    if((itwalk.getFid() != itwalk.getNewFid())) {
+                        if (newfid = createfid(p9conn.getFidMap(), itwalk.getNewFid(), p9conn); !newfid) {
+                            respond(Edupfid);
+                            return;
+                        }
+                    } else {
+                        newfid = fid;
+                    }
+                    if(!srv->walk) {
+                        respond(Enofunc);
+                    } else {
+                        srv->walk(this);
+                    }
                 } else {
-                    srv->write(this);
-                }
-            }
-        },
-        { FType::TWStat,
-            [&p9conn, srv = p9conn.getSrv(), this]() {
-                if (fid = p9conn.retrieveFid(getIFcall().getFid()); !fid) {
-                    respond(Enofid);
-                } else if(auto& twstat = getIFcall().getTwstat().getStat(); ~twstat.getType()) {
-                    respond("wstat of type");
-                } else if(~twstat.getDev()) {
-                    respond("wstat of dev");
-                } else if(auto& theQid = twstat.getQid(); ~theQid.getType() || (ulong)~theQid.getVersion() || ~theQid.getPath()) {
-                    respond("wstat of qid");
-                } else if(!twstat.getMuid().empty()) {
-                    respond("wstat of muid");
-                } else if(~twstat.getMode() && ((twstat.getMode()&(uint32_t)(DMode::DIR))>>24) != (fid->getQid().getType()&uint8_t(QType::DIR))) {
-                    respond("wstat on DMDIR bit");
-                } else if(!srv->wstat) {
                     respond(Enofunc);
-                } else {
-                    srv->wstat(this);
                 }
-            } },
-    };
+            });
+    /*
     if (auto ptr = dispatchTable.find(getIFcall().getType()); ptr == dispatchTable.end()) {
         respond(Enofunc);
     } else {
         ptr->second();
     }
+    */
 }
 
 /**

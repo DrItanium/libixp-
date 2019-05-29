@@ -301,7 +301,7 @@ namespace jyq {
         void packUnpack(Msg& msg);
         template<typename Visitor>
         constexpr decltype(auto) visit(Visitor&& v) {
-            return std::visit(std::forward(v), *_storage);
+            return std::visit(v, *_storage);
         }
     };
     using DoFcallFunc = std::function<std::shared_ptr<Fcall>(Fcall&)>;
