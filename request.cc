@@ -135,14 +135,15 @@ Req9::handle() {
                 static std::string str9p2000("9P2000");
                 static std::string strUnknown("unknown");
                 std::string ver(getIFcall().getVersion().getVersion());
+                auto& oversion = getOFcall().getVersion();
                 if (ver == str9p) {
-                    getOFcall().getVersion().setVersion(str9p.data());
+                    oversion.setVersion(str9p.data());
                 } else if(ver == str9p2000) {
-                    getOFcall().getVersion().setVersion(str9p2000.data());
+                    oversion.setVersion(str9p2000.data());
                 } else {
-                    getOFcall().getVersion().setVersion(strUnknown.data());
+                    oversion.setVersion(strUnknown.data());
                 }
-                getOFcall().getVersion().setSize(getIFcall().getVersion().size());
+                oversion.setSize(getIFcall().getVersion().size());
                 respond(nullptr);
             } },
         {FType::TAttach, 
