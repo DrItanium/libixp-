@@ -286,27 +286,27 @@ pending_respond(Req9 *req) {
 }
 
 void
-pending_write(Pending* pending, const std::string& dat) {
+Pending::write(const std::string& dat) {
     if (dat.empty()) {
         return;
     }
-    pending_write(pending, dat.c_str(), dat.length());
+    write(dat.c_str(), dat.length());
 }
 void
-pending_write(Pending *pending, const char *dat, long ndat) {
+Pending::write(const char *dat, long ndat) {
 	RequestLink req_link;
 
 	if(ndat == 0) {
 		return;
     }
 
-    if (!pending->req->getNext()) {
-        pending->req->setNext(pending->req);
-        pending->req->setPrevious(pending->req);
-        pending->fids->setPrevious(pending->fids);
-        pending->fids->setNext(pending->fids);
+    if (!this->req->getNext()) {
+        this->req->setNext(this->req);
+        this->req->setPrevious(this->req);
+        this->fids->setPrevious(this->fids);
+        this->fids->setNext(this->fids);
 	}
-    for (PendingLink pp = pending->fids->getNext(); pp != pending->fids; pp = pp->getNext()) {
+    for (PendingLink pp = this->fids->getNext(); pp != this->fids; pp = pp->getNext()) {
         std::string entry(dat, ndat);
         pp->getContents().queue.emplace_back(entry);
 	}
@@ -314,11 +314,11 @@ pending_write(Pending *pending, const char *dat, long ndat) {
     RequestLink reqLink = std::make_shared<RawRequestLink>();
     reqLink->setNext(reqLink);
     reqLink->setPrevious(reqLink);
-    if (pending->req->getNext() != pending->req) {
-        reqLink->setNext(pending->req->getNext());
-        reqLink->setPrevious(pending->req->getPrevious());
-        pending->req->setPrevious(pending->req);
-        pending->req->setNext(pending->req);
+    if (this->req->getNext() != this->req) {
+        reqLink->setNext(this->req->getNext());
+        reqLink->setPrevious(this->req->getPrevious());
+        this->req->setPrevious(this->req);
+        this->req->setNext(this->req);
 	}
     reqLink->getPrevious()->setNext(reqLink);
     reqLink->getNext()->setPrevious(reqLink);
@@ -328,42 +328,21 @@ pending_write(Pending *pending, const char *dat, long ndat) {
     }
 }
 
-int
-pending_vprint(Pending *pending, const char *fmt, va_list ap) {
-	auto dat = vsmprint(fmt, ap);
-	pending_write(pending, dat);
-	return dat.length();
-}
-int 
-pending_vprint(Pending* pending, const std::string& fmt, va_list ap) {
-    return pending_vprint(pending, fmt.c_str(), ap);
-}
-
-int
-pending_print(Pending *pending, const char *fmt, ...) {
-	va_list ap;
-	int res;
-
-	va_start(ap, fmt);
-	res = pending_vprint(pending, fmt, ap);
-	va_end(ap);
-	return res;
-}
 
 void
-pending_pushfid(Pending *pending, Fid *fid) {
+Pending::pushfid(Fid *fid) {
 
-    if (!pending->req->getNext()) {
+    if (!this->req->getNext()) {
 
-        RawRequestLink::circularLink(pending->req);
-        RawPendingLink::circularLink(pending->fids);
+        RawRequestLink::circularLink(this->req);
+        RawPendingLink::circularLink(this->fids);
 	}
 
     auto file = fid->unpackAux<FileId>();
     PendingLink pendLink = std::make_shared<RawPendingLink>();
     pendLink->getContents().fid = fid;
-    pendLink->getContents().pending = pending;
-    pendLink->setNext(pending->fids);
+    pendLink->getContents().pending = this;
+    pendLink->setNext(this->fids);
     pendLink->setPrevious(pendLink->getNext()->getPrevious());
     pendLink->getNext()->setPrevious(pendLink);
     pendLink->getPrevious()->setNext(pendLink);

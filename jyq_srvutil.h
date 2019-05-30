@@ -28,9 +28,25 @@ using RawRequestLink = DoubleLinkedListNode<RequestLinkBody>;
 using RequestLink = std::shared_ptr<RawRequestLink>;
 
 struct Pending {
-	/* Private members */
-	RequestLink	req;
-	PendingLink	fids;
+    void	pushfid(Fid*);
+    void	write(const char*, long);
+    void    write(const std::string&); 
+    template<typename ... Args>
+    void print(Args&& ... values) {
+        std::stringstream str;
+        jyq::print(str, std::forward(values)...);
+        auto result = str.str();
+        write(result);
+    }
+    template<typename ... Args>
+    void vprint(Args&& ... values) {
+        std::stringstream str;
+        jyq::print(str, std::forward(values)...);
+        auto result = str.str();
+        write(result);
+    }
+    RequestLink	req;
+    PendingLink	fids;
 };
 
 struct Dirtab {
@@ -58,13 +74,7 @@ constexpr auto FLHide = 1;
 
 bool	pending_clunk(Req9*);
 void	pending_flush(Req9*);
-int	pending_print(Pending*, const char*, ...);
-void	pending_pushfid(Pending*, Fid*);
 void	pending_respond(Req9*);
-int  pending_vprint(Pending*, const char*, va_list ap);
-int  pending_vprint(Pending*, const std::string&, va_list ap);
-void	pending_write(Pending*, const char*, long);
-void    pending_write(Pending*, const std::string&);
 FileId	srv_clonefiles(FileId&);
 void	srv_data2cstring(Req9*);
 void	srv_freefile(FileId&);
