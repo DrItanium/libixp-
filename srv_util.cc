@@ -13,7 +13,7 @@
 #include "jyq_srvutil.h"
 
 namespace jyq {
-static std::string  Enofile("file not found");
+static std::string Enofile("file not found");
 
 constexpr auto computeQIDValue(int64_t t, int64_t i) noexcept {
     return int64_t((t & 0xFF)<<32) | int64_t(i & 0xFFFF'FFFF);
@@ -29,7 +29,7 @@ constexpr auto computeQIDValue(int64_t t, int64_t i) noexcept {
  *	F<srv_clonefiles>, F<srv_freefile>
  */
 FileId
-srv_getfile(void) {
+srv_getfile() {
     FileId file = std::make_shared<RawFileId>();
     file->getContents().p = nullptr;
     file->getContents()._volatile = false;
