@@ -49,15 +49,12 @@ Server::settimer(long msecs, std::function<void(long, const std::any&)> fn, cons
      * This really needn't be threadsafe, as it has little use in
      * threaded programs, but it nonetheless is.
      */
-
     static long	lastid = 1;
 	Timer **tp;
-	Timer *t;
-	uint64_t time;
 
-	time = msec() + msecs;
+	auto time = msec() + msecs;
 
-    t = new Timer();
+    auto t = new Timer();
     auto locker = getLock();
     t->setId(lastid++);
     t->setMsec(time);

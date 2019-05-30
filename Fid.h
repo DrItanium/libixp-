@@ -36,14 +36,14 @@ namespace jyq {
             Fid(uint32_t fid, Conn9& c);
             ~Fid();
         public:
-            Conn9& getConn() noexcept { return _conn; }
-            const Conn9& getConn() const noexcept { return _conn; }
+            [[nodiscard]] Conn9& getConn() noexcept { return _conn; }
+            [[nodiscard]] const Conn9& getConn() const noexcept { return _conn; }
             constexpr auto getIoUnit() const noexcept { return _iounit; }
             void setIoUnit(uint value) noexcept { _iounit = value; }
             constexpr auto getOmode() const noexcept { return _omode; }
             void setOmode(signed char value) noexcept { _omode = value; }
-            Qid& getQid() noexcept { return _qid; }
-            const Qid& getQid() const noexcept { return _qid; }
+            [[nodiscard]] Qid& getQid() noexcept { return _qid; }
+            [[nodiscard]] const Qid& getQid() const noexcept { return _qid; }
             void setQid(const Qid& value) noexcept { _qid = value; }
             constexpr auto getId() const noexcept { return _fid; }
             void setId(uint32_t value) noexcept { _fid = value; }

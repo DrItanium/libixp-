@@ -9,9 +9,6 @@
 #include <stdexcept>
 #include "types.h"
 namespace jyq {
-    extern std::function<int(char*, int, const char*, va_list)> vsnprint;
-    extern std::function<std::string(const std::string&, va_list)> vsmprint;
-
     char*	errbuf();
     template<typename ... Args>
     void wErrorString(Args&& ... args) {
