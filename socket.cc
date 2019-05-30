@@ -318,8 +318,11 @@ Connection::CreatorRegistrar::CreatorRegistrar(const std::string& name, Action d
     Connection::registerCreator(name, dial, announce);
 }
 
+// the backslash versions are for gdb on my machine that automatically insert a backslash before the connection type in history
 static Connection::CreatorRegistrar unixConnection("unix", dial_unix, announce_unix);
+static Connection::CreatorRegistrar unixGdbConnection("\\unix", dial_unix, announce_unix);
 static Connection::CreatorRegistrar tcpConnection("tcp", dial_tcp, announce_tcp);
+static Connection::CreatorRegistrar tcpGdbConnection("\\tcp", dial_tcp, announce_tcp);
 static Connection::CreatorRegistrar debugConnection("debug", 
         [](const auto& address) {
             std::cout << "Dial address: " << address << std::endl;

@@ -22,11 +22,9 @@ namespace jyq {
 const std::string&
 _user() {
     static std::string user;
-	passwd *pw;
 
 	if(user.empty()) {
-		pw = getpwuid(getuid());
-		if(pw) {
+		if (auto pw = getpwuid(getuid()); pw) {
 			user = strdup(pw->pw_name);
         }
 	}
