@@ -64,7 +64,7 @@ struct FileIdBody {
 	uint		index;
 	Dirtab      tab;
 	uint		nref;
-	char		volatil;
+	bool		_volatile;
 };
 using RawFileId = SingleLinkedListNode<FileIdBody>;
 using FileId = std::shared_ptr<RawFileId>;

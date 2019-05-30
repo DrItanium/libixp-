@@ -62,7 +62,7 @@ namespace {
 
 void
 initfid(std::shared_ptr<CFid> f, Fcall *fcall, uint iounit) {
-    f->setOpen(1);
+    f->setOpen(true);
     f->setOffset(0);
     f->setIoUnit(iounit);
     f->setQid(fcall->getRopen().getQid());

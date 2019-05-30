@@ -32,7 +32,7 @@ FileId
 srv_getfile(void) {
     FileId file = std::make_shared<RawFileId>();
     file->getContents().p = nullptr;
-    file->getContents().volatil = 0;
+    file->getContents()._volatile = false;
     file->getContents().nref = 1;
     file->setNext(nullptr);
     file->getContents().pending = false;
@@ -436,7 +436,7 @@ srv_verifyfile(FileId& file, LookupFn lookup) {
 	auto ret = false;
 	if(auto next = file->getNext(); srv_verifyfile(next, lookup)) {
 		if (auto tfile = lookup(file->getNext(), file->getContents().tab.name); tfile) {
-            if (!tfile->getContents().volatil || tfile->getContents().p == file->getContents().p) {
+            if (!tfile->getContents()._volatile || tfile->getContents().p == file->getContents().p) {
                 ret = true;
             }
 			srv_freefile(tfile);
