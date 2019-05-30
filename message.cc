@@ -63,11 +63,9 @@ Msg::Msg() : Parent(0), _data(nullptr), _pos(nullptr), _end(nullptr), _mode(Mode
  * See also:
  *	S<Fcall>, S<Stat>
  */
-Stat::~Stat() {
-}
+Stat::~Stat() { }
 
-Fcall::~Fcall() {
-}
+Fcall::~Fcall() { }
 
 void
 FRStat::purgeStat() noexcept {

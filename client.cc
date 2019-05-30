@@ -73,7 +73,6 @@ _stat(ulong fid, std::function<std::shared_ptr<Fcall>(Fcall&)> dofcall) {
     if (auto result = dofcall(fcall); !result) {
         return nullptr;
     } else {
-
         char* buf = new char[result->getRstat().getStat().size()];
         for (auto i = 0; i < result->getRstat().getStat().size(); ++i) {
             buf[i] = result->getRstat().getStat()[i];
@@ -163,7 +162,12 @@ Client::dofcall(Fcall& fcall) {
     return ret;
 }
 std::shared_ptr<CFid>
-Client::walkdir(char *path, const char **rest) {
+Client::walkdir(const std::string& path) {
+    if (auto firstSlashLoc = path.find_first_of('/'); firstSlashLoc == std::string::npos) {
+        throw Exception("bad path!");
+    } else {
+        // TODO: hmmmm....
+    }
     // TODO: replace with std::filesystem::path iterator, much better
 	char* p = path + strlen(path) - 1;
     if (p < path) {
@@ -381,10 +385,9 @@ Client::nsmount(const char *name) {
  */
 
 std::shared_ptr<CFid>
-Client::create(const char *path, uint perm, uint8_t mode) {
+Client::create(const std::string& path, uint perm, uint8_t mode) {
 
-    std::string tpath(path);
-    if (auto f = walkdir(tpath.data(), &path); !f) {
+    if (auto f = walkdir(path); !f) {
         return f;
     } else {
         Fcall fcall(FType::TCreate, f->getFid());

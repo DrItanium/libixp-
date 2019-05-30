@@ -60,11 +60,10 @@ namespace jyq {
             int		_maxtag;
         public:
             bool remove(const char*);
-            std::shared_ptr<CFid> create(const char*, uint perm, uint8_t mode);
+            std::shared_ptr<CFid> create(const std::string&, uint perm, uint8_t mode);
             std::shared_ptr<CFid> open(const char*, uint8_t);
             std::shared_ptr<Stat> stat(const char*);
             bool remove(const std::string& str) noexcept { return remove(str.c_str()); }
-            auto create(const std::string& str, uint perm, uint8_t mode) { return create(str.c_str(), perm, mode); }
             auto create(const std::string& str, uint perm, OMode mode) { return create(str.c_str(), perm, uint8_t(mode)); }
             auto create(const char* str, uint perm, OMode mode) { return create(str, perm, uint8_t(mode)); }
             auto open(const std::string& str, uint8_t val) { return open(str.c_str(), val); }
@@ -74,7 +73,8 @@ namespace jyq {
             std::shared_ptr<Fcall> muxrpc(Fcall& tx);
             std::shared_ptr<CFid> getFid();
             std::shared_ptr<CFid> walk(const std::string&);
-            std::shared_ptr<CFid> walkdir(char *path, const char **rest);
+            //std::shared_ptr<CFid> walkdir(char *path, const char **rest);
+            std::shared_ptr<CFid> walkdir(const std::string& path);
             std::shared_ptr<Fcall> dofcall(Fcall& fcall);
             void enqueue(Rpc&);
             void dequeue(Rpc&);
