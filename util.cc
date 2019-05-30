@@ -50,27 +50,25 @@ rmkdir(const std::string& path, int mode) {
 
 static std::string
 ns_display() {
-	struct stat st;
-    std::string displayVariable;
     std::string newPath;
 
 	if (auto disp = std::getenv("DISPLAY"); !disp || disp[0] == '\0') {
         wErrorString("$DISPLAY is unset");
         return "";
 	} else {
-        displayVariable = disp;
+        std::string displayVariable(disp);
         if (auto subComponent = displayVariable.substr(displayVariable.length() - 2); 
                 (displayVariable != subComponent) && 
                 (!std::strcmp(subComponent.c_str(), ".0"))) {
             // TODO strcmp must be replaced!
             displayVariable = displayVariable.substr(0, displayVariable.length() - 2);
         }
-        newPath = smprint("/tmp/ns.", _user(), ".", disp);
+        newPath = smprint("/tmp/ns.", _user(), ".", displayVariable);
     }
 
 	if(!rmkdir(newPath.c_str(), 0700)) {
 
-    } else if(stat(newPath.c_str(), &st)) {
+    } else if(struct stat st; stat(newPath.c_str(), &st)) {
         wErrorString("Can't stat Namespace path '", newPath, "': ", errbuf());
     } else if(getuid() != st.st_uid) {
         wErrorString("Namespace path '", newPath, "' exists but is not owned by you");
