@@ -33,6 +33,9 @@ namespace jyq {
         public:
             Server&	srv;
         private:
+            void cleanup();
+            void handleFcall();
+        private:
             Func _read, _close;
             bool _closed = false;
             Connection _fd;

@@ -129,7 +129,7 @@ Server::serverloop() {
     setIsRunning();
 	while(isRunning()) {
 		timeval* tvp = nullptr;
-		if (long timeout = nexttimer(); timeout > 0) {
+		if (auto timeout = nexttimer(); timeout > 0) {
 			tv.tv_sec = timeout/1000;
 			tv.tv_usec = timeout%1000 * 1000;
 			tvp = &tv;

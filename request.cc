@@ -76,25 +76,21 @@ Fid::~Fid() {
     }
     decref_p9conn(&this->getConn()); // this should not be done like this
 }
-static bool 
-destroyfid(Conn9& p9conn, ulong fid) {
-    return p9conn.removeFid(fid);
-}
 
-static void
-handlefcall(Conn *c) {
+void
+Conn::handleFcall() {
 	Fcall fcall;
 
-    auto p9conn = c->unpackAux<Conn9*>();
+    auto p9conn = this->unpackAux<Conn9*>();
     auto rlock = p9conn->getReadLock();
-    if (c->recvmsg(p9conn->getRMsg()) == 0) {
+    if (this->recvmsg(p9conn->getRMsg()) == 0) {
         rlock.unlock();
-        hangup(c);
+        // hangup(this); // NOPE!
         return;
     }
     if (p9conn->getRMsg().unpack(fcall) == 0) {
         rlock.unlock();
-        hangup(c);
+        // hangup(this); // NOPE!
         return;
     }
     rlock.unlock();
@@ -104,7 +100,7 @@ handlefcall(Conn *c) {
     req.setConn(p9conn);
 	req.srv = p9conn->getSrv();
     req.setIFcall(fcall);
-    p9conn->setConn(c);
+    p9conn->setConn(this);
 
     if (auto result = p9conn->getTagMap().emplace(fcall.getTag(), req); result.second) {
         result.first->second.handle();
@@ -365,7 +361,7 @@ Req9::respond(const char *error) {
                 getOFcall().getVersion().setSize(msize);
             } else if constexpr (std::is_same_v<K, FAttach>) {
                 if(error) {
-                    destroyfid(*p9conn, fid->getId());
+                    p9conn->removeFid(fid->getId());
                 }
                 value.reset();
             } else if constexpr (std::is_same_v<K, FTCreate>) {
@@ -379,7 +375,7 @@ Req9::respond(const char *error) {
             } else if constexpr (std::is_same_v<K, FTWalk>) {
                 if(error || getOFcall().getRwalk().size() < value.size()) {
                     if(value.getFid() != value.getNewFid() && newfid) {
-                        destroyfid(*p9conn, newfid->getId());
+                        p9conn->removeFid(newfid->getId());
                     }
                     if(!error && getOFcall().getRwalk().empty()) {
                         error = Enofile.c_str();
@@ -406,7 +402,7 @@ Req9::respond(const char *error) {
                     case FType::TRemove:
                     case FType::TClunk:
                         if (fid) {
-                            destroyfid(*p9conn, fid->getId());
+                            p9conn->removeFid(fid->getId());
                         }
                         break;
                     case FType::TStat:
@@ -447,7 +443,8 @@ Req9::respond(const char *error) {
         auto theLock = p9conn->getWriteLock();
         auto msize = p9conn->getWMsg().pack(getOFcall());
         if (p9conn->sendmsg() != msize) {
-			hangup(p9conn->getConn());
+			//hangup(p9conn->getConn());
+            //hmmm, how to describe that we did a hangup?
         }
 	}
     getOFcall().visit([](auto&& value) {
@@ -465,10 +462,10 @@ Req9::respond(const char *error) {
 	decref_p9conn(p9conn);
 }
 
-static void
-cleanupconn(Conn *c) {
+void
+Conn::cleanup() {
     using ReqList = std::list<Req9>;
-    auto p9conn = c->unpackAux<Conn9*>();
+    auto p9conn = this->unpackAux<Conn9*>();
     p9conn->setConn(nullptr);
     ReqList collection;
     if (p9conn->referenceCountGreaterThan(1)) {
@@ -532,7 +529,7 @@ Conn::serve9conn() {
         ++p9conn;
         p9conn.setSrv(unpackAux<Srv9*>());
         p9conn.alloc(1024);
-        srv.listen(fd, &p9conn, handlefcall, cleanupconn);
+        srv.listen(fd, &p9conn, &Conn::handleFcall, &Conn::cleanup);
     }
 }
 
