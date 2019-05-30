@@ -41,6 +41,5 @@ namespace jyq {
             Connection _fd;
 
     };
-    void	hangup(Conn*);
 } // end namespace jyq
 #endif // end LIBJYQ_CONN_H__

@@ -101,10 +101,6 @@ Server::handleConns() {
     }
 }
 
-void
-hangup(Conn *c) {
-    delete c;
-}
 
 /**
  * Function: serverloop
