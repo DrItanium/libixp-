@@ -348,10 +348,10 @@ Req9::respond(const char *error) {
 
 	auto p9conn = _conn;
     getIFcall().visit([this, &error, &p9conn](auto&& value) {
-            int msize = 0;
             using K = std::decay_t<decltype(value)>;
             // Still to be implemented: auth 
             if constexpr (std::is_same_v<K, FVersion>) {
+                int msize = 0;
                 if (error) {
                     throw Exception("error is defined!");
                 }

@@ -114,21 +114,6 @@ getNamespace() {
 	return _namespace;
 }
 
-/**
- * Function: erealloc
- * Function: estrdup
- *
- * These functions act like their stdlib counterparts, but print
- * an error message and exit the program if allocation fails.
- */
-void*
-erealloc(void *ptr, uint size) {
-	if (void *ret = realloc(ptr, size); !ret) {
-        throw Exception("libjyq: fatal: Could not realloc() ", size, " bytes\n");
-    } else {
-        return ret;
-    }
-}
 
 std::list<std::string>
 tokenize(const std::string& input, char delim) {

@@ -6,7 +6,6 @@
 #include <string>
 #include "jyq.h"
 namespace jyq {
-struct Dirtab;
 struct Pending;
 using Queue = std::list<std::string>;
 using FileIdU = void*;

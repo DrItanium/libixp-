@@ -21,8 +21,8 @@ namespace jyq {
         public:
             static Client* mount(const char*);
             static Client* mountfd(int fd) { return mountfd(Connection(fd)); }
-            static Client*  mountfd(const Connection& c);
-            static Client*	nsmount(const char*);
+            static Client* mountfd(const Connection& c);
+            static Client* nsmount(const char*);
 
             static Client* mount(const std::string& str) { return mount(str.c_str()); }
             static Client* nsmount(const std::string& str) { return nsmount(str.c_str()); }

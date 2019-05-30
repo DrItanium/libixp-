@@ -10,7 +10,6 @@
 #include "types.h"
 
 namespace jyq {
-    void*	erealloc(void*, uint);
     std::string getNamespace();
     template<typename ... Args>
     std::string smprint(Args&& ... args) {
