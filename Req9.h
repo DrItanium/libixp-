@@ -36,11 +36,13 @@ namespace jyq {
         auto getSrv() noexcept { return _srv; }
         void setFid(Fid* value) noexcept { _fid = value; }
         auto getFid() noexcept { return _fid; }
+        void setNewFid(Fid* value) noexcept { _newfid= value; }
+        auto getNewFid() noexcept { return _newfid; }
         private:
             Srv9*	_srv;
             Fid*	_fid;    /* Fid structure corresponding to FHdr.fid */
+            Fid*	_newfid; /* Corresponds to FTWStat.newfid */
         public:
-            Fid*	newfid; /* Corresponds to FTWStat.newfid */
             Req9*	oldreq; /* For TFlush requests, the original request. */
         private:
             Fcall	_ifcall; /* The incoming request fcall. */

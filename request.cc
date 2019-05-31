@@ -298,12 +298,12 @@ Req9::handle() {
                         return;
                     }
                     if((itwalk.getFid() != itwalk.getNewFid())) {
-                        if (newfid = createfid(_conn->getFidMap(), itwalk.getNewFid(), _conn); !newfid) {
+                        if (_newfid = createfid(_conn->getFidMap(), itwalk.getNewFid(), _conn); !_newfid) {
                             respond(Edupfid);
                             return;
                         }
                     } else {
-                        newfid = _fid;
+                        _newfid = _fid;
                     }
                     if(!srv->walk) {
                         respond(Enofunc);
@@ -364,17 +364,17 @@ Req9::respond(const char *error) {
                 value.reset();
             } else if constexpr (std::is_same_v<K, FTWalk>) {
                 if(error || getOFcall().getRwalk().size() < value.size()) {
-                    if(value.getFid() != value.getNewFid() && newfid) {
-                        p9conn->removeFid(newfid->getId());
+                    if(value.getFid() != value.getNewFid() && _newfid) {
+                        p9conn->removeFid(_newfid->getId());
                     }
                     if(!error && getOFcall().getRwalk().empty()) {
                         error = Enofile.c_str();
                     }
                 }else{
                     if (getOFcall().getRwalk().empty()) {
-                        newfid->setQid(_fid->getQid());
+                        _newfid->setQid(_fid->getQid());
                     } else {
-                        newfid->setQid(getOFcall().getRwalk().getWqid()[getOFcall().getRwalk().size()-1]);
+                        _newfid->setQid(getOFcall().getRwalk().getWqid()[getOFcall().getRwalk().size()-1]);
                     }
                 }
                 value.getWname().fill("");

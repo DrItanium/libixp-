@@ -534,7 +534,7 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
 			srv_freefile(file);
 		}
 	} else {
-        req->newfid->setAux(file);
+        req->getNewFid()->setAux(file);
     }
     req->getOFcall().getRwalk().setSize(i);
     req->respond(nullptr);
