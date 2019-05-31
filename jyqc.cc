@@ -46,7 +46,7 @@ write_data(std::shared_ptr<jyq::CFid> fid, char *name) {
 }
 
 std::string
-str_of_mode(uint mode) {
+modeToString(uint mode) {
     static std::vector<std::string> modes = {
 		"---", "--x", "-w-",
 		"-wx", "r--", "r-x",
@@ -63,7 +63,7 @@ str_of_mode(uint mode) {
 }
 
 std::string
-str_of_time(uint val) {
+timeToString(uint val) {
 	static char buf[32];
 	ctime_r((time_t*)&val, buf);
 	buf[strlen(buf) - 1] = '\0';
@@ -71,11 +71,11 @@ str_of_time(uint val) {
 }
 
 void
-printStat(std::shared_ptr<jyq::Stat> s, int details) {
+printStat(std::shared_ptr<jyq::Stat> s, bool details) {
 	if(details) {
-        jyq::print(std::cout, str_of_mode(s->getMode()), " ", 
+        jyq::print(std::cout, modeToString(s->getMode()), " ", 
                 s->getUid(), " ", s->getGid(), " ", s->getLength(), " ", 
-                str_of_time(s->getMtime()), " ", s->getName(), "\n");
+                timeToString(s->getMtime()), " ", s->getName(), "\n");
     } else {
 		if((s->getMode()&(uint32_t)jyq::DMode::DIR) && (s->getName() != "/")) {
             jyq::print(std::cout, s->getName(), "/\n");
@@ -100,7 +100,6 @@ xappend(int argc, char *argv[]) {
     } else {
         auto stat = client->stat(file);
         fid->setOffset(stat->getLength());
-        //jyq::Stat::free(stat.get());
         write_data(fid, file);
         return 0;
     }
@@ -114,13 +113,12 @@ xwrite(int argc, char *argv[]) {
 	}ARGEND;
 
 	auto file = EARGF(usage());
-    auto fid = client->open(file, jyq::OMode::WRITE);
-    if (!fid) {
+    if (auto fid = client->open(file, jyq::OMode::WRITE); !fid) {
         throw jyq::Exception("Can't open file '", file, "'");
+    } else {
+        write_data(fid, file);
+        return 0;
     }
-
-	write_data(fid, file);
-	return 0;
 }
 
 int
