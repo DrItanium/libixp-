@@ -66,16 +66,22 @@ modeToString(uint mode) {
 
 std::string
 timeToString(uint val) {
-    auto tt = (time_t*)&val;
-    auto tp = std::chrono::system_clock::from_time_t(*tt);
-    auto result = std::chrono::system_clock::to_time_t(tp);
+    std::chrono::system_clock::duration dur(val);
+    std::cout << "dur.count() = " << dur.count() << std::endl;;
+    std::chrono::system_clock::time_point tp(dur);
+    std::cout << "tp.epoch.count() = " << tp.time_since_epoch().count() << std::endl;
+    auto tt = std::chrono::system_clock::to_time_t(tp);
+    std::cout << std::asctime(std::localtime(&tt)) << std::endl;
     std::stringstream ss;
+    ss << val << std::put_time(std::localtime(&tt), "%c %Z");
+    return ss.str();
+
 #if 0
     ss << std::put_time(std::localtime(&result), "%c %Z");
-#endif
     ss << val;
     auto str = ss.str();
     return str;
+#endif
 }
 
 void
