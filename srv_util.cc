@@ -8,9 +8,7 @@
 #include <cstring>
 #include <ctime>
 #include <unistd.h>
-#include "Msg.h"
-#include "jyq.h"
-#include "jyq_srvutil.h"
+#include "jyq_util.h"
 
 namespace jyq {
 static std::string Enofile("file not found");

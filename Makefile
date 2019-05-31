@@ -68,14 +68,14 @@ client.o: client.cc Client.h types.h Msg.h qid.h stat.h Fcall.h Rpc.h \
  socket.h CFid.h util.h PrintFunctions.h
 convert.o: convert.cc qid.h types.h Msg.h stat.h jyq.h PrintFunctions.h \
  Srv9.h Conn9.h Fcall.h map.h Conn.h socket.h Fid.h Req9.h util.h \
- Client.h Rpc.h CFid.h
+ Client.h Rpc.h CFid.h argv.h Server.h timer.h
 error.o: error.cc types.h PrintFunctions.h
 jyqc.o: jyqc.cc jyq.h types.h PrintFunctions.h Srv9.h Conn9.h qid.h \
  Fcall.h stat.h Msg.h map.h Conn.h socket.h Fid.h Req9.h util.h Client.h \
- Rpc.h CFid.h argv.h
+ Rpc.h CFid.h argv.h Server.h timer.h
 message.o: message.cc Msg.h types.h qid.h stat.h jyq.h PrintFunctions.h \
  Srv9.h Conn9.h Fcall.h map.h Conn.h socket.h Fid.h Req9.h util.h \
- Client.h Rpc.h CFid.h argv.h
+ Client.h Rpc.h CFid.h argv.h Server.h timer.h
 request.o: request.cc Msg.h types.h qid.h stat.h jyq.h PrintFunctions.h \
  Srv9.h Conn9.h Fcall.h map.h Conn.h socket.h Fid.h Req9.h util.h \
  Client.h Rpc.h CFid.h argv.h Server.h timer.h
@@ -85,14 +85,14 @@ server.o: server.cc Msg.h types.h qid.h stat.h Server.h Conn.h socket.h \
  timer.h Fcall.h
 socket.o: socket.cc Msg.h types.h qid.h stat.h jyq.h PrintFunctions.h \
  Srv9.h Conn9.h Fcall.h map.h Conn.h socket.h Fid.h Req9.h util.h \
- Client.h Rpc.h CFid.h
-srv_util.o: srv_util.cc Msg.h types.h qid.h stat.h jyq.h PrintFunctions.h \
- Srv9.h Conn9.h Fcall.h map.h Conn.h socket.h Fid.h Req9.h util.h \
- Client.h Rpc.h CFid.h jyq_srvutil.h
+ Client.h Rpc.h CFid.h argv.h Server.h timer.h
+srv_util.o: srv_util.cc jyq_util.h jyq.h types.h PrintFunctions.h Srv9.h \
+ Conn9.h qid.h Fcall.h stat.h Msg.h map.h Conn.h socket.h Fid.h Req9.h \
+ util.h Client.h Rpc.h CFid.h argv.h Server.h timer.h
 timer.o: timer.cc Msg.h types.h qid.h stat.h jyq.h PrintFunctions.h \
  Srv9.h Conn9.h Fcall.h map.h Conn.h socket.h Fid.h Req9.h util.h \
- Client.h Rpc.h CFid.h timer.h Server.h
+ Client.h Rpc.h CFid.h argv.h Server.h timer.h
 transport.o: transport.cc Msg.h types.h qid.h stat.h jyq.h \
  PrintFunctions.h Srv9.h Conn9.h Fcall.h map.h Conn.h socket.h Fid.h \
- Req9.h util.h Client.h Rpc.h CFid.h
+ Req9.h util.h Client.h Rpc.h CFid.h argv.h Server.h timer.h
 util.o: util.cc PrintFunctions.h types.h util.h argv.h
