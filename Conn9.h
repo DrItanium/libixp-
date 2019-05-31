@@ -56,6 +56,7 @@ struct Conn9 {
                 _fidmap.exec<T>(op, context);
             }
 
+#if 0
         /**
          * Increment the reference count
          */
@@ -70,6 +71,7 @@ struct Conn9 {
             decrementReferenceCount();
             return *this;
         }
+#endif
         uint sendmsg() { return getConn()->sendmsg(_wmsg); }
         uint recvmsg() { return getConn()->recvmsg(_rmsg); }
     private:

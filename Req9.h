@@ -26,8 +26,8 @@ namespace jyq {
         const Fcall& getOFcall() const noexcept { return _ofcall; }
         void setIFcall(const Fcall& value) { _ifcall = value; }
         void setOFcall(const Fcall& value) { _ofcall = value; }
-        Conn9* getConn() noexcept { return _conn; }
-        void setConn(Conn9* value) noexcept { _conn = value; }
+        std::shared_ptr<Conn9> getConn() noexcept { return _conn; }
+        void setConn(std::shared_ptr<Conn9> value) noexcept { _conn = value; }
         // methods
         void respond(const char *err);
         inline void respond(const std::string& err) { respond(err.c_str()); }
@@ -40,7 +40,7 @@ namespace jyq {
         private:
             Fcall	_ifcall; /* The incoming request fcall. */
             Fcall	_ofcall; /* The response fcall, to be filled by handler. */
-            Conn9*  _conn;
+            std::shared_ptr<Conn9>  _conn;
 
 
     };

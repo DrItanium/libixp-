@@ -33,11 +33,11 @@ namespace jyq {
     struct Fid : public HasAux {
         public:
             using Map = jyq::Map<int, Fid>;
-            Fid(uint32_t fid, Conn9& c);
+            Fid(uint32_t fid, std::shared_ptr<Conn9> c);
             ~Fid();
         public:
-            [[nodiscard]] Conn9& getConn() noexcept { return _conn; }
-            [[nodiscard]] const Conn9& getConn() const noexcept { return _conn; }
+            [[nodiscard]] auto getConn() noexcept { return _conn; }
+            [[nodiscard]] const auto& getConn() const noexcept { return _conn; }
             constexpr auto getIoUnit() const noexcept { return _iounit; }
             void setIoUnit(uint value) noexcept { _iounit = value; }
             constexpr auto getOmode() const noexcept { return _omode; }
@@ -55,7 +55,7 @@ namespace jyq {
             Qid		_qid;    /* The filesystem-unique QID of the file. */
             signed char	_omode;  /* The open mode of the file. */
             uint		_iounit; /* The maximum size of any IO request. */
-            Conn9& _conn;
+            std::shared_ptr<Conn9> _conn;
     };
 } // end namespace jyq
 #endif // end LIBJYQ_FID_H__
