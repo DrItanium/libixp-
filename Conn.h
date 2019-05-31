@@ -29,13 +29,14 @@ namespace jyq {
         void setClosed(bool value = true) noexcept { _closed = value; }
         uint recvmsg(Msg& msg) { return getConnection().recvmsg(msg); }
         uint sendmsg(Msg& msg) { return getConnection().sendmsg(msg); }
+        const auto& getServer() const noexcept { return _srv; }
+        auto& getServer() noexcept { return _srv; }
 
-        public:
-            Server&	srv;
         private:
             void cleanup();
             void handleFcall();
         private:
+            Server&	_srv;
             Func _read, _close;
             bool _closed = false;
             Connection _fd;

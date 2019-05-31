@@ -516,7 +516,7 @@ Conn::serve9conn() {
         //++p9conn;
         p9conn->setSrv(unpackAux<Srv9*>());
         p9conn->alloc(1024);
-        srv.listen(fd, p9conn, &Conn::handleFcall, &Conn::cleanup);
+        _srv.listen(fd, p9conn, &Conn::handleFcall, &Conn::cleanup);
     }
 }
 

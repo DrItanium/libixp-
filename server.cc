@@ -16,7 +16,7 @@
 
 namespace jyq {
 Conn::Conn(Server& s, int theFd, std::any a, Conn::Func r, Conn::Func c) : HasAux(a),
-    srv(s), _read(r), _close(c), _closed(false), _fd(theFd) { }
+    _srv(s), _read(r), _close(c), _closed(false), _fd(theFd) { }
 /**
  * Function: listen
  * Type: Conn
