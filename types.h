@@ -253,6 +253,14 @@ namespace jyq {
     using RWLock = std::shared_mutex;
     using Lock = std::unique_lock<Mutex>;
 
+    template<typename ... Args>
+    void wErrorString(Args&& ... args) {
+        std::ostringstream ss;
+        print(ss, args...);
+        auto str = ss.str();
+        throw Exception(str);
+    }
+
 } // end namespace jyq
 
 #endif // end LIBJYQ_TYPES_H__

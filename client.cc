@@ -12,7 +12,6 @@
 #include "Client.h"
 #include "CFid.h"
 #include "util.h"
-#include "PrintFunctions.h"
 #include "socket.h"
 
 namespace jyq {

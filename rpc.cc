@@ -10,7 +10,6 @@
 #include "Client.h"
 #include "socket.h"
 #include "util.h"
-#include "PrintFunctions.h"
 
 namespace jyq {
 RpcBody::RpcBody() : _tag(0), _p(nullptr), _waiting(true), _async(false) { }
