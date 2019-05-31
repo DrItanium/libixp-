@@ -463,10 +463,10 @@ Req9::respond(const char *error) {
 void
 Conn::cleanup() {
     using ReqList = std::list<Req9>;
-    auto p9conn = this->unpackAux<Conn9*>();
+    auto p9conn = this->unpackAux<std::shared_ptr<Conn9>>();
     p9conn->setConn(nullptr);
     ReqList collection;
-    if (p9conn->referenceCountGreaterThan(1)) {
+    if (p9conn.use_count() > 1) {
         p9conn->fidExec<ReqList&>([](auto context, Fid::Map::iterator arg) {
                 //++arg->second.getConn();
                 context.emplace_back();
@@ -488,7 +488,6 @@ Conn::cleanup() {
     for (auto& req : collection) {
         req.handle();
     }
-	decref_p9conn(p9conn);
 }
 
 /* Handle incoming 9P connections */

@@ -38,11 +38,6 @@ struct Conn9 {
         [[nodiscard]] Lock getReadLock() { return Lock(_rlock); }
         [[nodiscard]] Lock getWriteLock() { return Lock(_wlock); }
         void alloc(uint n);
-        constexpr auto getReferenceCount() const noexcept { return _ref; }
-        constexpr auto referenceCountGreaterThan(int count) const noexcept { return _ref > count; }
-        constexpr auto referenceCountIs(int count) const noexcept { return _ref == count; }
-        void incrementReferenceCount() noexcept { ++_ref; }
-        void decrementReferenceCount() noexcept { --_ref; }
         Req9* retrieveTag(uint16_t id);
         Fid* retrieveFid(int id);
         bool removeTag(uint16_t id);
@@ -56,22 +51,6 @@ struct Conn9 {
                 _fidmap.exec<T>(op, context);
             }
 
-#if 0
-        /**
-         * Increment the reference count
-         */
-        Conn9& operator++() {
-            incrementReferenceCount();
-            return *this;
-        }
-        /**
-         * decrement the reference count
-         */
-        Conn9& operator--() {
-            decrementReferenceCount();
-            return *this;
-        }
-#endif
         uint sendmsg() { return getConn()->sendmsg(_wmsg); }
         uint recvmsg() { return getConn()->recvmsg(_rmsg); }
     private:
@@ -83,7 +62,6 @@ struct Conn9 {
         mutable Mutex	_wlock;
         Msg		_rmsg;
         Msg		_wmsg;
-        int _ref;
 };
 } // end namespace jyq
 #endif // end LIBJYQ_CONN9_H__
