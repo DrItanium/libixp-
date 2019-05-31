@@ -32,9 +32,14 @@ namespace jyq {
         void respond(const char *err);
         inline void respond(const std::string& err) { respond(err.c_str()); }
         void handle();
+        void setSrv(Srv9* value) noexcept { _srv = value; }
+        auto getSrv() noexcept { return _srv; }
+        void setFid(Fid* value) noexcept { _fid = value; }
+        auto getFid() noexcept { return _fid; }
+        private:
+            Srv9*	_srv;
+            Fid*	_fid;    /* Fid structure corresponding to FHdr.fid */
         public:
-            Srv9*	srv;
-            Fid*	fid;    /* Fid structure corresponding to FHdr.fid */
             Fid*	newfid; /* Corresponds to FTWStat.newfid */
             Req9*	oldreq; /* For TFlush requests, the original request. */
         private:
