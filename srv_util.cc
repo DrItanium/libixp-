@@ -50,6 +50,7 @@ srv_getfile() {
  */
 void
 srv_freefile(FileId *) {
+    // this function is irrelevant now
 }
 
 /**
@@ -97,9 +98,9 @@ srv_clonefiles(FileId& fileid) {
  *	of the most recent write.
  */
 
-#if 0
 void
 srv_readbuf(Req9 *req, char *buf, uint len) {
+#if 0
 	if(req->getIFcall().getIO().getOffset() >= len)
 		return;
 
@@ -109,10 +110,12 @@ srv_readbuf(Req9 *req, char *buf, uint len) {
     req->getOFcall().getIO().setData(new char[len]);
 	memcpy(req->getOFcall().getIO().getData(), buf + req->getIFcall().getIO().getOffset(), len);
 	req->getOFcall().getIO().setSize(len);
+#endif
 }
 
 void
 srv_writebuf(Req9 *req, char **buf, uint *len, uint max) {
+#if 0
 	char *p;
 	uint offset, count;
 
@@ -140,8 +143,8 @@ srv_writebuf(Req9 *req, char **buf, uint *len, uint max) {
 	memcpy(p+offset, req->getIFcall().getIO().getData(), count);
 	req->getOFcall().getIO().setSize(count);
 	p[offset+count] = '\0';
-}
 #endif
+}
 
 /**
  * Function: srv_data2cstring
@@ -154,7 +157,8 @@ srv_writebuf(Req9 *req, char **buf, uint *len, uint max) {
  */
 void
 srv_data2cstring(Req9 *req) {
-    // TODO reimplement
+    // I believe this function is irrelevant now since the data in fio is already 
+    // a std::string
 #if 0
     uint i = req->getIFcall().getIO().size();
 	auto p = req->getIFcall().getIO().getData();
@@ -186,11 +190,11 @@ srv_data2cstring(Req9 *req) {
  */
 char*
 srv_writectl(Req9 *req, std::function<char*(void*, Msg*)> fn) {
-    auto file = req->fid->unpackAux<FileId>();
-
-	srv_data2cstring(req);
-    auto s = req->getIFcall().getIO().getData();
     // TODO reimplement this
+    //auto file = req->fid->unpackAux<FileId>();
+
+	//srv_data2cstring(req);
+    //auto s = req->getIFcall().getIO().getData();
 	char* err = nullptr;
 #if 0
 	auto c = *s;

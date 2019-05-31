@@ -84,7 +84,7 @@ bool	srv_verifyfile(FileId&, LookupFn);
 void	srv_walkandclone(Req9*, LookupFn);
 void	srv_writebuf(Req9*, char**, uint*, uint);
 char*	srv_writectl(Req9*, std::function<char*(void*, Msg*)>);
-FileId srv_getfile(void);
+FileId srv_getfile();
 
 } // end namespace jyq
 #endif
