@@ -35,17 +35,14 @@ usage(int errorCode = 1) {
 void
 write_data(std::shared_ptr<jyq::CFid> fid, char *name) {
 	long len = 0;
-
-    auto buf = new char[fid->getIoUnit()];
+    std::unique_ptr<char[]> buf = std::make_unique<char[]>(fid->getIoUnit());
     jyq::Connection tmp(0);
 	do {
-        len = tmp.read(buf, fid->getIoUnit());
-		if(len >= 0 && fid->write(buf, len, client->getDoFcallLambda()) != len) {
+        len = tmp.read(buf.get(), fid->getIoUnit());
+		if(len >= 0 && fid->write(buf.get(), len, client->getDoFcallLambda()) != len) {
             throw jyq::Exception("cannot write file '", name, "'");
         }
 	} while(len > 0);
-
-    delete [] buf;
 }
 
 std::string
@@ -200,16 +197,14 @@ xread(int argc, char *argv[]) {
     }
 
     int count = 0;
-    auto buf = new char[fid->getIoUnit()];
-	while((count = fid->read(buf, fid->getIoUnit(), client->getDoFcallLambda())) > 0) {
-		write(1, buf, count);
+    auto buf = std::make_unique<char[]>(fid->getIoUnit());
+	while((count = fid->read(buf.get(), fid->getIoUnit(), client->getDoFcallLambda())) > 0) {
+		write(1, buf.get(), count);
     }
 
 	if(count == -1) {
         throw jyq::Exception("cannot read file/directory '", file, "'");
     }
-
-    delete[] buf;
 
 	return 0;
 }
@@ -232,49 +227,41 @@ xls(int argc, char *argv[]) {
 
 	char* file = EARGF(usage());
 
-    auto stat = client->stat(file);
-    if (!stat) {
+    if (auto stat = client->stat(file); !stat) {
         throw jyq::Exception("Can't stat file '", file, "'");
-    }
-
-	if(dflag || (stat->getMode()&static_cast<uint32_t>(jyq::DMode::DIR)) == 0) {
-		printStat(stat, lflag);
-        //jyq::Stat::free(stat.get());
-		return 0;
-	}
-    //jyq::Stat::free(stat.get());
-
-    auto fid = client->open(file, jyq::OMode::READ);
-	if(!fid) {
-        throw jyq::Exception("Can't open file '", file, "'");
-    }
-
-    std::vector<std::shared_ptr<jyq::Stat>> stats;
-    // TODO fix this nonsense
-    char* buf = new char[fid->getIoUnit()];
-    int count = 0;
-    for (count = fid->read(buf, fid->getIoUnit(), client->getDoFcallLambda()); count > 0; count = fid->read(buf, fid->getIoUnit(), client->getDoFcallLambda())) {
-        char* bufCopy = new char[fid->getIoUnit()];
-        for (int i = 0; i < fid->getIoUnit(); ++i) {
-            bufCopy[i] = buf[i];
-        }
-        jyq::Msg m(bufCopy, count, jyq::Msg::Mode::Unpack);
-		while(m.getPos() < m.getEnd()) {
-            stats.emplace_back(std::make_shared<jyq::Stat>());
-            m.pstat(stats.back().get());
-		}
-	}
-    delete[] buf;
-
-    // TODO implement sorting in the future
-    for (auto& stat : stats) {
-        printStat(stat, lflag);
-        //jyq::Stat::free(stat.get());
-    }
-	if(count == -1) {
-        throw jyq::Exception("Can't read directory '", file, "'");
     } else {
-	    return 0;
+        if(dflag || (stat->getMode()&static_cast<uint32_t>(jyq::DMode::DIR)) == 0) {
+            printStat(stat, lflag);
+            return 0;
+        }
+
+        if (auto fid = client->open(file, jyq::OMode::READ); !fid) {
+            throw jyq::Exception("Can't open file '", file, "'");
+        } else {
+            std::vector<std::shared_ptr<jyq::Stat>> stats;
+            // TODO fix this nonsense
+            auto buf = std::make_unique<char[]>(fid->getIoUnit());
+            int count = 0;
+            for (count = fid->read(buf.get(), fid->getIoUnit(), client->getDoFcallLambda()); count > 0; count = fid->read(buf.get(), fid->getIoUnit(), client->getDoFcallLambda())) {
+                char* bufCopy = new char[fid->getIoUnit()];
+                std::copy(buf.get(), buf.get() + count, bufCopy);
+                jyq::Msg m(bufCopy, count, jyq::Msg::Mode::Unpack);
+                while(m.getPos() < m.getEnd()) {
+                    stats.emplace_back(std::make_shared<jyq::Stat>());
+                    m.pstat(stats.back().get());
+                }
+            }
+
+            // TODO implement sorting in the future
+            for (auto& stat : stats) {
+                printStat(stat, lflag);
+            }
+            if(count == -1) {
+                throw jyq::Exception("Can't read directory '", file, "'");
+            } else {
+                return 0;
+            }
+        }
     }
 }
 
