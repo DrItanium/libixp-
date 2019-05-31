@@ -13,17 +13,18 @@ LIBJYQ_CORE_OBJS := client.o \
 					rpc.o \
 					server.o \
 					socket.o \
-					srv_util.o \
 					timer.o \
 					transport.o \
 					util.o 
+LIBJYQ_UTIL_OBJS := srv_util.o 
 JYQC_OBJS := jyqc.o 
 
 JYQC_PROG := jyqc
 LIBJYQ_ARCHIVE := libjyq.a
+LIBJYQ_UTIL_ARCHIVE := libjyq_util.a
 
 OBJS := $(LIBJYQ_CORE_OBJS) $(JYQC_OBJS) 
-PROGS := $(JYQC_PROG) $(LIBJYQ_ARCHIVE) 
+PROGS := $(JYQC_PROG) $(LIBJYQ_ARCHIVE) $(LIBJYQ_UTIL_ARCHIVE)
 
 
 all: options $(PROGS)
@@ -43,6 +44,10 @@ $(JYQC_PROG): $(JYQC_OBJS) $(LIBJYQ_ARCHIVE)
 $(LIBJYQ_ARCHIVE): $(LIBJYQ_CORE_OBJS)
 	@echo AR ${LIBJYQ_ARCHIVE}
 	@${AR} rcs ${LIBJYQ_ARCHIVE} ${LIBJYQ_CORE_OBJS}
+
+$(LIBJYQ_UTIL_ARCHIVE): $(LIBJYQ_UTIL_OBJS)
+	@echo AR ${LIBJYQ_UTIL_ARCHIVE}
+	@${AR} rcs ${LIBJYQ_UTIL_ARCHIVE} ${LIBJYQ_UTIL_OBJS}
 
 .cc.o :
 	@echo CXX $<
