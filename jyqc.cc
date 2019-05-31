@@ -16,6 +16,7 @@
 #include <map>
 #include <sstream>
 #include <chrono>
+#include <iomanip>
 #include "jyq.h"
 #include "argv.h"
 
@@ -65,10 +66,16 @@ modeToString(uint mode) {
 
 std::string
 timeToString(uint val) {
-	static char buf[32];
-	ctime_r((time_t*)&val, buf);
-	buf[strlen(buf) - 1] = '\0';
-    return std::string(buf);
+    auto tt = (time_t*)&val;
+    auto tp = std::chrono::system_clock::from_time_t(*tt);
+    auto result = std::chrono::system_clock::to_time_t(tp);
+    std::stringstream ss;
+#if 0
+    ss << std::put_time(std::localtime(&result), "%c %Z");
+#endif
+    ss << val;
+    auto str = ss.str();
+    return str;
 }
 
 void

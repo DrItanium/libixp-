@@ -278,7 +278,6 @@ namespace jyq {
         auto& getRstat()  { return retrieveFromStorage<FRStat>(); }
         auto& getFullHeader() { return retrieveFromStorage<FFullHeader>(); }
 
-        //static void free(Fcall*);
         auto getType() const { return getHeader().getType(); }
         auto getFid() const { return getHeader().getFid(); }
         auto getTag() const { return getHeader().getTag(); }
