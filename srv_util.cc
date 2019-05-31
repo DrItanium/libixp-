@@ -259,7 +259,7 @@ srv_writectl(Req9 *req, std::function<char*(void*, Msg*)> fn) {
 
 void
 pending_respond(Req9 *req) {
-    auto file = req->fid->unpackAux<FileId>();
+    auto file = req->getFid()->unpackAux<FileId>();
     if (!file->getContents().pending) {
         throw Exception("Given file's contents not marked as pending!");
     }
@@ -356,7 +356,7 @@ Pending::pushfid(Fid *fid) {
 
 static void
 _pending_flush(Req9 *req) {
-    auto file = req->fid->unpackAux<FileId>();
+    auto file = req->getFid()->unpackAux<FileId>();
 	if(file->getContents().pending) {
         if (auto req_link = req->unpackAux<RequestLink>(); req_link) {
             req_link->unlink();
@@ -373,7 +373,7 @@ pending_flush(Req9 *req) {
 bool
 pending_clunk(Req9 *req) {
 
-    auto file = req->fid->unpackAux<FileId>();
+    auto file = req->getFid()->unpackAux<FileId>();
     auto pendLink = std::any_cast<PendingLink>(file->getContents().p);
 
     auto pending = pendLink->getContents().pending;
@@ -381,7 +381,7 @@ pending_clunk(Req9 *req) {
 	for(auto reqLink =pending->req->getNext(); reqLink != pending->req;) {
         r = reqLink->getContents().req;
         reqLink = reqLink->getNext();
-        if (r->fid == pendLink->getContents().fid) {
+        if (r->getFid() == pendLink->getContents().fid) {
 			_pending_flush(r);
 			r->respond("interrupted");
 		}
@@ -453,11 +453,11 @@ void
 srv_readdir(Req9 *req, LookupFn lookup, std::function<void(Stat*, FileId&)> dostat) {
 	Stat stat;
 
-    auto file = req->fid->unpackAux<FileId>();
+    auto file = req->getFid()->unpackAux<FileId>();
 
 	ulong size = req->getIFcall().getIO().size();
-	if(size > req->fid->getIoUnit()) {
-		size = req->fid->getIoUnit();
+	if(size > req->getFid()->getIoUnit()) {
+		size = req->getFid()->getIoUnit();
     }
     auto buf = new char[size];
     Msg msg(buf, size, Msg::Mode::Pack);
@@ -491,7 +491,7 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
 	FileId tfile;
 	int i;
 
-    auto fid = req->fid->unpackAux<FileId>();
+    auto fid = req->getFid()->unpackAux<FileId>();
 	auto file = srv_clonefiles(fid);
 	for(i=0; i < req->getIFcall().getTwalk().size(); i++) {
         if (req->getIFcall().getTwalk().getWname()[i] == "..") {
@@ -527,8 +527,8 @@ srv_walkandclone(Req9 *req, LookupFn lookup) {
 	}
 	/* Remove refs for req->fid if no new fid */
 	if(req->getIFcall().getFid() == req->getIFcall().getTwalk().getNewFid()) {
-        tfile = req->fid->unpackAux<decltype(tfile)>();
-		req->fid->setAux(file);
+        tfile = req->getFid()->unpackAux<decltype(tfile)>();
+		req->getFid()->setAux(file);
 		while((file = tfile)) {
 			tfile = tfile->getNext();
 			srv_freefile(file);
