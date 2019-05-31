@@ -47,8 +47,7 @@ Connection::readn(Msg& msg, size_t count) {
             continue;
         }
         if (r == 0) {
-            wErrorString("broken pipe: ", errbuf());
-            return count = num;
+            throw Exception("broken pipe");
         }
         num -= r;
     }
@@ -82,7 +81,7 @@ Connection::sendmsg(Msg& msg) {
 			if(errno == EINTR) {
 				continue;
             }
-            wErrorString("broken pipe: ", errbuf());
+            throw Exception("broken pipe");
 			return 0;
 		} else {
             msg.advancePosition(r);

@@ -38,7 +38,7 @@ rmkdir(const std::string& path, int mode) {
     auto tokens = tokenize(path, '/');
     for (const auto& pathComponent : tokens) {
         if (auto ret = mkdir(pathComponent.c_str(), mode); (ret == -1) && (errno != EEXIST)) {
-            throw Exception("Can't create path '", path, "': ", errbuf());
+            throw Exception("Can't create path '", path, "': ", strerror(errno));
         }
     }
     return true;
@@ -66,11 +66,11 @@ ns_display() {
 	if(!rmkdir(newPath.c_str(), 0700)) {
 
     } else if(struct stat st; stat(newPath.c_str(), &st)) {
-        wErrorString("Can't stat Namespace path '", newPath, "': ", errbuf());
+        throw Exception("Cannot stat Namespace path '", newPath, "'");
     } else if(getuid() != st.st_uid) {
-        wErrorString("Namespace path '", newPath, "' exists but is not owned by you");
+        throw Exception("Namespace path '", newPath, "' exists but is not owned by you");
     } else if((st.st_mode & 077) && chmod(newPath.c_str(), st.st_mode & ~077)) {
-        wErrorString("Namespace path '", newPath, "' exists, but has wrong permissions: ", errbuf());
+        throw Exception("Namespace path '", newPath, "' exists, but has wrong permissions");
     } else {
 		return newPath;
     }
