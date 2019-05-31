@@ -178,7 +178,7 @@ Req9::handle() {
                             break;
                     }
                 } else if constexpr (std::is_same_v<K, FTFlush>) {
-                    if (oldreq = _conn->retrieveTag(getIFcall().getTflush().getOldTag()); !oldreq) {
+                    if (_oldreq = _conn->retrieveTag(getIFcall().getTflush().getOldTag()); !_oldreq) {
                         respond(Enotag);
                     } else {
                         if(!srv->flush) {
@@ -400,8 +400,8 @@ Req9::respond(const char *error) {
                         break;
                 }
             } else if constexpr (std::is_same_v<K, FTFlush>) {
-                if (oldreq = p9conn->retrieveTag(getIFcall().getTflush().getOldTag()); oldreq) {
-                    oldreq->respond(Eintr);
+                if (_oldreq= p9conn->retrieveTag(getIFcall().getTflush().getOldTag()); _oldreq) {
+                    _oldreq->respond(Eintr);
                 }
             } else if constexpr (std::is_same_v<K, FTWStat>) {
                 value.getStat().reset();

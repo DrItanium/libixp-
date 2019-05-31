@@ -38,13 +38,13 @@ namespace jyq {
         auto getFid() noexcept { return _fid; }
         void setNewFid(Fid* value) noexcept { _newfid= value; }
         auto getNewFid() noexcept { return _newfid; }
+        void setOldReq(Req9* value) noexcept { _oldreq = value; }
+        auto getOldReq() noexcept { return _oldreq; }
         private:
             Srv9*	_srv;
             Fid*	_fid;    /* Fid structure corresponding to FHdr.fid */
             Fid*	_newfid; /* Corresponds to FTWStat.newfid */
-        public:
-            Req9*	oldreq; /* For TFlush requests, the original request. */
-        private:
+            Req9*	_oldreq; /* For TFlush requests, the original request. */
             Fcall	_ifcall; /* The incoming request fcall. */
             Fcall	_ofcall; /* The response fcall, to be filled by handler. */
             std::shared_ptr<Conn9>  _conn;

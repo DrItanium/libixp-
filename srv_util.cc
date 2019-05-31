@@ -367,7 +367,7 @@ _pending_flush(Req9 *req) {
 void
 pending_flush(Req9 *req) {
 
-	_pending_flush(req->oldreq);
+	_pending_flush(req->getOldReq());
 }
 
 bool
