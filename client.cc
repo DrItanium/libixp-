@@ -1,11 +1,11 @@
 /* Copyright ©2007-2010 Kris Maglione <maglione.k at Gmail>
  * See LICENSE file for license details.
  */
-#include <stdarg.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdarg>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
