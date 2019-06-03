@@ -10,7 +10,6 @@
 #include "Msg.h"
 #include "jyq.h"
 #include "map.h"
-#include "argv.h"
 #include "Conn.h"
 #include "socket.h"
 #include "Server.h"

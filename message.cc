@@ -6,7 +6,6 @@
 #include <cstring>
 #include "Msg.h"
 #include "jyq.h"
-#include "argv.h"
 
 namespace jyq {
 constexpr auto SByte = 1;

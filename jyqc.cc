@@ -18,28 +18,60 @@
 #include <boost/program_options.hpp>
 #include "jyq.h"
 
+namespace Options = boost::program_options;
 
 namespace {
-boost::program_options::options_description genericOptions("Options");
+std::string address;
+bool longView = false;
+bool onlyDirectory = false;
+std::vector<std::string> expression;
+std::string etabEntry;
+std::string file;
+std::vector<std::string> data;
 
-jyq::Client *client;
+Options::options_description genericOptions("Options");
+//Options::options_description lsOptions("ls specific options");
+Options::positional_options_description positionalActions;
 
-void
-setupGenericOptions() {
-    genericOptions.add_options()
-        ("help", "produce help message")
-        ("version,v", "print version and exit")
-        ("address,a", 
-            boost::program_options::value<std::string>()->default_value(""),
-         "Address to connect to, form is 'kind!address'");
-}
-void
-usage(int errorCode = 1) {
+std::unique_ptr<jyq::Client> client;
+
+#if 0
     jyq::print(std::cerr, 
                 "usage: ", argv0, " [-a <address>] {create | read | ls [-ld] | remove | write | append} <file>\n"
                 "       ", argv0, " [-a <address>] xwrite <file> <data>\n"
                 "       ", argv0, " -v\n");
-	exit(errorCode);
+#endif
+void
+setupOptions() {
+    positionalActions.add("expression", -1);
+    genericOptions.add_options()
+        ("help", "produce help message")
+        ("version,v", 
+         "print version and exit")
+        ("address,a", 
+            Options::value<std::string>(&address)->default_value(""),
+         "Address to connect to, form is 'kind!address'")
+        ("expression", Options::value<std::vector<std::string>>(), "Expression to parse")
+        ("long,l", "Long output form (ls specific)")
+        ("only-directory,d", "Don't show the contents of the directory (ls specific)");
+}
+template<typename ... Args>
+void
+usage(std::ostream& out, int errorCode, Args&& ... descriptions) {
+    (out << ... << descriptions) << std::endl;
+    out << "Allowed expressions: " << std::endl;
+    out << "\tls [-ld] <file>" << std::endl;
+    out << "\tcreate <file>" << std::endl;
+    out << "\tread <file>" << std::endl;
+    out << "\tremove <file>" << std::endl;
+    out << "\twrite <file>" << std::endl;
+    out << "\tappend <file>" << std::endl;
+    out << "\txwrite <file> <data>" << std::endl;
+    exit(errorCode);
+}
+void
+usage(int errorCode = 1) {
+    usage(std::cerr, errorCode, genericOptions);
 }
 
 /* Utility Functions */
@@ -103,61 +135,76 @@ printStat(std::shared_ptr<jyq::Stat> s, int details) {
 using ServiceFunction = std::function<int(int, char**)>;
 int
 xappend(int argc, char *argv[]) {
+#if 0
 	ARGBEGIN{
 	default:
 		usage();
 	}ARGEND;
+#endif
+    if (file.empty()) {
+        usage(1);
+    }
 
-	auto file = EARGF(usage());
     if (auto fid = client->open(file, jyq::OMode::WRITE); !fid) {
         throw jyq::Exception("Can't open file '", file, "'");
     } else {
         auto stat = client->stat(file);
         fid->setOffset(stat->getLength());
         //jyq::Stat::free(stat.get());
-        write_data(fid, file);
+        write_data(fid, file.data());
         return 0;
     }
 }
 
 static int
 xwrite(int argc, char *argv[]) {
+#if 0
 	ARGBEGIN{
 	default:
 		usage();
 	}ARGEND;
-
 	auto file = EARGF(usage());
+#endif
+    if (file.empty()) {
+        usage(1);
+    }
+
     auto fid = client->open(file, jyq::OMode::WRITE);
     if (!fid) {
         throw jyq::Exception("Can't open file '", file, "'");
     }
 
-	write_data(fid, file);
+	write_data(fid, file.data());
 	return 0;
 }
 
 int
 xawrite(int argc, char *argv[]) {
+#if 0
 	ARGBEGIN{
 	default:
 		usage();
 	}ARGEND;
 
 	auto file = EARGF(usage());
+#endif
+    if (file.empty()) {
+        usage(1);
+    }
     auto fid = client->open(file, jyq::OMode::WRITE);
     if (!fid) {
         throw jyq::Exception("Can't open file '", file, "'");
     }
 
     std::stringstream buf;
-	while(argc) {
-        auto arg = ARGF();
-        buf << arg;
-		if(argc) {
+    auto current = 0;
+    for (const auto& datum : data) {
+        buf << datum;
+        if (current < data.size()) {
             buf << " ";
         }
-	}
+        ++current;
+    }
     auto str = buf.str();
     if (fid->write(str.c_str(), str.length(), client->getDoFcallLambda()) == -1) {
         throw jyq::Exception("cannot write file '", file, "'");
@@ -167,31 +214,42 @@ xawrite(int argc, char *argv[]) {
 
 int
 xcreate(int argc, char *argv[]) {
+#if 0
 	ARGBEGIN{
 	default:
 		usage();
 	}ARGEND;
 
 	auto file = EARGF(usage());
+#endif
+    if (file.empty()) {
+        usage(1);
+    }
     auto fid = client->create(file, 0777, jyq::OMode::WRITE);
     if (!fid) {
         throw jyq::Exception("Can't create file '", file, "'");
     }
 
-	if((fid->getQid().getType()&(uint32_t)jyq::DMode::DIR) == 0)
-		write_data(fid, file);
+	if((fid->getQid().getType()&(uint32_t)jyq::DMode::DIR) == 0) {
+		write_data(fid, file.data());
+    }
 
 	return 0;
 }
 
 int
 xremove(int argc, char *argv[]) {
+#if 0
 	ARGBEGIN{
 	default:
 		usage();
 	}ARGEND;
+#endif 
+    if (file.empty()) {
+        usage(1);
+    }
 
-    if (auto file = EARGF(usage()); !client->remove(file)) {
+    if (!client->remove(file)) {
         throw jyq::Exception("Can't remove file '", file, "'");
     }
 	return 0;
@@ -199,12 +257,17 @@ xremove(int argc, char *argv[]) {
 
 int
 xread(int argc, char *argv[]) {
+#if 0
 	ARGBEGIN{
 	default:
 		usage();
 	}ARGEND;
 
 	auto file = EARGF(usage());
+#endif
+    if (file.empty()) {
+        usage(1);
+    }
     auto fid = client->open(file, jyq::OMode::READ);
     if (!fid) {
         throw jyq::Exception("Can't open file '", file, "'");
@@ -227,29 +290,17 @@ xread(int argc, char *argv[]) {
 
 int
 xls(int argc, char *argv[]) {
-	auto lflag = 0;
-    auto dflag = 0;
-
-	ARGBEGIN{
-	case 'l':
-		lflag++;
-		break;
-	case 'd':
-		dflag++;
-		break;
-	default:
-		usage();
-	}ARGEND;
-
-	char* file = EARGF(usage());
+    if (file.empty()) {
+        usage(1);
+    }
 
     auto stat = client->stat(file);
     if (!stat) {
         throw jyq::Exception("Can't stat file '", file, "'");
     }
 
-	if(dflag || (stat->getMode()&static_cast<uint32_t>(jyq::DMode::DIR)) == 0) {
-		printStat(stat, lflag);
+	if(onlyDirectory || (stat->getMode()&static_cast<uint32_t>(jyq::DMode::DIR)) == 0) {
+		printStat(stat, longView);
         //jyq::Stat::free(stat.get());
 		return 0;
 	}
@@ -279,7 +330,7 @@ xls(int argc, char *argv[]) {
 
     // TODO implement sorting in the future
     for (auto& stat : stats) {
-        printStat(stat, lflag);
+        printStat(stat, longView);
         //jyq::Stat::free(stat.get());
     }
 	if(count == -1) {
@@ -302,32 +353,68 @@ std::map<std::string, ServiceFunction> etab = {
 
 int
 main(int argc, char *argv[]) {
-    
-	auto address = getenv("JYQ_ADDRESS");
-	ARGBEGIN{
-	case 'v':
-        jyq::print(std::cout, argv0, "-", VERSION, ", ", COPYRIGHT, "\n");
-		exit(0);
-	case 'a':
-		address = EARGF(usage());
-		break;
-	default:
-		usage();
-	}ARGEND;
-
-    std::string cmd = EARGF(usage());
-
     try {
-        if(!address) {
-            throw jyq::Exception ("$JYQ_ADDRESS not set\n");
+        setupOptions();
+        Options::variables_map vm;
+        Options::store(Options::command_line_parser(argc, argv).
+                options(genericOptions).positional(positionalActions).run(), vm);
+        Options::notify(vm);
+
+#if 0
+        ARGBEGIN{
+            case 'v':
+                jyq::print(std::cout, argv0, "-", VERSION, ", ", COPYRIGHT, "\n");
+                exit(0);
+            case 'a':
+                address = EARGF(usage());
+                break;
+            default:
+                usage();
+        }ARGEND;
+#endif 
+
+        if (vm.count("version")) {
+            jyq::print(std::cout, argv[0], "-", VERSION, ", ", COPYRIGHT, "\n");
+            exit(0);
+        }
+        longView = vm.count("long") != 0;
+        onlyDirectory = vm.count("only-directory") != 0;
+        if (vm.count("expression")) {
+            expression = vm["expression"].as<std::vector<std::string>>();
+            if (expression.empty()) {
+                usage(1);
+            } else {
+                etabEntry = expression[0];
+                if (expression.size() >= 2) {
+                    file = expression[1];
+                    if (expression.size() > 2) {
+                        // make a subsequence
+                        for (int i = 2; i < expression.size(); ++i) {
+                            data.emplace_back(expression[i]);
+                        }
+                    }
+                } else {
+                    std::cerr << "file not defined!" << std::endl;
+                    usage(1);
+                }
+            }
+        } else {
+            usage();
         }
 
-        if (client = jyq::Client::mount(address); !client) {
+        if (address.empty()) {
+            if (auto envAddress = getenv("JYQ_ADDRESS"); !envAddress) {
+                throw jyq::Exception ("$JYQ_ADDRESS not set\n");
+            } else {
+                address = std::string(envAddress);
+            }
+        }
+
+        if (client.reset(jyq::Client::mount(address)); !client) {
             throw jyq::Exception("Could not mount ", address);
         } else {
-            if (auto result = etab.find(cmd); result != etab.end()) {
+            if (auto result = etab.find(etabEntry); result != etab.end()) {
                 auto ret = result->second(argc, argv);
-                delete client;
                 return ret;
             } else {
                 usage();
