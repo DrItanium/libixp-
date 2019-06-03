@@ -19,19 +19,19 @@
 namespace jyq {
 namespace {
     const std::string&
-        _user() {
-            static std::string user;
+    _user() {
+        static std::string user;
 
-            if(user.empty()) {
-                if (auto pw = getpwuid(getuid()); pw) {
-                    user = pw->pw_name;
-                }
+        if(user.empty()) {
+            if (auto pw = getpwuid(getuid()); pw) {
+                user = pw->pw_name;
             }
-            if(user.empty()) {
-                user = "none";
-            }
-            return user;
         }
+        if(user.empty()) {
+            user = "none";
+        }
+        return user;
+    }
 }
 
 bool 
@@ -48,7 +48,6 @@ rmkdir(const std::string& path, int mode) {
 
 static std::string
 ns_display() {
-
 	if (auto disp = std::getenv("DISPLAY"); !disp || disp[0] == '\0') {
         throw Exception("$DISPLAY is unset");
     } else {
@@ -96,10 +95,10 @@ std::string
 getNamespace() {
     static std::string _namespace;
     if (_namespace.empty()) {
-        if (auto ev = std::getenv("NAMESPACE"); !ev) {
-            _namespace = ns_display();
-        } else {
+        if (auto ev = std::getenv("NAMESPACE"); ev) {
             _namespace = ev;
+        } else {
+            _namespace = ns_display();
         }
     }
 	return _namespace;
@@ -119,5 +118,3 @@ tokenize(const std::string& input, char delim) {
 }
 
 } // end namespace jyq
-
-char* argv0 = nullptr;
