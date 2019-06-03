@@ -35,12 +35,6 @@ Options::positional_options_description positionalActions;
 
 std::unique_ptr<jyq::Client> client;
 
-#if 0
-    jyq::print(std::cerr, 
-                "usage: ", argv0, " [-a <address>] {create | read | ls [-ld] | remove | write | append} <file>\n"
-                "       ", argv0, " [-a <address>] xwrite <file> <data>\n"
-                "       ", argv0, " -v\n");
-#endif
 void
 setupOptions() {
     positionalActions.add("expression", -1);
@@ -56,7 +50,7 @@ setupOptions() {
         ("only-directory,d", "Don't show the contents of the directory (ls specific)");
 }
 template<typename ... Args>
-void
+int
 usage(std::ostream& out, int errorCode, Args&& ... descriptions) {
     (out << ... << descriptions) << std::endl;
     out << "Allowed expressions: " << std::endl;
@@ -67,11 +61,12 @@ usage(std::ostream& out, int errorCode, Args&& ... descriptions) {
     out << "\twrite <file>" << std::endl;
     out << "\tappend <file>" << std::endl;
     out << "\txwrite <file> <data>" << std::endl;
-    exit(errorCode);
+    return errorCode;
 }
-void
+
+int
 usage(int errorCode = 1) {
-    usage(std::cerr, errorCode, genericOptions);
+    return usage(std::cerr, errorCode, genericOptions);
 }
 
 /* Utility Functions */
@@ -132,19 +127,9 @@ printStat(std::shared_ptr<jyq::Stat> s, int details) {
 }
 
 /* Service Functions */
-using ServiceFunction = std::function<int(int, char**)>;
+using ServiceFunction = std::function<int()>;
 int
-xappend(int argc, char *argv[]) {
-#if 0
-	ARGBEGIN{
-	default:
-		usage();
-	}ARGEND;
-#endif
-    if (file.empty()) {
-        usage(1);
-    }
-
+xappend() {
     if (auto fid = client->open(file, jyq::OMode::WRITE); !fid) {
         throw jyq::Exception("Can't open file '", file, "'");
     } else {
@@ -156,19 +141,8 @@ xappend(int argc, char *argv[]) {
     }
 }
 
-static int
-xwrite(int argc, char *argv[]) {
-#if 0
-	ARGBEGIN{
-	default:
-		usage();
-	}ARGEND;
-	auto file = EARGF(usage());
-#endif
-    if (file.empty()) {
-        usage(1);
-    }
-
+int
+xwrite() {
     auto fid = client->open(file, jyq::OMode::WRITE);
     if (!fid) {
         throw jyq::Exception("Can't open file '", file, "'");
@@ -179,18 +153,7 @@ xwrite(int argc, char *argv[]) {
 }
 
 int
-xawrite(int argc, char *argv[]) {
-#if 0
-	ARGBEGIN{
-	default:
-		usage();
-	}ARGEND;
-
-	auto file = EARGF(usage());
-#endif
-    if (file.empty()) {
-        usage(1);
-    }
+xawrite() {
     auto fid = client->open(file, jyq::OMode::WRITE);
     if (!fid) {
         throw jyq::Exception("Can't open file '", file, "'");
@@ -213,18 +176,7 @@ xawrite(int argc, char *argv[]) {
 }
 
 int
-xcreate(int argc, char *argv[]) {
-#if 0
-	ARGBEGIN{
-	default:
-		usage();
-	}ARGEND;
-
-	auto file = EARGF(usage());
-#endif
-    if (file.empty()) {
-        usage(1);
-    }
+xcreate() {
     auto fid = client->create(file, 0777, jyq::OMode::WRITE);
     if (!fid) {
         throw jyq::Exception("Can't create file '", file, "'");
@@ -238,16 +190,7 @@ xcreate(int argc, char *argv[]) {
 }
 
 int
-xremove(int argc, char *argv[]) {
-#if 0
-	ARGBEGIN{
-	default:
-		usage();
-	}ARGEND;
-#endif 
-    if (file.empty()) {
-        usage(1);
-    }
+xremove() {
 
     if (!client->remove(file)) {
         throw jyq::Exception("Can't remove file '", file, "'");
@@ -256,18 +199,7 @@ xremove(int argc, char *argv[]) {
 }
 
 int
-xread(int argc, char *argv[]) {
-#if 0
-	ARGBEGIN{
-	default:
-		usage();
-	}ARGEND;
-
-	auto file = EARGF(usage());
-#endif
-    if (file.empty()) {
-        usage(1);
-    }
+xread() {
     auto fid = client->open(file, jyq::OMode::READ);
     if (!fid) {
         throw jyq::Exception("Can't open file '", file, "'");
@@ -289,11 +221,7 @@ xread(int argc, char *argv[]) {
 }
 
 int
-xls(int argc, char *argv[]) {
-    if (file.empty()) {
-        usage(1);
-    }
-
+xls() {
     auto stat = client->stat(file);
     if (!stat) {
         throw jyq::Exception("Can't stat file '", file, "'");
@@ -360,46 +288,34 @@ main(int argc, char *argv[]) {
                 options(genericOptions).positional(positionalActions).run(), vm);
         Options::notify(vm);
 
-#if 0
-        ARGBEGIN{
-            case 'v':
-                jyq::print(std::cout, argv0, "-", VERSION, ", ", COPYRIGHT, "\n");
-                exit(0);
-            case 'a':
-                address = EARGF(usage());
-                break;
-            default:
-                usage();
-        }ARGEND;
-#endif 
-
         if (vm.count("version")) {
             jyq::print(std::cout, argv[0], "-", VERSION, ", ", COPYRIGHT, "\n");
-            exit(0);
+            return 0;
         }
         longView = vm.count("long") != 0;
         onlyDirectory = vm.count("only-directory") != 0;
         if (vm.count("expression")) {
             expression = vm["expression"].as<std::vector<std::string>>();
             if (expression.empty()) {
-                usage(1);
+                return usage(1);
             } else {
                 etabEntry = expression[0];
                 if (expression.size() >= 2) {
                     file = expression[1];
                     if (expression.size() > 2) {
-                        // make a subsequence
+                        // make a subsequence, this is very inefficient but it
+                        // works for the time being
                         for (int i = 2; i < expression.size(); ++i) {
                             data.emplace_back(expression[i]);
                         }
                     }
                 } else {
                     std::cerr << "file not defined!" << std::endl;
-                    usage(1);
+                    return usage(1);
                 }
             }
         } else {
-            usage();
+            return usage();
         }
 
         if (address.empty()) {
@@ -414,11 +330,9 @@ main(int argc, char *argv[]) {
             throw jyq::Exception("Could not mount ", address);
         } else {
             if (auto result = etab.find(etabEntry); result != etab.end()) {
-                auto ret = result->second(argc, argv);
-                return ret;
+                return result->second();
             } else {
-                usage();
-                return 99;
+                return usage(99);
             }
         }
     } catch(jyq::Exception& e) {
