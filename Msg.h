@@ -40,195 +40,195 @@ namespace jyq {
             char*	_pos;  /* Current position in buffer. */
             char*	_end;  /* End of message. */ 
         public:
-        void pu8(uint8_t*);
-        void pu16(uint16_t*);
-        void pu32(uint32_t*);
-        void pu64(uint64_t*);
-/**
- * Function: pdata
- *
- * Packs or unpacks a raw character buffer of size P<len>.
- *
- * If P<msg>->mode is Msg::Pack, buffer pointed to by P<data> is
- * packed into the buffer at P<msg>->pos. If P<msg>->mode is
- * Msg::Unpack, the address pointed to by P<s> is loaded with a
- * malloc(3) allocated buffer with the contents of the buffer at
- * P<msg>->pos.  In either case, P<msg>->pos is advanced by the
- * number of bytes read or written. If the action would advance
- * P<msg>->pos beyond P<msg>->end, P<msg>->pos is still advanced
- * but no other action is taken.
- *
- * See also:
- *	T<Msg>, F<pstring>
- */
-        void pdata(char**, uint);
-        void pdata(std::string&, uint);
-        void pdata(std::vector<uint8_t>&, uint);
-        void pstring(char**);
-        void pstring(std::string&);
-/**
- * Function: pstrings
- *
- * Packs or unpacks an array of UTF-8 encoded strings. The packed
- * representation consists of a 16-bit element count followed by
- * an array of strings as packed by F<pstring>. The unpacked
- * representation is an array of nul-terminated character arrays.
- *
- * If P<msg>->mode is Msg::Pack, P<*num> strings in the array
- * pointed to by P<strings> are packed into the buffer at
- * P<msg>->pos. If P<msg>->mode is Msg::Unpack, P<*num> is loaded
- * with the number of strings unpacked, the array at
- * P<*strings> is loaded with pointers to the unpacked strings,
- * and P<(*strings)[0]> must be freed by the user. In either
- * case, P<msg>->pos is advanced by the number of bytes read or
- * written. If the action would advance P<msg>->pos beyond
- * P<msg>->end, P<msg>->pos is still advanced, but no other
- * action is taken. If P<*num> is greater than P<max>,
- * P<msg>->pos is set beyond P<msg>->end and no other action is
- * taken.
- * 
- * See also:
- *	P<Msg>, P<pstring>, P<pdata>
- */
-        template<uint max>
-        void pstrings(uint16_t& num, std::array<char*, max>& strings) {
-            char *s = nullptr;
-            uint size = 0;
-            uint16_t len = 0;
+            void pu8(uint8_t*);
+            void pu16(uint16_t*);
+            void pu32(uint32_t*);
+            void pu64(uint64_t*);
+            /**
+             * Function: pdata
+             *
+             * Packs or unpacks a raw character buffer of size P<len>.
+             *
+             * If P<msg>->mode is Msg::Pack, buffer pointed to by P<data> is
+             * packed into the buffer at P<msg>->pos. If P<msg>->mode is
+             * Msg::Unpack, the address pointed to by P<s> is loaded with a
+             * malloc(3) allocated buffer with the contents of the buffer at
+             * P<msg>->pos.  In either case, P<msg>->pos is advanced by the
+             * number of bytes read or written. If the action would advance
+             * P<msg>->pos beyond P<msg>->end, P<msg>->pos is still advanced
+             * but no other action is taken.
+             *
+             * See also:
+             *	T<Msg>, F<pstring>
+             */
+            void pdata(char**, uint);
+            void pdata(std::string&, uint);
+            void pdata(std::vector<uint8_t>&, uint);
+            void pstring(char**);
+            void pstring(std::string&);
+            /**
+             * Function: pstrings
+             *
+             * Packs or unpacks an array of UTF-8 encoded strings. The packed
+             * representation consists of a 16-bit element count followed by
+             * an array of strings as packed by F<pstring>. The unpacked
+             * representation is an array of nul-terminated character arrays.
+             *
+             * If P<msg>->mode is Msg::Pack, P<*num> strings in the array
+             * pointed to by P<strings> are packed into the buffer at
+             * P<msg>->pos. If P<msg>->mode is Msg::Unpack, P<*num> is loaded
+             * with the number of strings unpacked, the array at
+             * P<*strings> is loaded with pointers to the unpacked strings,
+             * and P<(*strings)[0]> must be freed by the user. In either
+             * case, P<msg>->pos is advanced by the number of bytes read or
+             * written. If the action would advance P<msg>->pos beyond
+             * P<msg>->end, P<msg>->pos is still advanced, but no other
+             * action is taken. If P<*num> is greater than P<max>,
+             * P<msg>->pos is set beyond P<msg>->end and no other action is
+             * taken.
+             * 
+             * See also:
+             *	P<Msg>, P<pstring>, P<pdata>
+             */
+            template<uint max>
+            void pstrings(uint16_t& num, std::array<char*, max>& strings) {
+                char *s = nullptr;
+                uint size = 0;
+                uint16_t len = 0;
 
-            pu16(&num);
-            if(num > max) {
-                _pos = _end+1;
-                return;
-            }
+                pu16(&num);
+                if(num > max) {
+                    _pos = _end+1;
+                    return;
+                }
 
-            if (unpackRequested()) {
-                s = _pos;
-                size = 0;
-                for (auto i = 0; i < num; ++i) {
+                if (unpackRequested()) {
+                    s = _pos;
+                    size = 0;
+                    for (auto i = 0; i < num; ++i) {
+                        pu16(&len);
+                        _pos += len;
+                        size += len;
+                        if(_pos > _end) {
+                            return;
+                        }
+                    }
+                    _pos = s;
+                    size += num;
+                    s = new char[size];
+                }
+
+                for(auto i = 0; i < num; ++i) {
+                    if (packRequested()) {
+                        len = strlen(strings[i]);
+                    }
                     pu16(&len);
-                    _pos += len;
-                    size += len;
-                    if(_pos > _end) {
-                        return;
+
+                    if (unpackRequested()) {
+                        memcpy(s, _pos, len);
+                        strings[i] = s;
+                        s += len;
+                        _pos += len;
+                        *s++ = '\0';
+                    } else {
+                        pdata(&strings[i], len);
                     }
                 }
-                _pos = s;
-                size += num;
-                s = new char[size];
             }
-
-            for(auto i = 0; i < num; ++i) {
-                if (packRequested()) {
-                    len = strlen(strings[i]);
+            template<uint max>
+            void pstrings(uint16_t& num, std::array<std::string, max>& strings) {
+                pu16(&num);
+                if(num > max) {
+                    _pos = _end+1;
+                    return;
                 }
-                pu16(&len);
 
-                if (unpackRequested()) {
-                    memcpy(s, _pos, len);
-                    strings[i] = s;
-                    s += len;
-                    _pos += len;
-                    *s++ = '\0';
+
+                for(auto i = 0; i < num; ++i) {
+                    uint16_t len = 0;
+                    if (packRequested()) {
+                        len = strings[i].length();
+                    }
+                    pu16(&len);
+
+                    if (unpackRequested()) {
+                        strings[i] = std::string(_pos, len);
+                    } else {
+                        pdata(strings[i], len);
+                    }
+                }
+            }
+            template<uint max>
+            void pqids(uint16_t& num, std::array<Qid, max>& qid) {
+                pu16(&num);
+                if(num > max) {
+                    _pos = _end + 1;
+                    return;
+                }
+
+                for(auto i = 0; i < num; i++) {
+                    pqid(&qid[i]);
+                }
+            }
+            void pqid(Qid* value) { packUnpack(value); }
+            void pqid(Qid& value) { packUnpack(value); }
+            void pstat(Stat* value) { packUnpack(value); }
+            void pstat(Stat& value) { packUnpack(value); }
+            void pfcall(Fcall* value) { packUnpack(value); }
+            void pfcall(Fcall& value) { packUnpack(value); }
+            Msg();
+            Msg(char*, uint, Mode);
+            ~Msg();
+            using Action = std::function<void(Msg&)>;
+            void packUnpack(Action pack, Action unpack);
+            template<typename T>
+            void packUnpack(T& value) noexcept {
+                using K = std::decay_t<T>;
+                static_assert(!std::is_same_v<K, Msg>, "This would cause an infinite loop!");
+                if constexpr (std::is_same_v<K, uint8_t>) {
+                    pu8(&value);
+                } else if constexpr (std::is_same_v<K, uint16_t>) {
+                    pu16(&value);
+                } else if constexpr (std::is_same_v<K, uint32_t>) {
+                    pu32(&value);
+                } else if constexpr (std::is_same_v<K, uint64_t>) {
+                    pu64(&value);
                 } else {
-                    pdata(&strings[i], len);
+                    value.packUnpack(*this);
                 }
             }
-        }
-        template<uint max>
-        void pstrings(uint16_t& num, std::array<std::string, max>& strings) {
-            pu16(&num);
-            if(num > max) {
-                _pos = _end+1;
-                return;
-            }
-
-
-            for(auto i = 0; i < num; ++i) {
-                uint16_t len = 0;
-                if (packRequested()) {
-                    len = strings[i].length();
-                }
-                pu16(&len);
-
-                if (unpackRequested()) {
-                    strings[i] = std::string(_pos, len);
+            template<typename T>
+            void packUnpack(T* value) noexcept {
+                using K = std::decay_t<T>;
+                static_assert(!std::is_same_v<K, Msg>, "This would cause an infinite loop!");
+                if constexpr (std::is_same_v<K, uint8_t>) {
+                    pu8(value);
+                } else if constexpr (std::is_same_v<K, uint16_t>) {
+                    pu16(value);
+                } else if constexpr (std::is_same_v<K, uint32_t>) {
+                    pu32(value);
+                } else if constexpr (std::is_same_v<K, uint64_t>) {
+                    pu64(value);
                 } else {
-                    pdata(strings[i], len);
+                    value->packUnpack(*this);
                 }
             }
-        }
-        template<uint max>
-        void pqids(uint16_t& num, std::array<Qid, max>& qid) {
-            pu16(&num);
-            if(num > max) {
-                _pos = _end + 1;
-                return;
+            template<typename ... Args>
+            void packUnpackMany(Args&& ... fields) noexcept {
+                (packUnpack(std::forward<Args>(fields)), ...);
             }
-
-            for(auto i = 0; i < num; i++) {
-                pqid(&qid[i]);
+            constexpr bool unpackRequested() const noexcept {
+                return _mode == Mode::Unpack;
             }
-        }
-        void pqid(Qid* value) { packUnpack(value); }
-        void pqid(Qid& value) { packUnpack(value); }
-        void pstat(Stat* value) { packUnpack(value); }
-        void pstat(Stat& value) { packUnpack(value); }
-        void pfcall(Fcall* value) { packUnpack(value); }
-        void pfcall(Fcall& value) { packUnpack(value); }
-        Msg();
-        Msg(char*, uint, Mode);
-        ~Msg();
-        using Action = std::function<void(Msg&)>;
-        void packUnpack(Action pack, Action unpack);
-        template<typename T>
-        void packUnpack(T& value) noexcept {
-            using K = std::decay_t<T>;
-            static_assert(!std::is_same_v<K, Msg>, "This would cause an infinite loop!");
-            if constexpr (std::is_same_v<K, uint8_t>) {
-                pu8(&value);
-            } else if constexpr (std::is_same_v<K, uint16_t>) {
-                pu16(&value);
-            } else if constexpr (std::is_same_v<K, uint32_t>) {
-                pu32(&value);
-            } else if constexpr (std::is_same_v<K, uint64_t>) {
-                pu64(&value);
-            } else {
-                value.packUnpack(*this);
+            constexpr bool packRequested() const noexcept {
+                return _mode == Mode::Pack;
             }
-        }
-        template<typename T>
-        void packUnpack(T* value) noexcept {
-            using K = std::decay_t<T>;
-            static_assert(!std::is_same_v<K, Msg>, "This would cause an infinite loop!");
-            if constexpr (std::is_same_v<K, uint8_t>) {
-                pu8(value);
-            } else if constexpr (std::is_same_v<K, uint16_t>) {
-                pu16(value);
-            } else if constexpr (std::is_same_v<K, uint32_t>) {
-                pu32(value);
-            } else if constexpr (std::is_same_v<K, uint64_t>) {
-                pu64(value);
-            } else {
-                value->packUnpack(*this);
+            constexpr Mode getMode() const noexcept { 
+                return _mode;
             }
-        }
-        template<typename ... Args>
-        void packUnpackMany(Args&& ... fields) noexcept {
-            (packUnpack(std::forward<Args>(fields)), ...);
-        }
-        constexpr bool unpackRequested() const noexcept {
-            return _mode == Mode::Unpack;
-        }
-        constexpr bool packRequested() const noexcept {
-            return _mode == Mode::Pack;
-        }
-        constexpr Mode getMode() const noexcept { 
-            return _mode;
-        }
-        void setMode(Mode mode) noexcept {
-            this->_mode = mode;
-        }
+            void setMode(Mode mode) noexcept {
+                this->_mode = mode;
+            }
         public:
             void alloc(uint n);
             uint pack(Fcall& value);

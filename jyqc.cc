@@ -3,11 +3,10 @@
  */
 #define JYQ_NO_P9_
 #define JYQ_P9_STRUCTS
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <unistd.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 #include <string>
 #include <list>
 #include <functional>
