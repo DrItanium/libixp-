@@ -27,18 +27,12 @@
  *   not modified.
  */
 
-#ifndef SUN_LEN
-/* From FreeBSD's sys/su.h */
-#define SUN_LEN(su) \
-	(sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
-#endif
 namespace jyq {
 namespace {
 std::string
-get_port(const std::string& addr) {
+getPort(const std::string& addr) {
     if (auto spos = addr.find('!'); spos == std::string::npos) {
-        wErrorString("no port provided");
-        return std::string();
+        throw Exception("no port provided");
     } else {
         return addr.substr(spos);
     }
@@ -78,39 +72,41 @@ dial_unix(const std::string& address) {
 
 int
 announce_unix(const std::string& file) {
-	const int yes = 1;
 	sockaddr_un sa;
 	socklen_t salen;
 
 	signal(SIGPIPE, SIG_IGN);
 
-	int fd = sock_unix(file, &sa, &salen);
-	if(fd == -1)
-		return fd;
+    if (int fd = sock_unix(file, &sa, &salen); fd == -1) {
+        return fd;
+    } else {
+        auto fail = [](int fd) {
+            ::close(fd);
+            return -1;
+        };
+	    const int yes = 1;
+        if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void*)&yes, sizeof yes) < 0) {
+            return fail(fd);
+        }
+        unlink(file.c_str());
+        if(bind(fd, (sockaddr*)&sa, salen) < 0) {
+            return fail(fd);
+        }
+        chmod(file.c_str(), S_IRWXU);
+        if(::listen(fd, maximum::Cache) < 0) {
+            return fail(fd);
+        }
 
-	if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void*)&yes, sizeof yes) < 0)
-		goto fail;
+        return fd;
+    }
 
-	unlink(file.c_str());
-	if(bind(fd, (sockaddr*)&sa, salen) < 0)
-		goto fail;
-
-	chmod(file.c_str(), S_IRWXU);
-	if(::listen(fd, maximum::Cache) < 0)
-		goto fail;
-
-	return fd;
-
-fail:
-	::close(fd);
-	return -1;
 }
 
 template<bool announce>
 addrinfo*
 alookup(const std::string& host) {
 	/* Truncates host at '!' */
-    if (auto port = get_port(host); !port.empty()) {
+    if (auto port = getPort(host); port.empty()) {
         return nullptr;
     } else {
         bool useHost = true;
@@ -169,44 +165,45 @@ dial_tcp(const std::string& host) {
 
 int
 announce_tcp(const std::string& host) {
-	addrinfo *ai, *aip;
-	int fd;
+    if (addrinfo* aip = alookup<true>(host); !aip) {
+        return -1;
+    } else {
+        int fd = 0;
+        /* Probably don't need to loop */
+        for(addrinfo* ai = aip; ai; ai = ai->ai_next) {
+            fd = ai_socket(ai);
+            if(fd == -1) {
+                continue;
+            }
 
-	aip = alookup<true>(host);
-    if (!aip)
-		return -1;
+            if(bind(fd, ai->ai_addr, ai->ai_addrlen) < 0) {
+                ::close(fd);
+                fd = -1;
+                continue;
+            }
 
-	/* Probably don't need to loop */
-	for(ai = aip; ai; ai = ai->ai_next) {
-		fd = ai_socket(ai);
-		if(fd == -1)
-			continue;
+            if(::listen(fd, maximum::Cache) < 0) {
+                ::close(fd);
+                fd = -1;
+                continue;
+            }
+            break;
+        }
 
-		if(bind(fd, ai->ai_addr, ai->ai_addrlen) < 0)
-			goto fail;
-
-		if(::listen(fd, maximum::Cache) < 0)
-			goto fail;
-		break;
-	fail:
-		::close(fd);
-		fd = -1;
-	}
-
-	freeaddrinfo(aip);
-	return fd;
+        freeaddrinfo(aip);
+        return fd;
+    }
 }
 
 } // end namespace
 
 std::tuple<std::string, std::string>
 Connection::decompose(const std::string& address) {
-    std::string _address(address);
-	if (auto addrPos = _address.find('!'); addrPos == std::string::npos) {
+	if (auto addrPos = address.find('!'); addrPos == std::string::npos) {
         throw Exception("no address type defined!");
     } else {
-        std::string type(_address.substr(0, addrPos));
-        return std::make_tuple(_address.substr(0, addrPos), _address.substr(addrPos+1));
+        std::string type(address.substr(0, addrPos));
+        return std::make_tuple(address.substr(0, addrPos), address.substr(addrPos+1));
 	}
 }
 
@@ -325,11 +322,11 @@ static Connection::CreatorRegistrar tcpConnection("tcp", dial_tcp, announce_tcp)
 static Connection::CreatorRegistrar tcpGdbConnection("\\tcp", dial_tcp, announce_tcp);
 static Connection::CreatorRegistrar debugConnection("debug", 
         [](const auto& address) {
-            std::cout << "Dial address: " << address << std::endl;
+            std::cout << "dial address: " << address << std::endl;
             return -1;
         },
         [](const auto& address) {
-            std::cout << "Announce address: " << address << std::endl;
+            std::cout << "announce address: " << address << std::endl;
             return -1;
         });
 

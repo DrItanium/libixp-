@@ -59,8 +59,7 @@ Connection::mread(Msg& msg, size_t count) {
     //std::cout << "fd = " << fd << std::endl;
 	auto n = msg.getEnd() - msg.getPos();
 	if (n <= 0) {
-        wErrorString("buffer full");
-		return -1;
+        throw Exception("buffer full");
 	}
 	if(n > count) {
 		n = count;
@@ -99,25 +98,22 @@ Connection::recvmsg(Msg& msg) {
 	msg.setEnd(msg.getData() + msg.size());
     if (readn(msg, SSize) != SSize) {
         return 0;
+    } else {
+        msg.pointToFront();
+        uint32_t msize = 0;
+        msg.pu32(&msize);
+
+        uint32_t size = msize - SSize;
+        if(size >= msg.getEnd()- msg.getPos()) {
+            throw Exception("message too large");
+        }
+        if (readn(msg, size) != size) {
+            throw Exception("message incomplete");
+        }
+
+        msg.setEnd(msg.getPos());
+        return msize;
     }
-
-    msg.pointToFront();
-    uint32_t msize;
-    msg.pu32(&msize);
-
-	uint32_t size = msize - SSize;
-	if(size >= msg.getEnd()- msg.getPos()) {
-        wErrorString("message too large");
-		return 0;
-	}
-    if (readn(msg, size) != size) {
-        wErrorString("message incomplete");
-		return 0;
-	}
-
-    msg.setEnd(msg.getPos());
-	return msize;
-
 }
 
 
