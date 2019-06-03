@@ -44,7 +44,7 @@ sock_unix(const std::string& address, sockaddr_un *sa, socklen_t *salen) {
 	memset(sa, 0, sizeof *sa);
 
 	sa->sun_family = AF_UNIX;
-	strncpy(sa->sun_path, address.c_str(), sizeof sa->sun_path);
+    address.copy(sa->sun_path, sizeof(sa->sun_path));
 	*salen = SUN_LEN(sa);
 
 	if (auto fd = socket(AF_UNIX, SOCK_STREAM, 0); fd < 0) {
@@ -111,16 +111,16 @@ alookup(const std::string& host) {
     } else {
         bool useHost = true;
         addrinfo hints;
-        addrinfo* ret;
-        memset(&hints, 0, sizeof hints);
+        addrinfo* ret = nullptr;
+        std::memset(&hints, 0, sizeof(hints));
+        /// @todo figure out how to zero out a c structure without memset
         hints.ai_family = AF_INET;
         hints.ai_socktype = SOCK_STREAM;
 
         if constexpr (announce) {
             hints.ai_flags = AI_PASSIVE;
-            if (!host.compare("*")) {
-                useHost = false;
-            }
+            // was originally if !host.compare("*") then useHost = false
+            useHost = host.compare("*");
         }
 
         if (int err = getaddrinfo(useHost ? host.c_str() : nullptr, port.c_str(), &hints, &ret); err) {
@@ -143,23 +143,34 @@ dial_tcp(const std::string& host) {
         return -1;
     } else {
         int fd;
+        // delay throwing until the last possible point since we have to go
+        // through a set of connections
+        std::optional<jyq::Exception> potentialError = std::nullopt;
         for(auto ai = aip; ai; ai = ai->ai_next) {
             fd = ai_socket(ai);
             if(fd == -1) {
-                wErrorString("socket: ", strerror(errno));
+                potentialError.emplace("socket: ", strerror(errno));
                 continue;
             }
 
-            if(connect(fd, ai->ai_addr, ai->ai_addrlen) == 0)
+            if(connect(fd, ai->ai_addr, ai->ai_addrlen) == 0) {
+                // clear any potential errors since we got there successfully
+                potentialError.reset();
                 break;
+            }
 
-            wErrorString("connect: ", strerror(errno));
             ::close(fd);
             fd = -1;
+            potentialError.emplace("connect: ", strerror(errno));
         }
+        
 
         freeaddrinfo(aip);
-        return fd;
+        if (potentialError) {
+            throw *potentialError;
+        } else {
+            return fd;
+        }
     }
 }
 
