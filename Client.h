@@ -87,7 +87,7 @@ namespace jyq {
             void puttag(Rpc* r) { return puttag(*r); }
             bool sendrpc(Rpc& r, Fcall& f);
         private:
-            Fcall* muxrecv();
+            std::unique_ptr<Fcall> muxrecv();
             void electmuxer();
             void dispatchandqlock(std::shared_ptr<Fcall> f, Lock&);
             void allocmsg(int n);

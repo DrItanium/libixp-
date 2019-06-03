@@ -14,7 +14,7 @@
 namespace jyq {
 RpcBody::RpcBody() : _tag(0), _p(nullptr), _waiting(true), _async(false) { }
 
-Fcall*
+std::unique_ptr<Fcall>
 Client::muxrecv()
 {
 	//Fcall *f = nullptr;
@@ -22,8 +22,7 @@ Client::muxrecv()
     if (fd.recvmsg(_rmsg) == 0) {
         return nullptr;
     }
-	if(auto f = new Fcall(); _rmsg.unpack(*f) == 0) {
-        delete f;
+	if(auto f = std::make_unique<Fcall>(); _rmsg.unpack(*f) == 0) {
         return nullptr;
 	} else {
         return f;
@@ -181,7 +180,7 @@ Client::muxrpc(Fcall& tx)
         muxer = r;
 		while(!r->getContents().getP()){
             currentLock.unlock();
-            p.reset(muxrecv());
+            p.reset(muxrecv().release());
             if (!p) {
 				/* eof -- just give up and pass the buck */
                 currentLock.lock();
