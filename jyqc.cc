@@ -317,7 +317,7 @@ main(int argc, char *argv[]) {
             }
         }
 
-        if (client.reset(jyq::Client::mount(address)); !client) {
+        if (client = jyq::Client::mount(address); !client) {
             throw jyq::Exception("Could not mount ", address);
         } else {
             if (auto result = etab.find(etabEntry); result != etab.end()) {

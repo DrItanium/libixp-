@@ -277,12 +277,12 @@ Client::~Client() {
  * See also:
  *	F<open>, F<create>, F<remove>, F<unmount>
  */
-Client*
+std::unique_ptr<Client>
 Client::mountfd(const Connection& fd) {
     FVersion ver;
     ver.setType(FType::TVersion);
 	Fcall fcall;
-    auto c = new Client(fd);
+    auto c = std::make_unique<Client>(fd);
     c->allocmsg(256);
 	c->_lastfid = RootFid;
 	/* Override tag matching on TVersion */
@@ -294,14 +294,12 @@ Client::mountfd(const Connection& fd) {
 
     fcall._storage = ver;
 	if(!c->dofcall(fcall)) {
-        delete c;
 		return nullptr;
 	}
 
     if (fcall.getVersion().getVersion() != Version
 	|| fcall.getVersion().size() > maximum::Msg) {
 		wErrorString("bad 9P version response");
-        delete c;
 		return nullptr;
 	}
 
@@ -319,14 +317,13 @@ Client::mountfd(const Connection& fd) {
     contents.setAname("");
     fcall._storage = contents;
 	if(!c->dofcall(fcall)) {
-        delete c;
 		return nullptr;
 	}
 
 	return c;
 }
 
-Client*
+std::unique_ptr<Client>
 Client::mount(const char *address) {
     if (Connection fd = Connection::dial(address); !fd.isLegal()) {
         return nullptr;
@@ -335,7 +332,7 @@ Client::mount(const char *address) {
     }
 }
 
-Client*
+std::unique_ptr<Client>
 Client::nsmount(const char *name) {
     std::string address(getNamespace());
 	if(!address.empty()) {
