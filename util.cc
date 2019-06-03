@@ -17,19 +17,21 @@
 #include "util.h"
 
 namespace jyq {
-const std::string&
-_user() {
-    static std::string user;
+namespace {
+    const std::string&
+        _user() {
+            static std::string user;
 
-	if(user.empty()) {
-		if (auto pw = getpwuid(getuid()); pw) {
-			user = strdup(pw->pw_name);
+            if(user.empty()) {
+                if (auto pw = getpwuid(getuid()); pw) {
+                    user = pw->pw_name;
+                }
+            }
+            if(user.empty()) {
+                user = "none";
+            }
+            return user;
         }
-	}
-	if(user.empty()) {
-		user = "none";
-    }
-	return user;
 }
 
 bool 
@@ -46,12 +48,10 @@ rmkdir(const std::string& path, int mode) {
 
 static std::string
 ns_display() {
-    std::string newPath;
 
 	if (auto disp = std::getenv("DISPLAY"); !disp || disp[0] == '\0') {
-        wErrorString("$DISPLAY is unset");
-        return "";
-	} else {
+        throw Exception("$DISPLAY is unset");
+    } else {
         std::string displayVariable(disp);
         if (auto subComponent = displayVariable.substr(displayVariable.length() - 2); 
                 (displayVariable != subComponent) && 
@@ -59,21 +59,18 @@ ns_display() {
             // TODO strcmp must be replaced!
             displayVariable = displayVariable.substr(0, displayVariable.length() - 2);
         }
-        newPath = smprint("/tmp/ns.", _user(), ".", displayVariable);
+        if (std::string newPath = smprint("/tmp/ns.", _user(), ".", displayVariable); !rmkdir(newPath.c_str(), 0700)) {
+            return "";
+        } else if(struct stat st; stat(newPath.c_str(), &st)) {
+            throw Exception("Cannot stat Namespace path '", newPath, "'");
+        } else if(getuid() != st.st_uid) {
+            throw Exception("Namespace path '", newPath, "' exists but is not owned by you");
+        } else if((st.st_mode & 077) && chmod(newPath.c_str(), st.st_mode & ~077)) {
+            throw Exception("Namespace path '", newPath, "' exists, but has wrong permissions");
+        } else {
+            return newPath;
+        }
     }
-
-	if(!rmkdir(newPath.c_str(), 0700)) {
-
-    } else if(struct stat st; stat(newPath.c_str(), &st)) {
-        throw Exception("Cannot stat Namespace path '", newPath, "'");
-    } else if(getuid() != st.st_uid) {
-        throw Exception("Namespace path '", newPath, "' exists but is not owned by you");
-    } else if((st.st_mode & 077) && chmod(newPath.c_str(), st.st_mode & ~077)) {
-        throw Exception("Namespace path '", newPath, "' exists, but has wrong permissions");
-    } else {
-		return newPath;
-    }
-    return "";
 }
 
 /**
