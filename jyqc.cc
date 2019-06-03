@@ -15,12 +15,24 @@
 #include <list>
 #include <map>
 #include <sstream>
+#include <boost/program_options.hpp>
 #include "jyq.h"
 
 
 namespace {
+boost::program_options::options_description genericOptions("Options");
+
 jyq::Client *client;
 
+void
+setupGenericOptions() {
+    genericOptions.add_options()
+        ("help", "produce help message")
+        ("version,v", "print version and exit")
+        ("address,a", 
+            boost::program_options::value<std::string>()->default_value(""),
+         "Address to connect to, form is 'kind!address'");
+}
 void
 usage(int errorCode = 1) {
     jyq::print(std::cerr, 
@@ -290,7 +302,7 @@ std::map<std::string, ServiceFunction> etab = {
 
 int
 main(int argc, char *argv[]) {
-
+    
 	auto address = getenv("JYQ_ADDRESS");
 	ARGBEGIN{
 	case 'v':
