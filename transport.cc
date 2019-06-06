@@ -81,7 +81,6 @@ Connection::sendmsg(Msg& msg) {
 				continue;
             }
             throw Exception("broken pipe");
-			return 0;
 		} else {
             msg.advancePosition(r);
         }
